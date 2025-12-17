@@ -51,7 +51,7 @@ A comprehensive web-based mental health support platform designed for Malaysian 
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/MentalMind.git
+git clone https://github.com/zhengyu89/MentalMind.git
 ```
 
 ### 2. Install Required VS Code Extensions
