@@ -175,6 +175,7 @@ This project is developed for educational purposes as part of the Internet Progr
 - Chu Chen Qing - Developer
 - Teow Zi Xian - Developer
 - Tan Zhen Li - UI/UX Designer
+- Benjamin Chew Jun Jie - Developer
 
 ---
 
