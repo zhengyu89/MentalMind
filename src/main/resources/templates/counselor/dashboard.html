@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Counselor Dashboard - MindWell')}">
+</head>
+
+<body
+    class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('dashboard')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header
+                class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <h2 class="text-2xl font-bold">Dashboard</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Welcome back, Pn. Nur
+                        Aisyah</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    <img alt="Counselor" class="w-10 h-10 rounded-full"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAybdscvpFX0XfT4U2HZdV2KuLuT6-elKaEc2LasnS5AXSrnjDMLlbGhKK2dVD0cByQ-kqmY_qVkxWaoSXJdWzpWVZnKcWLKEjK-IeZ4XEDNfuVw161Ed6Ld7pknDqnlBBOTP3WZEVaYBULW8miXI5lARNfrh8kvYy7RiE-EeCiark_DUwtE0pkzJ4gVSc2Kbj4qQ9wrhK6o4Jqem5Gr5IvMUZVjyGdlSNdNm0gYQ3q8vN8QG3qvZmF6ZWio6GIPzukt__Mf1pBho0C" />
+                </div>
+            </header>
+
+            <div class="p-8">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary">event_available</span>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold">5</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Today's
+                                    Appointments</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-amber-500">pending_actions</span>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold">3</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Pending
+                                    Requests</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-red-500">warning</span>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold">2</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Flagged
+                                    Students</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-green-500">groups</span>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold">45</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Active
+                                    Students</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Upcoming Appointments -->
+                    <div
+                        class="lg:col-span-2 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold">Today's Schedule</h3>
+                            <a th:href="@{/counselor/appointments}"
+                                class="text-primary text-sm font-medium hover:underline">View All</a>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                <div class="text-center">
+                                    <p class="text-lg font-bold text-primary">10:00</p>
+                                    <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">AM</p>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Ahmad Danial</p>
+                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Follow-up
+                                        session - Anxiety management</p>
+                                </div>
+                                <button
+                                    class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-indigo-700">Start</button>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                <div class="text-center">
+                                    <p class="text-lg font-bold">11:30</p>
+                                    <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">AM</p>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Nur Farisya</p>
+                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Initial
+                                        consultation</p>
+                                </div>
+                                <span
+                                    class="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-sm rounded-lg">Upcoming</span>
+                            </div>
+                            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                <div class="text-center">
+                                    <p class="text-lg font-bold">2:00</p>
+                                    <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">PM</p>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Muhammad Hafiz</p>
+                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Academic
+                                        stress counseling</p>
+                                </div>
+                                <span
+                                    class="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-sm rounded-lg">Upcoming</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flagged Students -->
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-semibold">Flagged Students</h3>
+                            <span
+                                class="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div
+                                class="p-4 border-2 border-red-200 dark:border-red-900 rounded-lg bg-red-50 dark:bg-red-900/20">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <img alt="Student" class="w-10 h-10 rounded-full"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqZ6qQjWEuRB0pTQP6JMsaDeRtzgwRT1PS8A-YD5cBDtLtfxMr5wyqh1AYBksBZAG0ObH1WD6t2E3JTBJ8Blzgk4ptVEo4wZkw8tYk1tKM2x-lKz6E_bB-cE441U1LKU8Nrx-onqFcFPiHeQAjquBDqp2V5cDY4lH8yTndnDuRLBF7T-m1hxrimGrdZB7hTIByT0_Bduh1HlMCh5RknXsoqh-cWqpxaSOuwQqT3XxkxMOnOn_PMeUug7YYbSn4R-0aacwXqoNaRw3N" />
+                                    <div>
+                                        <p class="font-semibold">Amir Syafiq</p>
+                                        <p class="text-xs text-red-600">High Risk - GAD-7: 18</p>
+                                    </div>
+                                </div>
+                                <a href="#" class="text-primary text-sm font-medium hover:underline">View Profile →</a>
+                            </div>
+                            <div
+                                class="p-4 border-2 border-amber-200 dark:border-amber-900 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <img alt="Student" class="w-10 h-10 rounded-full"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3LjyXbBy_qVvL_N-8q5fgVu-haNd9fgBBFxvsRfa1tYwaQCqW2ojYGxT_TDLtJgfm207Eitb7HE5nKgu7o5Ac6xsBUXPaX7JUVpeaRnx32DBRC5s72zF8-7dRyd2VABxBzJntBUuZeYcMVK9FhIRFmeDvyw0byRktK4DL6h0Dwfh4-n3ROXGjuh1myFqOowDO7gxb-aAGgZoJuJjYZBYnyA70Ny5KUhBMvvH0ZfTHbUwEs6XF_KGEWzOxwjGZJQpxKVr4cqMvEYAo" />
+                                    <div>
+                                        <p class="font-semibold">Siti Khadijah</p>
+                                        <p class="text-xs text-amber-600">Moderate Risk - PHQ-9: 12</p>
+                                    </div>
+                                </div>
+                                <a href="#" class="text-primary text-sm font-medium hover:underline">View Profile →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Assessments -->
+                <div
+                    class="mt-8 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold">Recent Student Assessments</h3>
+                        <a th:href="@{/counselor/students}"
+                            class="text-primary text-sm font-medium hover:underline">View All Students</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-border-light dark:border-border-dark">
+                                    <th
+                                        class="text-left py-3 px-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                        Student</th>
+                                    <th
+                                        class="text-left py-3 px-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                        Assessment</th>
+                                    <th
+                                        class="text-left py-3 px-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                        Score</th>
+                                    <th
+                                        class="text-left py-3 px-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                        Date</th>
+                                    <th
+                                        class="text-left py-3 px-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                        Risk</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-border-light dark:border-border-dark">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img alt="Student" class="w-8 h-8 rounded-full"
+                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3LHfbcdwLaTLI60k0wic323QVott6STHg6CSNJkKYokVtKZNlh1bgP9WlQ5V-9H-gDX5o56ir1uDKWF8xxAzgpLlPUAYaQ_Hf0c8TWn9qYBckDqq14YGBNPVKQhuIuZ9juqe5tbVvsSZfCJe2HhlR77KfYbpVgK77GAHOi-8JdsgJUz6PTk0S-tWtngMbdp9_mJDLiC7UIT8eYDXhjwmry7BFHFzcgkCKP1hc2_NnjgyKVOrypdfcmFaj8HBK7EpGWW3uoveLPlw3" />
+                                            <span>Ahmad Danial</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">PSS-4</td>
+                                    <td class="py-3 px-4">8/16</td>
+                                    <td class="py-3 px-4 text-text-secondary-light dark:text-text-secondary-dark">Today
+                                    </td>
+                                    <td class="py-3 px-4"><span
+                                            class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 text-xs font-semibold rounded-full">Moderate</span>
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-border-light dark:border-border-dark">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img alt="Student" class="w-8 h-8 rounded-full"
+                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyeBxRRBy6_m_akwvqwfX3lmPH2tAdOKDy7jhoG2fcWhQ32j3HCIeslVZC2rmXkqWbvw5g27nddH6CHlAbErDt_2cfKtbOmX36cTnq2mN6dwPGRzbmoVwc1YudwcNuuf5V0cjSa_afadFiIZ2hAiq54Gn35uGdD78QasZb1J-ckWB5bxC4hi4noFvkYW-F0Ib40VbIKGYCgxU4Q7q0fzR04fph1UVVRSvPa0D9DlOu65LfGN5RPIXr4PTslGuR8IwivtjUbLqMNBDo" />
+                                            <span>Nurul Izzah</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">GAD-7</td>
+                                    <td class="py-3 px-4">5/21</td>
+                                    <td class="py-3 px-4 text-text-secondary-light dark:text-text-secondary-dark">
+                                        Yesterday</td>
+                                    <td class="py-3 px-4"><span
+                                            class="px-2 py-1 bg-green-100 dark:bg-green-900/50 text-green-600 text-xs font-semibold rounded-full">Low</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <img alt="Student" class="w-8 h-8 rounded-full"
+                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqZ6qQjWEuRB0pTQP6JMsaDeRtzgwRT1PS8A-YD5cBDtLtfxMr5wyqh1AYBksBZAG0ObH1WD6t2E3JTBJ8Blzgk4ptVEo4wZkw8tYk1tKM2x-lKz6E_bB-cE441U1LKU8Nrx-onqFcFPiHeQAjquBDqp2V5cDY4lH8yTndnDuRLBF7T-m1hxrimGrdZB7hTIByT0_Bduh1HlMCh5RknXsoqh-cWqpxaSOuwQqT3XxkxMOnOn_PMeUug7YYbSn4R-0aacwXqoNaRw3N" />
+                                            <span>Amir Syafiq</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">GAD-7</td>
+                                    <td class="py-3 px-4">18/21</td>
+                                    <td class="py-3 px-4 text-text-secondary-light dark:text-text-secondary-dark">2 days
+                                        ago</td>
+                                    <td class="py-3 px-4"><span
+                                            class="px-2 py-1 bg-red-100 dark:bg-red-900/50 text-red-600 text-xs font-semibold rounded-full">High</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

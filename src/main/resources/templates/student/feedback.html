@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Feedback - MindWell')}">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-slate-300 antialiased">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-student :: sidebar('feedback')}"></div>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Feedback & Support</h2>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Help us improve MindWell by sharing your thoughts.
+                </p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <div
+                        class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-6">Submit Feedback</h3>
+                        <form id="feedbackForm" onsubmit="submitFeedback(event)">
+                            <!-- Feedback Type -->
+                            <div class="mb-6">
+                                <label
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Feedback
+                                    Type</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="type" value="feedback" class="peer hidden" checked />
+                                        <div
+                                            class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all text-center">
+                                            <span
+                                                class="material-symbols-outlined text-2xl text-slate-400 peer-checked:text-primary mb-1">rate_review</span>
+                                            <p class="text-sm font-medium">Feedback</p>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="type" value="bug" class="peer hidden" />
+                                        <div
+                                            class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-red-500 peer-checked:bg-red-50 dark:peer-checked:bg-red-900/30 transition-all text-center">
+                                            <span
+                                                class="material-symbols-outlined text-2xl text-slate-400 peer-checked:text-red-500 mb-1">bug_report</span>
+                                            <p class="text-sm font-medium">Bug Report</p>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="type" value="suggestion" class="peer hidden" />
+                                        <div
+                                            class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 transition-all text-center">
+                                            <span
+                                                class="material-symbols-outlined text-2xl text-slate-400 peer-checked:text-amber-500 mb-1">lightbulb</span>
+                                            <p class="text-sm font-medium">Suggestion</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Subject -->
+                            <div class="mb-4">
+                                <label
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Subject</label>
+                                <input type="text" id="feedbackSubject" placeholder="Brief summary of your feedback"
+                                    class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary"
+                                    required />
+                            </div>
+
+                            <!-- Details -->
+                            <div class="mb-6">
+                                <label
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Details</label>
+                                <textarea id="feedbackDetails" rows="5"
+                                    placeholder="Please provide as much detail as possible..."
+                                    class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary"
+                                    required></textarea>
+                            </div>
+
+                            <!-- Submit -->
+                            <button type="submit" id="submitBtn"
+                                class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">send</span>
+                                Submit Feedback
+                            </button>
+                        </form>
+
+                        <!-- Success State -->
+                        <div id="successState" class="hidden text-center py-8">
+                            <div
+                                class="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="material-symbols-outlined text-3xl text-green-500">check_circle</span>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Thank You!</h4>
+                            <p class="text-slate-500 mb-6">Your feedback has been submitted successfully. We appreciate
+                                your input!</p>
+                            <button onclick="resetForm()"
+                                class="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700">Submit
+                                Another</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Info -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div
+                        class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                        <h4 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">info</span>
+                            How We Use Feedback
+                        </h4>
+                        <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                            <li class="flex items-start gap-2">
+                                <span
+                                    class="material-symbols-outlined text-green-500 text-base mt-0.5">check_circle</span>
+                                Your feedback helps us improve the platform
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span
+                                    class="material-symbols-outlined text-green-500 text-base mt-0.5">check_circle</span>
+                                Bug reports are reviewed within 24 hours
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span
+                                    class="material-symbols-outlined text-green-500 text-base mt-0.5">check_circle</span>
+                                Suggestions are shared with our team
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div
+                        class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-indigo-100 dark:border-slate-700 p-6">
+                        <h4 class="font-semibold text-slate-800 dark:text-white mb-2">Need Help?</h4>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">If you need immediate assistance or
+                            have questions, contact our support team.</p>
+                        <a href="mailto:support@mindwell.edu.my"
+                            class="text-primary font-medium text-sm hover:underline flex items-center gap-1">
+                            <span class="material-symbols-outlined text-base">mail</span>
+                            support@mindwell.edu.my
+                        </a>
+                    </div>
+
+                    <!-- Recent Submissions -->
+                    <div
+                        class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                        <h4 class="font-semibold text-slate-800 dark:text-white mb-4">Your Recent Submissions</h4>
+                        <div id="recentSubmissions" class="space-y-3 text-sm">
+                            <p class="text-slate-500">No submissions yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let submissions = [];
+
+        function submitFeedback(e) {
+            e.preventDefault();
+
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const subject = document.getElementById('feedbackSubject').value;
+            const details = document.getElementById('feedbackDetails').value;
+
+            // Add to submissions
+            submissions.unshift({
+                type: type,
+                subject: subject,
+                date: new Date().toLocaleDateString('en-MY')
+            });
+
+            // Update recent submissions
+            updateRecentSubmissions();
+
+            // Show success state
+            document.getElementById('feedbackForm').classList.add('hidden');
+            document.getElementById('successState').classList.remove('hidden');
+        }
+
+        function resetForm() {
+            document.getElementById('feedbackForm').reset();
+            document.getElementById('feedbackForm').classList.remove('hidden');
+            document.getElementById('successState').classList.add('hidden');
+        }
+
+        function updateRecentSubmissions() {
+            const container = document.getElementById('recentSubmissions');
+            if (submissions.length === 0) {
+                container.innerHTML = '<p class="text-slate-500">No submissions yet.</p>';
+                return;
+            }
+
+            const typeIcons = {
+                'feedback': '💬',
+                'bug': '🐛',
+                'suggestion': '💡'
+            };
+
+            container.innerHTML = submissions.slice(0, 3).map(s => `
+                <div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                    <span class="text-lg">${typeIcons[s.type]}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium truncate">${s.subject}</p>
+                        <p class="text-xs text-slate-400">${s.date}</p>
+                    </div>
+                    <span class="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">Sent</span>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>

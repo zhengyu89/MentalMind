@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('MindWell - Login')}">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-slate-300 antialiased">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-lg">
+            <div class="text-center mb-8">
+                <div
+                    class="inline-flex items-center justify-center bg-primary/10 dark:bg-primary/20 p-3 rounded-xl mb-4">
+                    <span class="material-symbols-outlined text-primary text-4xl">self_improvement</span>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-800 dark:text-white">Welcome Back</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-2">Sign in to continue your journey to well-being.</p>
+            </div>
+            <div class="bg-white dark:bg-slate-900/70 p-8 rounded-xl shadow-lg backdrop-blur-sm">
+                <!-- Role Toggle -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <button type="button" id="student-btn"
+                        class="flex items-center justify-center w-full p-3 rounded-lg border-2 border-primary bg-primary/10 dark:bg-primary/20 text-primary transition-all duration-300">
+                        <span class="material-symbols-outlined mr-2 filled">school</span>
+                        <span class="font-semibold">Student</span>
+                    </button>
+                    <button type="button" id="counselor-btn"
+                        class="flex items-center justify-center w-full p-3 rounded-lg border-2 border-slate-300 dark:border-slate-700 bg-transparent text-slate-500 dark:text-slate-400 hover:border-primary/50 dark:hover:border-primary/50 hover:text-primary dark:hover:text-primary transition-all duration-300">
+                        <span class="material-symbols-outlined mr-2">medical_services</span>
+                        <span class="font-semibold">Counselor</span>
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <form th:action="@{/login}" method="post" id="login-form">
+                    <input type="hidden" name="role" id="role-input" value="student" />
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5"
+                                for="email">Email or Username</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">person</span>
+                                <input
+                                    class="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary transition-colors"
+                                    id="email" name="email" placeholder="you@example.com" type="email" required />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5"
+                                for="password">Password</label>
+                            <div class="relative">
+                                <span
+                                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">lock</span>
+                                <input
+                                    class="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary transition-colors"
+                                    id="password" name="password" placeholder="••••••••" type="password" required />
+                            </div>
+                            <div class="text-right mt-2">
+                                <a class="text-sm text-primary hover:underline" href="#">Forgot password?</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <button
+                            class="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50 dark:focus:ring-offset-slate-900 transition-transform active:scale-[0.98]"
+                            type="submit">
+                            Login
+                        </button>
+                    </div>
+                </form>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        Don't have an account? <a class="font-semibold text-primary hover:underline"
+                            th:href="@{/register}">Register Now</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const studentBtn = document.getElementById('student-btn');
+        const counselorBtn = document.getElementById('counselor-btn');
+        const roleInput = document.getElementById('role-input');
+        const activeClasses = ['border-primary', 'bg-primary/10', 'dark:bg-primary/20', 'text-primary'];
+        const inactiveClasses = ['border-slate-300', 'dark:border-slate-700', 'bg-transparent', 'text-slate-500', 'dark:text-slate-400', 'hover:border-primary/50', 'dark:hover:border-primary/50', 'hover:text-primary', 'dark:hover:text-primary'];
+
+        function toggleRole(activeBtn, inactiveBtn, role) {
+            activeBtn.classList.remove(...inactiveClasses);
+            activeBtn.classList.add(...activeClasses);
+            activeBtn.querySelector('.material-symbols-outlined').classList.add('filled');
+            inactiveBtn.classList.remove(...activeClasses);
+            inactiveBtn.classList.add(...inactiveClasses);
+            inactiveBtn.querySelector('.material-symbols-outlined').classList.remove('filled');
+            roleInput.value = role;
+        }
+
+        studentBtn.addEventListener('click', () => toggleRole(studentBtn, counselorBtn, 'student'));
+        counselorBtn.addEventListener('click', () => toggleRole(counselorBtn, studentBtn, 'counselor'));
+    </script>
+</body>
+
+</html>

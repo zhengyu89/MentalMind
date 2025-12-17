@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Emergency Help - MindWell')}">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-slate-300 antialiased">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-student :: sidebar('emergency')}"></div>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Emergency Header -->
+            <div class="bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl p-8 mb-8 text-white">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="material-symbols-outlined text-5xl">emergency</span>
+                    <div>
+                        <h2 class="text-3xl font-bold">Need Immediate Help?</h2>
+                        <p class="text-red-100 mt-1">You are not alone. Help is available 24/7.</p>
+                    </div>
+                </div>
+                <p class="text-lg text-red-100 max-w-2xl">If you or someone you know is in crisis, please reach out
+                    immediately. These services provide confidential support around the clock.</p>
+            </div>
+
+            <!-- Crisis Hotlines -->
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Emergency Hotlines</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Malaysia Hotline -->
+                <div
+                    class="bg-white dark:bg-slate-900 p-6 rounded-xl border-2 border-red-200 dark:border-red-900 shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div
+                            class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-red-500 text-2xl">call</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 dark:text-white">Befrienders Malaysia</h4>
+                            <p class="text-sm text-slate-500">24/7 Emotional Support</p>
+                        </div>
+                    </div>
+                    <a href="tel:03-7956-8145"
+                        class="flex items-center justify-center gap-2 w-full py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors mb-3">
+                        <span class="material-symbols-outlined">call</span>
+                        03-7956 8145
+                    </a>
+                    <a href="https://wa.me/60167831788" target="_blank"
+                        class="flex items-center justify-center gap-2 w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-colors">
+                        <span class="material-symbols-outlined">chat</span>
+                        WhatsApp
+                    </a>
+                </div>
+
+                <!-- Mental Health Psychosocial -->
+                <div
+                    class="bg-white dark:bg-slate-900 p-6 rounded-xl border-2 border-red-200 dark:border-red-900 shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div
+                            class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-red-500 text-2xl">psychology</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 dark:text-white">MENTARI</h4>
+                            <p class="text-sm text-slate-500">Mental Health Support</p>
+                        </div>
+                    </div>
+                    <a href="tel:15999"
+                        class="flex items-center justify-center gap-2 w-full py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors mb-3">
+                        <span class="material-symbols-outlined">call</span>
+                        15999
+                    </a>
+                    <p class="text-sm text-slate-500 text-center">Government Helpline</p>
+                </div>
+
+                <!-- MIASA -->
+                <div
+                    class="bg-white dark:bg-slate-900 p-6 rounded-xl border-2 border-red-200 dark:border-red-900 shadow-lg">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div
+                            class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-red-500 text-2xl">favorite</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 dark:text-white">MIASA</h4>
+                            <p class="text-sm text-slate-500">Crisis Intervention</p>
+                        </div>
+                    </div>
+                    <a href="tel:03-7781-5045"
+                        class="flex items-center justify-center gap-2 w-full py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors mb-3">
+                        <span class="material-symbols-outlined">call</span>
+                        03-7781 5045
+                    </a>
+                    <p class="text-sm text-slate-500 text-center">Mon-Fri, 9AM-5PM</p>
+                </div>
+            </div>
+
+            <!-- Coping Tips -->
+            <div
+                class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 p-8 rounded-2xl border border-blue-100 dark:border-slate-700">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">tips_and_updates</span>
+                    While You Wait for Help
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-blue-600">air</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800 dark:text-white">Take Deep Breaths</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Breathe in for 4 seconds, hold for 4,
+                                exhale for 4. Repeat.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-green-600">nature</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800 dark:text-white">Ground Yourself</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Name 5 things you see, 4 you hear, 3
+                                you touch, 2 you smell, 1 you taste.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-purple-600">group</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800 dark:text-white">Stay Connected</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Reach out to a trusted friend, family
+                                member, or stay in a safe space.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="material-symbols-outlined text-amber-600">self_improvement</span>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800 dark:text-white">Be Kind to Yourself</h4>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">It's okay to not be okay. Seeking help
+                                is a sign of strength.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

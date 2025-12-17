@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Manage Resources - MindWell Counselor')}">
+</head>
+
+<body
+    class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('resources')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header
+                class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <h2 class="text-2xl font-bold">Resource Management</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Upload and manage mental
+                        health resources</p>
+                </div>
+                <button
+                    class="flex items-center gap-2 bg-primary text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors"
+                    onclick="document.getElementById('uploadModal').classList.remove('hidden')">
+                    <span class="material-symbols-outlined">upload</span>
+                    Upload Resource
+                </button>
+            </header>
+
+            <div class="p-8">
+                <!-- Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
+                        <p class="text-3xl font-bold text-primary">24</p>
+                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Total Resources</p>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
+                        <p class="text-3xl font-bold text-purple-500">8</p>
+                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Videos</p>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
+                        <p class="text-3xl font-bold text-teal-500">10</p>
+                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Articles</p>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
+                        <p class="text-3xl font-bold text-amber-500">6</p>
+                        <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Guides</p>
+                    </div>
+                </div>
+
+                <!-- Resources Table -->
+                <div
+                    class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-border-light dark:border-border-dark">
+                                <th
+                                    class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                    Resource</th>
+                                <th
+                                    class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                    Type</th>
+                                <th
+                                    class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                    Category</th>
+                                <th
+                                    class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                    Views</th>
+                                <th
+                                    class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold">Coping Strategies for Stress</p>
+                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Added Dec
+                                        10, 2024</p>
+                                </td>
+                                <td class="px-6 py-4"><span
+                                        class="text-xs font-medium bg-teal-100 dark:bg-teal-900/50 text-teal-600 px-2 py-1 rounded-full">Guide</span>
+                                </td>
+                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Stress
+                                </td>
+                                <td class="px-6 py-4">234</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span
+                                                class="material-symbols-outlined text-base">edit</span></button>
+                                        <button
+                                            class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"><span
+                                                class="material-symbols-outlined text-base">delete</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr
+                                class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold">Understanding Anxiety</p>
+                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Added Dec
+                                        8, 2024</p>
+                                </td>
+                                <td class="px-6 py-4"><span
+                                        class="text-xs font-medium bg-purple-100 dark:bg-purple-900/50 text-purple-600 px-2 py-1 rounded-full">Video</span>
+                                </td>
+                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Anxiety
+                                </td>
+                                <td class="px-6 py-4">456</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span
+                                                class="material-symbols-outlined text-base">edit</span></button>
+                                        <button
+                                            class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"><span
+                                                class="material-symbols-outlined text-base">delete</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <td class="px-6 py-4">
+                                    <p class="font-semibold">Mindfulness for Beginners</p>
+                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Added Dec
+                                        5, 2024</p>
+                                </td>
+                                <td class="px-6 py-4"><span
+                                        class="text-xs font-medium bg-amber-100 dark:bg-amber-900/50 text-amber-600 px-2 py-1 rounded-full">Article</span>
+                                </td>
+                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
+                                    Mindfulness</td>
+                                <td class="px-6 py-4">321</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex gap-2">
+                                        <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span
+                                                class="material-symbols-outlined text-base">edit</span></button>
+                                        <button
+                                            class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"><span
+                                                class="material-symbols-outlined text-base">delete</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-surface-light dark:bg-surface-dark rounded-xl w-full max-w-lg">
+            <div class="p-6 border-b border-border-light dark:border-border-dark flex justify-between items-center">
+                <h3 class="text-xl font-bold">Upload Resource</h3>
+                <button onclick="document.getElementById('uploadModal').classList.add('hidden')"
+                    class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form class="p-6" th:action="@{/counselor/resources/upload}" method="post">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Title</label>
+                    <input type="text" name="title"
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Type</label>
+                        <select name="type"
+                            class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg">
+                            <option>Article</option>
+                            <option>Video</option>
+                            <option>Guide</option>
+                            <option>PDF</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Category</label>
+                        <select name="category"
+                            class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg">
+                            <option>Anxiety</option>
+                            <option>Depression</option>
+                            <option>Stress</option>
+                            <option>Mindfulness</option>
+                            <option>Relationships</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Description</label>
+                    <textarea name="description" rows="3"
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg"></textarea>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Link / URL</label>
+                    <input type="url" name="url" placeholder="https://..."
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
+                </div>
+                <button type="submit"
+                    class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors">Upload
+                    Resource</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <!-- Counselor Sidebar Fragment -->
+    <aside th:fragment="sidebar(activePage)"
+        class="w-64 flex-shrink-0 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark flex flex-col">
+        <div class="h-16 flex items-center px-6 border-b border-border-light dark:border-border-dark">
+            <span class="material-symbols-outlined text-primary text-3xl">spa</span>
+            <h1 class="text-xl font-bold ml-3 text-text-primary-light dark:text-text-primary-dark">MindWell</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+            <a th:href="@{/counselor/dashboard}"
+                th:classappend="${activePage == 'dashboard'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="ml-4">Dashboard</span>
+            </a>
+            <a th:href="@{/counselor/appointments}"
+                th:classappend="${activePage == 'appointments'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span class="ml-4">Appointments</span>
+            </a>
+            <a th:href="@{/counselor/students}"
+                th:classappend="${activePage == 'students'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">people_alt</span>
+                <span class="ml-4">Students</span>
+            </a>
+            <a th:href="@{/counselor/resources}"
+                th:classappend="${activePage == 'resources'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">library_books</span>
+                <span class="ml-4">Resources</span>
+            </a>
+            <a th:href="@{/counselor/forum}"
+                th:classappend="${activePage == 'forum'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">forum</span>
+                <span class="ml-4">Forum</span>
+            </a>
+            <a th:href="@{/counselor/reports}"
+                th:classappend="${activePage == 'reports'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">assessment</span>
+                <span class="ml-4">Reports</span>
+            </a>
+            <a th:href="@{/counselor/settings}"
+                th:classappend="${activePage == 'settings'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="ml-4">Settings</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t border-border-light dark:border-border-dark">
+            <a th:href="@{/logout}"
+                class="flex items-center px-4 py-2.5 rounded-lg text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="ml-4">Logout</span>
+            </a>
+        </div>
+    </aside>
+</body>
+
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <!-- Student Sidebar Fragment -->
+    <aside th:fragment="sidebar(activePage)"
+        class="w-64 flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+        <div class="p-6 text-center">
+            <h1 class="text-2xl font-bold text-primary">MindWell</h1>
+        </div>
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+            <a th:href="@{/student/dashboard}"
+                th:classappend="${activePage == 'dashboard'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">home</span>
+                <span>Dashboard</span>
+            </a>
+            <a th:href="@{/student/learning}"
+                th:classappend="${activePage == 'learning'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">school</span>
+                <span>Learning</span>
+            </a>
+            <a th:href="@{/student/mood-tracker}"
+                th:classappend="${activePage == 'mood-tracker'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">sentiment_satisfied</span>
+                <span>Mood Tracker</span>
+            </a>
+            <a th:href="@{/student/recommendations}"
+                th:classappend="${activePage == 'recommendations'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">recommend</span>
+                <span>Recommendations</span>
+            </a>
+            <a th:href="@{/student/resources}"
+                th:classappend="${activePage == 'resources'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">menu_book</span>
+                <span>Resources</span>
+            </a>
+            <a th:href="@{/student/forum}"
+                th:classappend="${activePage == 'forum'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">forum</span>
+                <span>Peer Support</span>
+            </a>
+            <a th:href="@{/student/appointments}"
+                th:classappend="${activePage == 'appointments'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">event_available</span>
+                <span>Appointments</span>
+            </a>
+            <a th:href="@{/student/feedback}"
+                th:classappend="${activePage == 'feedback'} ? 'bg-indigo-50 dark:bg-indigo-900/40 text-primary font-semibold' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-xl">rate_review</span>
+                <span>Feedback</span>
+            </a>
+        </nav>
+
+        <!-- Emergency Button -->
+        <div class="px-4 py-3">
+            <a th:href="@{/student/emergency}"
+                class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors shadow-lg">
+                <span class="material-symbols-outlined">emergency</span>
+                <span>Emergency Help</span>
+            </a>
+        </div>
+
+        <!-- User Profile - Malaysian Name -->
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-3">
+                <img alt="Student avatar" class="w-10 h-10 rounded-full"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3LHfbcdwLaTLI60k0wic323QVott6STHg6CSNJkKYokVtKZNlh1bgP9WlQ5V-9H-gDX5o56ir1uDKWF8xxAzgpLlPUAYaQ_Hf0c8TWn9qYBckDqq14YGBNPVKQhuIuZ9juqe5tbVvsSZfCJe2HhlR77KfYbpVgK77GAHOi-8JdsgJUz6PTk0S-tWtngMbdp9_mJDLiC7UIT8eYDXhjwmry7BFHFzcgkCKP1hc2_NnjgyKVOrypdfcmFaj8HBK7EpGWW3uoveLPlw3" />
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-slate-800 dark:text-slate-200 truncate">Ahmad Danial</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Student</p>
+                </div>
+                <a th:href="@{/logout}"
+                    class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                    <span class="material-symbols-outlined">logout</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+</body>
+
+</html>
