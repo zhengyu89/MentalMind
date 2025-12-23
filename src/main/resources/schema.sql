@@ -1,0 +1,25 @@
+-- MentalMind Database Initialization Script
+-- Run this script to create the database and tables
+
+-- Create Database
+CREATE DATABASE IF NOT EXISTS mentalmind;
+USE mentalmind;
+
+-- Create Users Table
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    full_name VARCHAR(255),
+    phone_number VARCHAR(20),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_role (role)
+);
+
+
+
+COMMIT;
