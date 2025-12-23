@@ -20,6 +20,18 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_role (role)
 );
 
+-- Create Mood Entries Table
+CREATE TABLE IF NOT EXISTS mood_entries (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    mood_score INT NOT NULL CHECK (mood_score >= 1 AND mood_score <= 5),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
+);
+
 
 
 COMMIT;
