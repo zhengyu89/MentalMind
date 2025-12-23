@@ -15,11 +15,7 @@
                     <p class="text-slate-500 dark:text-slate-400 mt-1">Keep a daily record of your emotional well-being.
                     </p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button
-                        class="px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Export
-                        Data</button>
-                </div>
+
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -34,19 +30,19 @@
                             your current state.</p>
                         <div class="flex justify-between items-center text-slate-500 dark:text-slate-400 text-3xl"
                             id="moodButtons">
-                            <button aria-label="Terrible" data-mood="1"
+                            <button type="button" aria-label="Terrible" data-mood="1"
                                 class="mood-btn p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
                                 onclick="selectMood(1, this)">😔</button>
-                            <button aria-label="Bad" data-mood="2"
+                            <button type="button" aria-label="Bad" data-mood="2"
                                 class="mood-btn p-2 rounded-full hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors"
                                 onclick="selectMood(2, this)">😟</button>
-                            <button aria-label="Okay" data-mood="3"
+                            <button type="button" aria-label="Okay" data-mood="3"
                                 class="mood-btn p-2 rounded-full hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
                                 onclick="selectMood(3, this)">😐</button>
-                            <button aria-label="Good" data-mood="4"
+                            <button type="button" aria-label="Good" data-mood="4"
                                 class="mood-btn p-2 rounded-full hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors"
                                 onclick="selectMood(4, this)">🙂</button>
-                            <button aria-label="Great" data-mood="5"
+                            <button type="button" aria-label="Great" data-mood="5"
                                 class="mood-btn p-2 rounded-full hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
                                 onclick="selectMood(5, this)">😄</button>
                         </div>
@@ -56,10 +52,27 @@
                         </div>
                         <p id="selectedMoodText" class="text-center text-sm text-primary font-medium mt-4 hidden">
                             Selected: <span id="moodLabel"></span></p>
-                        <button id="logMoodBtn"
-                            class="mt-6 w-full bg-primary text-white font-semibold py-3 px-4 rounded hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                            onclick="logMood()" disabled>Log Today's Mood</button>
+
+                        <!-- Form for Mood Submission -->
+                        <form id="moodForm" action="/student/mood-tracker/log" method="post">
+                            <input type="hidden" id="moodScoreInput" name="moodScore" value="">
+
+                            <!-- Notes Text Input -->
+                            <div class="mt-4">
+                                <label for="notesInput"
+                                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Daily
+                                    Notes (Optional)</label>
+                                <textarea id="notesInput" name="notes" rows="3"
+                                    class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                                    placeholder="How was your day? What made you feel this way?"></textarea>
+                            </div>
+
+                            <button type="submit" id="logMoodBtn"
+                                class="mt-4 w-full bg-primary text-white font-semibold py-3 px-4 rounded hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary dark:focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>Log Today's Mood</button>
+                        </form>
                     </div>
+
 
                     <!-- Stress Self-Assessment Card -->
                     <div
@@ -82,76 +95,101 @@
                     </div>
                 </div>
 
-                <!-- Right Column - Mood History Chart -->
+                <!-- Right Column - Mood History Calendar -->
                 <div
                     class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-semibold text-slate-800 dark:text-white">Your Mood History</h3>
                         <div class="flex items-center gap-2 text-sm">
-                            <button
-                                class="px-3 py-1.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-primary font-medium">Week</button>
-                            <button
-                                class="px-3 py-1.5 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">Month</button>
+                            <a th:href="@{/student/mood-tracker(view='week')}"
+                                th:class="${viewMode == 'week' ? 'px-3 py-1.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-primary font-medium' : 'px-3 py-1.5 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}">Week</a>
+                            <a th:href="@{/student/mood-tracker(view='month')}"
+                                th:class="${viewMode == 'month' ? 'px-3 py-1.5 rounded bg-indigo-100 dark:bg-indigo-900/60 text-primary font-medium' : 'px-3 py-1.5 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}">Month</a>
                         </div>
                     </div>
 
-                    <!-- Mood Chart -->
-                    <div class="h-64 flex items-end justify-between gap-2 px-4 py-6 bg-slate-50 dark:bg-slate-800/50 rounded-lg"
-                        id="moodChart">
-                        <div class="flex flex-col items-center gap-2 flex-1">
-                            <div class="w-full bg-yellow-400 rounded-t-lg transition-all" style="height: 60%"></div>
-                            <span class="text-xl">😐</span>
-                            <span class="text-xs text-slate-500">Mon</span>
+                    <!-- Week View -->
+                    <div th:if="${viewMode == 'week'}" class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
+                        <div class="grid grid-cols-7 gap-2">
+                            <th:block th:each="i : ${#numbers.sequence(6, 0, -1)}">
+                                <div th:with="theDate=${T(java.time.LocalDate).now().minusDays(i)},
+                                             date=${#temporals.format(theDate, 'yyyy-MM-dd')},
+                                             dayName=${#temporals.dayOfWeekNameShort(theDate)},
+                                             dayNum=${theDate.getDayOfMonth()},
+                                             isToday=${i == 0},
+                                             fullDate=${theDate.toString()},
+                                             hasMood=${moodEntriesMap != null and moodEntriesMap.containsKey(theDate.toString())},
+                                             moodEntry=${hasMood ? moodEntriesMap.get(theDate.toString()) : null}"
+                                    class="flex flex-col items-center p-3 rounded-lg transition-all cursor-pointer hover:shadow-md mood-day"
+                                    th:classappend="${isToday ? 'bg-indigo-100 dark:bg-indigo-900/40 ring-2 ring-primary' : 'bg-white dark:bg-slate-700'}"
+                                    th:data-date="${fullDate}" th:data-has-mood="${hasMood}"
+                                    th:data-mood-score="${hasMood ? moodEntry.moodScore : ''}"
+                                    th:data-mood-label="${hasMood ? moodEntry.getMoodLabel() : ''}"
+                                    th:data-mood-emoji="${hasMood ? moodEntry.getMoodEmoji() : ''}"
+                                    th:data-mood-notes="${hasMood and moodEntry.notes != null ? moodEntry.notes : ''}"
+                                    onclick="handleDayClick(this)">
+                                    <span class="text-xs text-slate-500 dark:text-slate-400"
+                                        th:text="${dayName}">Mon</span>
+                                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                                        th:text="${dayNum}">1</span>
+                                    <span class="text-2xl mt-2"
+                                        th:text="${hasMood ? moodEntry.getMoodEmoji() : '—'}">—</span>
+                                </div>
+                            </th:block>
                         </div>
-                        <div class="flex flex-col items-center gap-2 flex-1">
-                            <div class="w-full bg-teal-400 rounded-t-lg transition-all" style="height: 80%"></div>
-                            <span class="text-xl">🙂</span>
-                            <span class="text-xs text-slate-500">Tue</span>
+                    </div>
+
+                    <!-- Month View (Calendar Grid) -->
+                    <div th:if="${viewMode == 'month'}" class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
+                        <div class="text-center mb-4">
+                            <h4 class="text-lg font-semibold text-slate-700 dark:text-slate-300"
+                                th:text="${currentMonthName + ' ' + currentYear}">December 2025</h4>
                         </div>
-                        <div class="flex flex-col items-center gap-2 flex-1">
-                            <div class="w-full bg-green-400 rounded-t-lg transition-all" style="height: 100%"></div>
-                            <span class="text-xl">😄</span>
-                            <span class="text-xs text-slate-500">Wed</span>
+                        <!-- Calendar Header -->
+                        <div class="grid grid-cols-7 gap-1 mb-2">
+                            <div class="text-center text-xs font-medium text-slate-500 dark:text-slate-400 py-2">Sun
+                            </div>
+                            <div class="text-center text-xs font-medium text-slate-500 dark:text-slate-400 py-2">Mon
+                            </div>
+                            <div class="text-center text-xs font-medium text-slate-500 dark:text-slate-400 py-2">Tue
+                            </div>
+                            <div class="text-center text-xs font-medium text-slate-500 dark:text-slate-400 py-2">Wed
+                            </div>
+                            <div class="text-center text-xs font-medium text-slate-500 dark:text-slate-400 py-2">Thu
+                            </div>
+                            <div class="text-center text-xs font-medium text-slate-500 dark:text-slate-400 py-2">Fri
+                            </div>
+                            <div class="text-center text-xs font-medium text-slate-500 dark:text-slate-400 py-2">Sat
+                            </div>
                         </div>
-                        <div class="flex flex-col items-center gap-2 flex-1">
-                            <div class="w-full bg-teal-400 rounded-t-lg transition-all" style="height: 80%"></div>
-                            <span class="text-xl">🙂</span>
-                            <span class="text-xs text-slate-500">Thu</span>
-                        </div>
-                        <div class="flex flex-col items-center gap-2 flex-1">
-                            <div class="w-full bg-green-400 rounded-t-lg transition-all" style="height: 100%"></div>
-                            <span class="text-xl">😄</span>
-                            <span class="text-xs text-slate-500">Fri</span>
-                        </div>
-                        <div class="flex flex-col items-center gap-2 flex-1">
-                            <div class="w-full bg-green-400 rounded-t-lg transition-all" style="height: 100%"></div>
-                            <span class="text-xl">😄</span>
-                            <span class="text-xs text-slate-500">Sat</span>
-                        </div>
-                        <div class="flex flex-col items-center gap-2 flex-1" id="todayMood">
-                            <div class="w-full bg-slate-300 dark:bg-slate-600 rounded-t-lg transition-all border-2 border-dashed border-primary"
-                                style="height: 40%"></div>
-                            <span class="text-xl">❓</span>
-                            <span class="text-xs text-primary font-semibold">Today</span>
-                        </div>
+                        <!-- Calendar Days (generated via JavaScript for flexibility) -->
+                        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+
+                        <!-- Hidden JSON data for JavaScript calendar -->
+                        <script id="moodDataJson" type="application/json" th:if="${moodEntriesMap != null}"
+                            th:inline="text">{<th:block th:each="entry, stat : ${moodEntriesMap}">"[[${entry.key}]]": {"moodScore": [[${entry.value.moodScore}]], "moodLabel": "[[${entry.value.getMoodLabel()}]]", "moodEmoji": "[[${entry.value.getMoodEmoji()}]]", "notes": "[[${entry.value.notes != null ? #strings.replace(entry.value.notes, '\"', '') : ''}]]"}<th:block th:if="${!stat.last}">,</th:block></th:block>}</script>
                     </div>
 
                     <!-- Streak Info -->
                     <div class="mt-6 grid grid-cols-3 gap-4">
                         <div class="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                            <p class="text-2xl font-bold text-primary">7</p>
+                            <p class="text-2xl font-bold text-primary"
+                                th:text="${moodStats?.streak != null ? moodStats.streak : 0}">0</p>
                             <p class="text-sm text-slate-500">Day Streak 🔥</p>
                         </div>
                         <div class="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                            <p class="text-2xl font-bold text-green-500">4.2</p>
+                            <p class="text-2xl font-bold text-green-500"
+                                th:text="${moodStats?.averageMood != null ? moodStats.averageMood : '0.0'}">0.0</p>
                             <p class="text-sm text-slate-500">Avg. Mood</p>
                         </div>
                         <div class="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                            <p class="text-2xl font-bold text-amber-500">😄</p>
+                            <p class="text-2xl font-bold text-amber-500"
+                                th:text="${moodStats?.mostCommonEmoji != null ? moodStats.mostCommonEmoji : '—'}">—</p>
                             <p class="text-sm text-slate-500">Most Common</p>
                         </div>
                     </div>
                 </div>
+
             </div>
         </main>
     </div>
@@ -161,7 +199,7 @@
         <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div
                 class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-900">
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Stress Self-Assessment (PSS-4)</h3>
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Stress Self-Assessment (PSS-10)</h3>
                 <button onclick="document.getElementById('stressModal').classList.add('hidden')"
                     class="text-slate-400 hover:text-slate-600">
                     <span class="material-symbols-outlined">close</span>
@@ -169,10 +207,15 @@
             </div>
             <div class="p-6" id="stressQuestions">
                 <p class="text-sm text-slate-500 mb-6">In the last month, how often have you felt...</p>
+                <p
+                    class="text-xs text-amber-600 dark:text-amber-400 mb-6 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                    ⚠️ Please answer all questions thoughtfully. You can only take this assessment once per day.
+                </p>
 
                 <div class="space-y-6">
+                    <!-- Question 1 -->
                     <div class="stress-q" data-q="1">
-                        <p class="font-medium mb-3">1. Unable to control the important things in your life?</p>
+                        <p class="font-medium mb-3">1. Upset because of something that happened unexpectedly?</p>
                         <div class="flex gap-2 flex-wrap">
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
@@ -192,74 +235,213 @@
                         </div>
                     </div>
 
+                    <!-- Question 2 -->
                     <div class="stress-q" data-q="2">
-                        <p class="font-medium mb-3">2. Confident about your ability to handle personal problems?</p>
+                        <p class="font-medium mb-3">2. Unable to control the important things in your life?</p>
                         <div class="flex gap-2 flex-wrap">
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(2, 4, this)">Never</button>
+                                onclick="selectStress(2, 0, this)">Never</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(2, 3, this)">Almost Never</button>
+                                onclick="selectStress(2, 1, this)">Almost Never</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
                                 onclick="selectStress(2, 2, this)">Sometimes</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(2, 1, this)">Fairly Often</button>
+                                onclick="selectStress(2, 3, this)">Fairly Often</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(2, 0, this)">Very Often</button>
+                                onclick="selectStress(2, 4, this)">Very Often</button>
                         </div>
                     </div>
 
+                    <!-- Question 3 -->
                     <div class="stress-q" data-q="3">
-                        <p class="font-medium mb-3">3. Things were going your way?</p>
+                        <p class="font-medium mb-3">3. Nervous and stressed?</p>
                         <div class="flex gap-2 flex-wrap">
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(3, 4, this)">Never</button>
+                                onclick="selectStress(3, 0, this)">Never</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(3, 3, this)">Almost Never</button>
+                                onclick="selectStress(3, 1, this)">Almost Never</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
                                 onclick="selectStress(3, 2, this)">Sometimes</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(3, 1, this)">Fairly Often</button>
+                                onclick="selectStress(3, 3, this)">Fairly Often</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(3, 0, this)">Very Often</button>
+                                onclick="selectStress(3, 4, this)">Very Often</button>
                         </div>
                     </div>
 
-                    <div class="stress-q" data-q="4">
-                        <p class="font-medium mb-3">4. Difficulties were piling up so high that you could not overcome
-                            them?</p>
+                    <!-- Question 4 (REVERSED) -->
+                    <div class="stress-q" data-q="4" data-reversed="true">
+                        <p class="font-medium mb-3">4. Confident about your ability to handle personal problems? <span
+                                class="text-xs text-green-600">(positive)</span></p>
                         <div class="flex gap-2 flex-wrap">
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(4, 0, this)">Never</button>
+                                onclick="selectStress(4, 4, this)">Never</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(4, 1, this)">Almost Never</button>
+                                onclick="selectStress(4, 3, this)">Almost Never</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
                                 onclick="selectStress(4, 2, this)">Sometimes</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(4, 3, this)">Fairly Often</button>
+                                onclick="selectStress(4, 1, this)">Fairly Often</button>
                             <button
                                 class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
-                                onclick="selectStress(4, 4, this)">Very Often</button>
+                                onclick="selectStress(4, 0, this)">Very Often</button>
+                        </div>
+                    </div>
+
+                    <!-- Question 5 (REVERSED) -->
+                    <div class="stress-q" data-q="5" data-reversed="true">
+                        <p class="font-medium mb-3">5. Things were going your way? <span
+                                class="text-xs text-green-600">(positive)</span></p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(5, 4, this)">Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(5, 3, this)">Almost Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(5, 2, this)">Sometimes</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(5, 1, this)">Fairly Often</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(5, 0, this)">Very Often</button>
+                        </div>
+                    </div>
+
+                    <!-- Question 6 -->
+                    <div class="stress-q" data-q="6">
+                        <p class="font-medium mb-3">6. Could not cope with all the things you had to do?</p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(6, 0, this)">Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(6, 1, this)">Almost Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(6, 2, this)">Sometimes</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(6, 3, this)">Fairly Often</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(6, 4, this)">Very Often</button>
+                        </div>
+                    </div>
+
+                    <!-- Question 7 (REVERSED) -->
+                    <div class="stress-q" data-q="7" data-reversed="true">
+                        <p class="font-medium mb-3">7. Able to control irritations in your life? <span
+                                class="text-xs text-green-600">(positive)</span></p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(7, 4, this)">Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(7, 3, this)">Almost Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(7, 2, this)">Sometimes</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(7, 1, this)">Fairly Often</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(7, 0, this)">Very Often</button>
+                        </div>
+                    </div>
+
+                    <!-- Question 8 (REVERSED) -->
+                    <div class="stress-q" data-q="8" data-reversed="true">
+                        <p class="font-medium mb-3">8. Felt on top of things? <span
+                                class="text-xs text-green-600">(positive)</span></p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(8, 4, this)">Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(8, 3, this)">Almost Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(8, 2, this)">Sometimes</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(8, 1, this)">Fairly Often</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(8, 0, this)">Very Often</button>
+                        </div>
+                    </div>
+
+                    <!-- Question 9 -->
+                    <div class="stress-q" data-q="9">
+                        <p class="font-medium mb-3">9. Angered because of things outside of your control?</p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(9, 0, this)">Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(9, 1, this)">Almost Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(9, 2, this)">Sometimes</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(9, 3, this)">Fairly Often</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(9, 4, this)">Very Often</button>
+                        </div>
+                    </div>
+
+                    <!-- Question 10 -->
+                    <div class="stress-q" data-q="10">
+                        <p class="font-medium mb-3">10. Difficulties were piling up so high that you could not overcome
+                            them?</p>
+                        <div class="flex gap-2 flex-wrap">
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(10, 0, this)">Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(10, 1, this)">Almost Never</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(10, 2, this)">Sometimes</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(10, 3, this)">Fairly Often</button>
+                            <button
+                                class="stress-opt px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                onclick="selectStress(10, 4, this)">Very Often</button>
                         </div>
                     </div>
                 </div>
 
                 <button id="submitStress"
                     class="mt-8 w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    onclick="calculateStress()" disabled>Submit Assessment</button>
+                    onclick="calculateStress()" disabled>Submit Assessment (Answer all 10 questions)</button>
             </div>
 
             <!-- Results -->
@@ -275,8 +457,46 @@
                     <h5 class="font-semibold mb-2">Recommendations:</h5>
                     <ul id="stressRecs" class="text-sm text-slate-600 dark:text-slate-400 space-y-1"></ul>
                 </div>
+                <!-- Hidden form to submit results to backend -->
+                <form id="stressResultForm" action="/student/self-assessment/submit" method="post" class="hidden">
+                    <input type="hidden" id="stressScoreInput" name="score" value="0">
+                </form>
                 <button class="mt-6 w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700"
                     onclick="document.getElementById('stressModal').classList.add('hidden'); resetStressTest()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Detail Modal -->
+    <div id="moodDetailModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md shadow-2xl">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Mood Details</h3>
+                <button onclick="closeMoodDetail()"
+                    class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <span id="moodDetailEmoji" class="text-6xl">😄</span>
+                    <p id="moodDetailDate" class="text-sm text-slate-500 dark:text-slate-400 mt-2">December 23, 2025</p>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg mb-4">
+                    <p class="text-lg font-semibold text-slate-800 dark:text-white text-center">
+                        You were feeling <span id="moodDetailLabel" class="text-primary">Great</span>
+                    </p>
+                </div>
+                <div id="moodDetailNotesContainer" class="hidden">
+                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Your Notes:</h4>
+                    <p id="moodDetailNotes"
+                        class="text-slate-600 dark:text-slate-400 text-sm bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                    </p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="closeMoodDetail()"
+                    class="w-full bg-primary text-white font-semibold py-2 rounded-lg hover:bg-indigo-700 transition-colors">Close</button>
             </div>
         </div>
     </div>
@@ -288,7 +508,7 @@
         <span id="toastMessage">Mood logged!</span>
     </div>
 
-    <script>
+    <script th:inline="javascript">
         let selectedMood = null;
         let stressScores = {};
 
@@ -303,22 +523,8 @@
             document.getElementById('selectedMoodText').classList.remove('hidden');
             document.getElementById('moodLabel').textContent = moodLabels[mood];
             document.getElementById('logMoodBtn').disabled = false;
-        }
-
-        function logMood() {
-            if (!selectedMood) return;
-
-            const today = document.getElementById('todayMood');
-            const bar = today.querySelector('div');
-            const emoji = today.querySelector('span:first-of-type');
-
-            bar.className = `w-full ${moodColors[selectedMood]} rounded-t-lg transition-all`;
-            bar.style.height = (selectedMood * 20) + '%';
-            emoji.textContent = moodEmojis[selectedMood];
-
-            showToast('Mood logged successfully! Keep up the streak 🔥');
-            document.getElementById('logMoodBtn').disabled = true;
-            document.getElementById('logMoodBtn').textContent = 'Mood Logged ✓';
+            // Update the hidden form field with the selected mood score
+            document.getElementById('moodScoreInput').value = mood;
         }
 
         function selectStress(q, score, btn) {
@@ -329,8 +535,10 @@
             });
             btn.classList.add('bg-primary', 'text-white', 'border-primary');
 
-            if (Object.keys(stressScores).length === 4) {
+            // Enable submit when all 10 questions are answered
+            if (Object.keys(stressScores).length === 10) {
                 document.getElementById('submitStress').disabled = false;
+                document.getElementById('submitStress').textContent = 'Submit Assessment';
             }
         }
 
@@ -338,30 +546,64 @@
             const total = Object.values(stressScores).reduce((a, b) => a + b, 0);
             let level, desc, color, recs;
 
-            if (total <= 5) {
+            // PSS-10 scoring: 0-13 = Low, 14-26 = Moderate, 27-40 = High
+            if (total <= 13) {
                 level = 'Low Stress';
-                desc = 'You\'re managing stress well. Keep up the good work!';
+                desc = 'Great job! You\'re managing stress well. Keep up the good work!';
                 color = 'bg-green-500';
-                recs = ['Continue your current coping strategies', 'Practice mindfulness daily', 'Maintain healthy sleep habits'];
-            } else if (total <= 10) {
+                recs = [
+                    'Continue your current healthy habits',
+                    'Practice daily gratitude journaling',
+                    'Maintain your social connections',
+                    'Keep up regular exercise routines'
+                ];
+            } else if (total <= 26) {
                 level = 'Moderate Stress';
                 desc = 'You\'re experiencing some stress. Consider trying relaxation techniques.';
                 color = 'bg-yellow-500';
-                recs = ['Try deep breathing exercises', 'Take regular breaks from work', 'Talk to friends or family', 'Consider our Learning modules on stress management'];
+                recs = [
+                    'Try deep breathing exercises daily',
+                    'Take regular breaks from work/study',
+                    'Talk to friends or family about your feelings',
+                    'Explore our Learning modules on stress management',
+                    'Practice progressive muscle relaxation'
+                ];
             } else {
                 level = 'High Stress';
                 desc = 'Your stress levels are elevated. We recommend seeking support.';
                 color = 'bg-red-500';
-                recs = ['Schedule a counseling appointment', 'Use the Emergency Help resources if needed', 'Practice the grounding techniques in our Resources', 'Prioritize self-care activities'];
+                recs = [
+                    'Schedule a counseling appointment soon',
+                    'Use the Emergency Help resources if needed',
+                    'Practice grounding techniques from our Resources',
+                    'Prioritize self-care activities daily',
+                    'Consider talking to a trusted person about your stress',
+                    'Try to identify and reduce major stressors'
+                ];
             }
 
             document.getElementById('stressQuestions').classList.add('hidden');
             document.getElementById('stressResults').classList.remove('hidden');
             document.getElementById('stressScoreCircle').className = `w-32 h-32 mx-auto rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4 ${color}`;
-            document.getElementById('stressScoreCircle').textContent = total + '/16';
+            document.getElementById('stressScoreCircle').textContent = total + '/40';
             document.getElementById('stressLevel').textContent = level;
             document.getElementById('stressDesc').textContent = desc;
             document.getElementById('stressRecs').innerHTML = recs.map(r => `<li>• ${r}</li>`).join('');
+
+            // Submit to backend via AJAX (no page refresh)
+            fetch('/student/self-assessment/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'score=' + total
+            }).then(response => {
+                if (response.redirected && response.url.includes('error=alreadyCompleted')) {
+                    showToast('You\'ve already taken the assessment today. Results not saved.');
+                }
+            }).catch(error => {
+                console.error('Error saving assessment:', error);
+            });
         }
 
         function resetStressTest() {
@@ -380,7 +622,183 @@
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 3000);
         }
+
+        // Check for success/error query params on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get('success') === 'logged') {
+                showToast('Mood logged successfully! Keep up the streak 🔥');
+                // Update button state
+                const logBtn = document.getElementById('logMoodBtn');
+                if (logBtn) {
+                    logBtn.textContent = 'Mood Logged ✓';
+                    logBtn.disabled = true;
+                }
+            } else if (urlParams.get('success') === 'assessment') {
+                showToast('Assessment saved! Review your results below 📊');
+            } else if (urlParams.get('error')) {
+                const errorMsg = urlParams.get('error');
+                if (errorMsg === 'notAuthenticated') {
+                    showToast('Please log in to track your mood');
+                } else if (errorMsg === 'invalidScore') {
+                    showToast('Invalid score');
+                } else if (errorMsg === 'alreadyCompleted') {
+                    showToast('You\'ve already taken the assessment today. Come back tomorrow! 📅');
+                } else if (errorMsg === 'assessmentFailed') {
+                    showToast('Failed to save assessment. Please try again.');
+                } else {
+                    showToast('Failed to log mood. Please try again.');
+                }
+            }
+
+            // Check if today's mood is already logged (via Thymeleaf)
+            const todaysMood = /*[[${todaysMood?.moodScore}]]*/ null;
+            if (todaysMood) {
+                const logBtn = document.getElementById('logMoodBtn');
+                if (logBtn) {
+                    logBtn.textContent = 'Mood Logged ✓';
+                    logBtn.disabled = true;
+                }
+                // Highlight the mood button
+                const moodBtn = document.querySelector(`[data-mood="${todaysMood}"]`);
+                if (moodBtn) {
+                    moodBtn.classList.add('ring-4', 'ring-primary', 'ring-offset-2');
+                    document.getElementById('selectedMoodText').classList.remove('hidden');
+                    document.getElementById('moodLabel').textContent = moodLabels[todaysMood];
+                }
+            }
+
+            // Generate month calendar grid
+            const calendarGrid = document.getElementById('calendarGrid');
+            if (calendarGrid) {
+                generateCalendar();
+            }
+        });
+
+        // Generate month calendar
+        function generateCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            if (!calendarGrid) return;
+
+            // Get mood data from server
+            const moodData = {};
+            const moodDataEl = document.getElementById('moodDataJson');
+            if (moodDataEl && moodDataEl.textContent) {
+                try {
+                    const parsed = JSON.parse(moodDataEl.textContent);
+                    Object.assign(moodData, parsed);
+                } catch (e) { console.log('No mood data'); }
+            }
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+
+            // First day of the month
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDayOfWeek = firstDay.getDay();
+            const totalDays = lastDay.getDate();
+
+            calendarGrid.innerHTML = '';
+
+            // Empty cells for days before the first day
+            for (let i = 0; i < startDayOfWeek; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'p-2';
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            // Create cells for each day
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = day === today.getDate();
+                const moodEntry = moodData[dateStr];
+
+                const cell = document.createElement('div');
+                cell.className = `flex flex-col items-center p-2 rounded-lg transition-all cursor-pointer hover:shadow-md ${isToday ? 'bg-indigo-100 dark:bg-indigo-900/40 ring-2 ring-primary' : 'bg-white dark:bg-slate-700'}`;
+
+                // Make clickable if mood exists
+                if (moodEntry) {
+                    cell.onclick = () => showMoodDetail(dateStr);
+                }
+
+                const dayNum = document.createElement('span');
+                dayNum.className = 'text-xs font-medium text-slate-600 dark:text-slate-300';
+                dayNum.textContent = day;
+
+                const emoji = document.createElement('span');
+                emoji.className = 'text-lg mt-1';
+                emoji.textContent = moodEntry ? (moodEntry.moodEmoji || moodEmojis[moodEntry.moodScore] || '—') : '—';
+
+                cell.appendChild(dayNum);
+                cell.appendChild(emoji);
+                calendarGrid.appendChild(cell);
+            }
+        }
+
+        // Handle day click from week view (uses data attributes)
+        function handleDayClick(element) {
+            const hasMood = element.dataset.hasMood === 'true';
+            if (!hasMood) return;
+
+            const dateStr = element.dataset.date;
+            const moodScore = element.dataset.moodScore;
+            const moodLabel = element.dataset.moodLabel;
+            const moodEmoji = element.dataset.moodEmoji;
+            const notes = element.dataset.moodNotes || '';
+
+            showMoodDetailWithData(dateStr, moodScore, moodLabel, moodEmoji, notes);
+        }
+
+        // Show mood detail modal (for month view, from JSON data)
+        function showMoodDetail(dateStr) {
+            const moodDataEl = document.getElementById('moodDataJson');
+            if (!moodDataEl) return;
+
+            let moodData = {};
+            try {
+                moodData = JSON.parse(moodDataEl.textContent);
+            } catch (e) { return; }
+
+            const entry = moodData[dateStr];
+            if (!entry) return;
+
+            showMoodDetailWithData(dateStr, entry.moodScore, entry.moodLabel, entry.moodEmoji, entry.notes || '');
+        }
+
+        // Show mood detail modal with provided data
+        function showMoodDetailWithData(dateStr, moodScore, moodLabel, moodEmoji, notes) {
+            // Format date for display
+            const date = new Date(dateStr + 'T12:00:00');
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = date.toLocaleDateString('en-US', dateOptions);
+
+            // Populate modal
+            document.getElementById('moodDetailEmoji').textContent = moodEmoji || moodEmojis[moodScore] || '😐';
+            document.getElementById('moodDetailDate').textContent = formattedDate;
+            document.getElementById('moodDetailLabel').textContent = moodLabel || 'Unknown';
+
+            // Handle notes
+            const notesContainer = document.getElementById('moodDetailNotesContainer');
+            const notesEl = document.getElementById('moodDetailNotes');
+            if (notes && notes.trim()) {
+                notesEl.textContent = notes;
+                notesContainer.classList.remove('hidden');
+            } else {
+                notesContainer.classList.add('hidden');
+            }
+
+            // Show modal
+            document.getElementById('moodDetailModal').classList.remove('hidden');
+        }
+
+        // Close mood detail modal
+        function closeMoodDetail() {
+            document.getElementById('moodDetailModal').classList.add('hidden');
+        }
     </script>
+
 </body>
 
 </html>
