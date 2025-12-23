@@ -2,6 +2,8 @@ package com.example.MentalMind.service;
 
 import com.example.MentalMind.model.User;
 import com.example.MentalMind.repository.UserRepository;
+import com.example.MentalMind.exception.UserNotFoundException;
+import com.example.MentalMind.exception.InvalidPasswordException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -15,18 +17,25 @@ public class AuthenticationService {
     
     public User authenticate(String email, String password, String role) {
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            return null;
+            throw new UserNotFoundException("Email and password are required");
         }
         
         Optional<User> user = userRepository.findByEmailAndRole(email, role);
         
-        if (user.isPresent()) {
-            User foundUser = user.get();
-            if (foundUser.getPassword().equals(password) && foundUser.getIsActive()) {
-                return foundUser;
-            }
+        if (user.isEmpty()) {
+            throw new UserNotFoundException("User not found with email: " + email);
         }
-        return null;
+        
+        User foundUser = user.get();
+        if (!foundUser.getPassword().equals(password)) {
+            throw new InvalidPasswordException("Invalid password for user: " + email);
+        }
+        
+        if (!foundUser.getIsActive()) {
+            throw new UserNotFoundException("User account is inactive");
+        }
+        
+        return foundUser;
     }
     
     public User register(String email, String password, String confirmPassword, String role) {

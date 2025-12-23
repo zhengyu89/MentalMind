@@ -20,9 +20,6 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_role (role)
 );
 
--- Insert Sample Users
-INSERT INTO users (email, password, role, full_name, is_active) VALUES 
-('student@example.com', 'password123', 'student', 'John Student', true),
-('counselor@example.com', 'password123', 'counselor', 'Jane Counselor', true);
+
 
 COMMIT;

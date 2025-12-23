@@ -2,8 +2,11 @@ package com.example.MentalMind.controller;
 
 import com.example.MentalMind.model.User;
 import com.example.MentalMind.service.AuthenticationService;
+import com.example.MentalMind.exception.UserNotFoundException;
+import com.example.MentalMind.exception.InvalidPasswordException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,11 +32,12 @@ public class AuthController {
     public String processLogin(@RequestParam String email,
             @RequestParam String password,
             @RequestParam(defaultValue = "student") String role,
-            HttpSession session) {
+            HttpSession session,
+            Model model) {
         
-        User user = authenticationService.authenticate(email, password, role);
-        
-        if (user != null) {
+        try {
+            User user = authenticationService.authenticate(email, password, role);
+            
             session.setAttribute("userId", user.getId());
             session.setAttribute("userEmail", user.getEmail());
             session.setAttribute("userRole", user.getRole());
@@ -44,9 +48,13 @@ public class AuthController {
                 return "redirect:/counselor/dashboard";
             }
             return "redirect:/student/dashboard";
+        } catch (UserNotFoundException e) {
+            model.addAttribute("error", "Email not registered. Please check your email or register a new account.");
+            return "login";
+        } catch (InvalidPasswordException e) {
+            model.addAttribute("error", "Incorrect password. Please try again.");
+            return "login";
         }
-        
-        return "redirect:/login?error=invalid";
     }
 
     @GetMapping("/logout")
