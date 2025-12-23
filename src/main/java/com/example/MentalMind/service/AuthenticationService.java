@@ -4,6 +4,8 @@ import com.example.MentalMind.model.User;
 import com.example.MentalMind.repository.UserRepository;
 import com.example.MentalMind.exception.UserNotFoundException;
 import com.example.MentalMind.exception.InvalidPasswordException;
+import com.example.MentalMind.exception.PasswordMismatchException;
+import com.example.MentalMind.exception.EmailAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -40,15 +42,15 @@ public class AuthenticationService {
     
     public User register(String email, String password, String confirmPassword, String role) {
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
-            return null;
+            throw new IllegalArgumentException("Email and password are required");
         }
         
         if (!password.equals(confirmPassword)) {
-            return null;
+            throw new PasswordMismatchException("Passwords do not match");
         }
         
         if (userRepository.existsByEmail(email)) {
-            return null;
+            throw new EmailAlreadyExistsException("Email already registered");
         }
         
         User newUser = new User(email, password, role);

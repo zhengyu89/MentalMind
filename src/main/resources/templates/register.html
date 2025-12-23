@@ -16,9 +16,9 @@
 
             <form th:action="@{/register}" method="post" class="space-y-4">
                 <!-- Error Messages -->
-                <div th:if="${param.error}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                    <p th:if="${param.error == 'invalid'}">Please fill in all fields</p>
-                    <p th:if="${param.error == 'mismatch'}">Passwords do not match</p>
+                <div th:if="${error}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-600">error</span>
+                    <p th:text="${error}">An error occurred</p>
                 </div>
 
                 <!-- Email Field -->

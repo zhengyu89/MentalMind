@@ -4,6 +4,8 @@ import com.example.MentalMind.model.User;
 import com.example.MentalMind.service.AuthenticationService;
 import com.example.MentalMind.exception.UserNotFoundException;
 import com.example.MentalMind.exception.InvalidPasswordException;
+import com.example.MentalMind.exception.PasswordMismatchException;
+import com.example.MentalMind.exception.EmailAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -73,11 +75,12 @@ public class AuthController {
             @RequestParam String password,
             @RequestParam String confirmPassword,
             @RequestParam(defaultValue = "student") String role,
-            HttpSession session) {
+            HttpSession session,
+            Model model) {
         
-        User newUser = authenticationService.register(email, password, confirmPassword, role);
-        
-        if (newUser != null) {
+        try {
+            User newUser = authenticationService.register(email, password, confirmPassword, role);
+            
             session.setAttribute("userId", newUser.getId());
             session.setAttribute("userEmail", newUser.getEmail());
             session.setAttribute("userRole", newUser.getRole());
@@ -87,8 +90,15 @@ public class AuthController {
                 return "redirect:/counselor/dashboard";
             }
             return "redirect:/student/dashboard";
+        } catch (PasswordMismatchException e) {
+            model.addAttribute("error", "Passwords do not match. Please try again.");
+            return "register";
+        } catch (EmailAlreadyExistsException e) {
+            model.addAttribute("error", "Email already registered. Please use a different email or try logging in.");
+            return "register";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("error", "Email and password are required.");
+            return "register";
         }
-        
-        return "redirect:/register?error=invalid";
     }
 }
