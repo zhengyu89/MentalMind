@@ -1,9 +1,12 @@
 package com.example.MentalMind.controller;
 
 import com.example.MentalMind.model.MoodEntry;
-
+import com.example.MentalMind.model.Appointment;
+import com.example.MentalMind.model.User;
 import com.example.MentalMind.service.MoodService;
 import com.example.MentalMind.service.SelfAssessmentService;
+import com.example.MentalMind.service.AppointmentService;
+import com.example.MentalMind.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.servlet.http.HttpSession;
 
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,6 +33,12 @@ public class StudentController {
 
     @Autowired
     private SelfAssessmentService selfAssessmentService;
+
+    @Autowired
+    private AppointmentService appointmentService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
@@ -173,7 +186,24 @@ public class StudentController {
     }
 
     @GetMapping("/appointments")
-    public String appointments() {
+    public String appointments(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId != null) {
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                User student = userOpt.get();
+
+                // Get upcoming and past appointments
+                List<Appointment> upcomingAppointments = appointmentService.getStudentUpcomingAppointments(student);
+                List<Appointment> pastAppointments = appointmentService.getStudentPastAppointments(student);
+
+                model.addAttribute("upcomingAppointments", upcomingAppointments);
+                model.addAttribute("pastAppointments", pastAppointments);
+                model.addAttribute("studentName", student.getFullName() != null ? student.getFullName() : "Student");
+            }
+        }
+
         return "student/appointments";
     }
 
@@ -183,15 +213,46 @@ public class StudentController {
             @RequestParam String preferredTime,
             @RequestParam(required = false) String reason,
             HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || counselorId == null || counselorId.isEmpty() ||
+        
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null || counselorId == null || counselorId.isEmpty() ||
                 preferredDate == null || preferredDate.isEmpty() || preferredTime == null || preferredTime.isEmpty()) {
             return "redirect:/student/appointments?error=invalid";
         }
-        session.setAttribute("lastAppointmentRequest", counselorId);
-        session.setAttribute("preferredDate", preferredDate);
-        session.setAttribute("preferredTime", preferredTime);
-        session.setAttribute("appointmentReason", reason != null ? reason : "");
-        return "redirect:/student/appointments?success=requested";
+
+        try {
+            // Get student and counselor users
+            Optional<User> studentOpt = userRepository.findById(userId);
+            Optional<User> counselorOpt = userRepository.findById(Long.parseLong(counselorId));
+
+            if (studentOpt.isPresent() && counselorOpt.isPresent()) {
+                User student = studentOpt.get();
+                User counselor = counselorOpt.get();
+
+                // Parse date and time
+                LocalDate date = LocalDate.parse(preferredDate);
+                LocalDateTime appointmentDateTime = date.atTime(
+                    Integer.parseInt(preferredTime.split(":")[0]),
+                    Integer.parseInt(preferredTime.split(":")[1])
+                );
+
+                // Create appointment
+                Appointment appointment = appointmentService.createAppointment(
+                    student, counselor, appointmentDateTime, reason != null ? reason : ""
+                );
+
+                session.setAttribute("lastAppointmentRequest", counselorId);
+                session.setAttribute("preferredDate", preferredDate);
+                session.setAttribute("preferredTime", preferredTime);
+                return "redirect:/student/appointments?success=requested";
+            }
+
+            return "redirect:/student/appointments?error=invalid";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/student/appointments?error=failed";
+        }
     }
 
     @GetMapping("/emergency")
