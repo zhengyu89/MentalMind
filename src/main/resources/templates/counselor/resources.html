@@ -30,22 +30,22 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <div
                         class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
-                        <p class="text-3xl font-bold text-primary">24</p>
+                        <p id="totalResourcesCount" class="text-3xl font-bold text-primary">0</p>
                         <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Total Resources</p>
                     </div>
                     <div
                         class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
-                        <p class="text-3xl font-bold text-purple-500">8</p>
+                        <p id="videosCount" class="text-3xl font-bold text-purple-500">0</p>
                         <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Videos</p>
                     </div>
                     <div
                         class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
-                        <p class="text-3xl font-bold text-teal-500">10</p>
+                        <p id="articlesCount" class="text-3xl font-bold text-teal-500">0</p>
                         <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Articles</p>
                     </div>
                     <div
                         class="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-border-light dark:border-border-dark">
-                        <p class="text-3xl font-bold text-amber-500">6</p>
+                        <p id="guidesCount" class="text-3xl font-bold text-amber-500">0</p>
                         <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Guides</p>
                     </div>
                 </div>
@@ -65,83 +65,14 @@
                                 <th
                                     class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
                                     Category</th>
-                                <th
-                                    class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
-                                    Views</th>
+                                <!-- Views column removed -->
                                 <th
                                     class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
                                     Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr
-                                class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-6 py-4">
-                                    <p class="font-semibold">Coping Strategies for Stress</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Added Dec
-                                        10, 2024</p>
-                                </td>
-                                <td class="px-6 py-4"><span
-                                        class="text-xs font-medium bg-teal-100 dark:bg-teal-900/50 text-teal-600 px-2 py-1 rounded-full">Guide</span>
-                                </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Stress
-                                </td>
-                                <td class="px-6 py-4">234</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex gap-2">
-                                        <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span
-                                                class="material-symbols-outlined text-base">edit</span></button>
-                                        <button
-                                            class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"><span
-                                                class="material-symbols-outlined text-base">delete</span></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr
-                                class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-6 py-4">
-                                    <p class="font-semibold">Understanding Anxiety</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Added Dec
-                                        8, 2024</p>
-                                </td>
-                                <td class="px-6 py-4"><span
-                                        class="text-xs font-medium bg-purple-100 dark:bg-purple-900/50 text-purple-600 px-2 py-1 rounded-full">Video</span>
-                                </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Anxiety
-                                </td>
-                                <td class="px-6 py-4">456</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex gap-2">
-                                        <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span
-                                                class="material-symbols-outlined text-base">edit</span></button>
-                                        <button
-                                            class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"><span
-                                                class="material-symbols-outlined text-base">delete</span></button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-6 py-4">
-                                    <p class="font-semibold">Mindfulness for Beginners</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Added Dec
-                                        5, 2024</p>
-                                </td>
-                                <td class="px-6 py-4"><span
-                                        class="text-xs font-medium bg-amber-100 dark:bg-amber-900/50 text-amber-600 px-2 py-1 rounded-full">Article</span>
-                                </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">
-                                    Mindfulness</td>
-                                <td class="px-6 py-4">321</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex gap-2">
-                                        <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span
-                                                class="material-symbols-outlined text-base">edit</span></button>
-                                        <button
-                                            class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"><span
-                                                class="material-symbols-outlined text-base">delete</span></button>
-                                    </div>
-                                </td>
-                            </tr>
+                        <tbody id="resourcesTableBody">
+                            <!-- populated dynamically -->
                         </tbody>
                     </table>
                 </div>
@@ -159,21 +90,20 @@
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <form class="p-6" th:action="@{/counselor/resources/upload}" method="post">
+            <form id="uploadForm" class="p-6" th:action="@{/counselor/resources/upload}" method="post">
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Title</label>
-                    <input type="text" name="title"
+                    <input id="resourceTitle" type="text" name="resourceTitle" required
                         class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Type</label>
-                        <select name="type"
+                        <select id="resourceType" name="resourceType" required onchange="toggleUrlField()"
                             class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg">
-                            <option>Article</option>
-                            <option>Video</option>
-                            <option>Guide</option>
-                            <option>PDF</option>
+                            <option value="article">Article</option>
+                            <option value="video">Video</option>
+                            <option value="guide">Guide</option>
                         </select>
                     </div>
                     <div>
@@ -190,13 +120,15 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Description</label>
-                    <textarea name="description" rows="3"
+                    <textarea id="description" name="description" rows="3"
                         class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg"></textarea>
                 </div>
-                <div class="mb-6">
+                <div id="urlField" class="mb-6 hidden">
                     <label class="block text-sm font-medium mb-2">Link / URL</label>
-                    <input type="url" name="url" placeholder="https://..."
+                    <input id="resourceUrl" type="url" name="resourceUrl" placeholder="https://..."
                         class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
+                    <input type="hidden" id="resourceId" name="resourceId" />
+                    <p class="text-xs text-slate-500 mt-1">For YouTube videos, paste the full YouTube URL. The thumbnail will be automatically extracted.</p>
                 </div>
                 <button type="submit"
                     class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors">Upload
@@ -204,6 +136,163 @@
             </form>
         </div>
     </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageToast" class="hidden fixed bottom-4 right-4 z-50">
+        <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+            <span class="material-symbols-outlined">check_circle</span>
+            <span id="messageText">Resource uploaded successfully!</span>
+        </div>
+    </div>
+
+    <script>
+        // Check for URL parameters and show messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.get('success') === 'uploaded') {
+                showMessage('Resource uploaded successfully!', 'success');
+                // Clear the form
+                document.getElementById('uploadModal').classList.add('hidden');
+            } else if (urlParams.get('error') === 'invalid') {
+                showMessage('Please fill in all required fields.', 'error');
+            } else if (urlParams.get('error') === 'upload_failed') {
+                showMessage('Failed to upload resource. Please try again.', 'error');
+            }
+        });
+
+        function showMessage(message, type) {
+            const toast = document.getElementById('messageToast');
+            const messageText = document.getElementById('messageText');
+            
+            messageText.textContent = message;
+            
+            if (type === 'error') {
+                toast.querySelector('div').className = 'bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2';
+                toast.querySelector('span').textContent = 'error';
+            } else {
+                toast.querySelector('div').className = 'bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2';
+                toast.querySelector('span').textContent = 'check_circle';
+            }
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+        }
+    </script>
+    <script>
+        // Load resources into table
+        function toggleUrlField() {
+            const type = document.getElementById('resourceType').value;
+            const urlField = document.getElementById('urlField');
+            if (type === 'video') {
+                urlField.classList.remove('hidden');
+            } else {
+                urlField.classList.add('hidden');
+                // clear url when not video
+                const input = document.getElementById('resourceUrl');
+                if (input) input.value = '';
+            }
+        }
+
+        async function loadResourcesTable() {
+            try {
+                const res = await fetch('/student/api/resources');
+                if (!res.ok) throw new Error('Failed to load resources');
+                const resources = await res.json();
+                // Update counts
+                const total = resources.length;
+                const videos = resources.filter(r => r.type === 'video').length;
+                const articles = resources.filter(r => r.type === 'article').length;
+                const guides = resources.filter(r => r.type === 'guide').length;
+                document.getElementById('totalResourcesCount').textContent = total;
+                document.getElementById('videosCount').textContent = videos;
+                document.getElementById('articlesCount').textContent = articles;
+                document.getElementById('guidesCount').textContent = guides;
+
+                const tbody = document.getElementById('resourcesTableBody');
+                tbody.innerHTML = '';
+                resources.forEach(r => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4">
+                            <p class="font-semibold">${r.title}</p>
+                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">${r.createdAt ? r.createdAt.substring(0,10) : ''}</p>
+                        </td>
+                        <td class="px-6 py-4"><span class="text-xs font-medium bg-${r.badgeColor}-100 dark:bg-${r.badgeColor}-900/50 text-${r.badgeColor}-600 px-2 py-1 rounded-full">${r.type}</span></td>
+                        <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">${r.category ? r.category : '-'}</td>
+                        <!-- Views column removed -->
+                        <td class="px-6 py-4">
+                            <div class="flex gap-2">
+                                <button onclick="onEdit(${r.id})" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"><span class="material-symbols-outlined text-base">edit</span></button>
+                                <button onclick="onDelete(${r.id})" class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-red-500"><span class="material-symbols-outlined text-base">delete</span></button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function onEdit(id) {
+            // fetch resource and prefill form, then switch form action to update
+            fetch(`/student/api/resources/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    const resource = Array.isArray(data) ? data[0] : data; // handle optional
+                    document.getElementById('resourceTitle').value = resource.title || '';
+                    document.getElementById('resourceType').value = resource.type || 'article';
+                    document.getElementById('description').value = resource.description || '';
+                    // Attempt to extract original URL from content if possible
+                    document.getElementById('resourceUrl').value = '';
+                    document.getElementById('resourceId').value = resource.id;
+                    // Set form action to update endpoint
+                    document.getElementById('uploadForm').action = '/counselor/resources/update';
+                    // Show or hide URL input depending on type
+                    toggleUrlField();
+                    document.getElementById('uploadModal').classList.remove('hidden');
+                })
+                .catch(err => console.error(err));
+        }
+
+        function onDelete(id) {
+            if (!confirm('Delete this resource?')) return;
+            const body = `resourceId=${id}`;
+            fetch('/counselor/resources/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body
+            }).then(r => {
+                if (r.ok) {
+                    loadResourcesTable();
+                    showMessage('Resource deleted', 'success');
+                } else {
+                    showMessage('Delete failed', 'error');
+                }
+            }).catch(err => {
+                console.error(err);
+                showMessage('Delete failed', 'error');
+            });
+        }
+
+        // When showing upload modal for new resource, reset form action
+        document.querySelector('button[onclick="document.getElementById(\'uploadModal\').classList.remove(\'hidden\')"]').addEventListener('click', () => {
+            document.getElementById('uploadForm').action = '/counselor/resources/upload';
+            document.getElementById('resourceId').value = '';
+            document.getElementById('resourceTitle').value = '';
+            document.getElementById('resourceType').value = 'article';
+            document.getElementById('description').value = '';
+            document.getElementById('resourceUrl').value = '';
+            toggleUrlField();
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadResourcesTable);
+    </script>
 </body>
 
 </html>

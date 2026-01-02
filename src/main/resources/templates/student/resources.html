@@ -36,128 +36,19 @@
                     <button
                         class="filter-btn px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
                         onclick="setFilter('guide', this)">Guides</button>
+                    <button id="bookmarksBtn" class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800" onclick="showBookmarksModal()">My Bookmarks</button>
                 </div>
             </div>
 
             <!-- Resource Categories -->
             <div id="resourceGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Coping Strategies -->
-                <div class="resource-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow"
-                    data-type="guide" data-title="Coping Strategies for Stress">
-                    <div class="h-40 bg-gradient-to-br from-teal-400 to-green-500 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-6xl text-white/80">spa</span>
-                    </div>
-                    <div class="p-5">
-                        <span
-                            class="text-xs font-semibold text-teal-600 bg-teal-100 dark:bg-teal-900/50 px-2 py-1 rounded-full">Guide</span>
-                        <h4 class="text-lg font-semibold text-slate-900 dark:text-white mt-3">Coping Strategies for
-                            Stress</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Learn practical techniques to manage
-                            daily stress and build resilience.</p>
-                        <button onclick="openResource('Coping Strategies for Stress', 'guide')"
-                            class="inline-flex items-center gap-1 text-primary font-medium mt-4 hover:underline">
-                            Read More <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
+                <!-- Resources will be loaded dynamically -->
+            </div>
 
-                <!-- Anxiety Video -->
-                <div class="resource-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow"
-                    data-type="video" data-title="Understanding Anxiety">
-                    <div
-                        class="h-40 bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center relative">
-                        <span class="material-symbols-outlined text-6xl text-white/80">play_circle</span>
-                    </div>
-                    <div class="p-5">
-                        <span
-                            class="text-xs font-semibold text-purple-600 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded-full">Video</span>
-                        <h4 class="text-lg font-semibold text-slate-900 dark:text-white mt-3">Understanding Anxiety</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">A comprehensive video explaining
-                            anxiety symptoms and management.</p>
-                        <button onclick="openResource('Understanding Anxiety', 'video')"
-                            class="inline-flex items-center gap-1 text-primary font-medium mt-4 hover:underline">
-                            Watch Now <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Mindfulness Article -->
-                <div class="resource-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow"
-                    data-type="article" data-title="Mindfulness for Beginners">
-                    <div class="h-40 bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-6xl text-white/80">self_improvement</span>
-                    </div>
-                    <div class="p-5">
-                        <span
-                            class="text-xs font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/50 px-2 py-1 rounded-full">Article</span>
-                        <h4 class="text-lg font-semibold text-slate-900 dark:text-white mt-3">Mindfulness for Beginners
-                        </h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Start your mindfulness journey with
-                            simple exercises you can do anywhere.</p>
-                        <button onclick="openResource('Mindfulness for Beginners', 'article')"
-                            class="inline-flex items-center gap-1 text-primary font-medium mt-4 hover:underline">
-                            Read More <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Depression Guide -->
-                <div class="resource-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow"
-                    data-type="guide" data-title="Recognizing Depression Signs">
-                    <div class="h-40 bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-6xl text-white/80">psychology</span>
-                    </div>
-                    <div class="p-5">
-                        <span
-                            class="text-xs font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900/50 px-2 py-1 rounded-full">Guide</span>
-                        <h4 class="text-lg font-semibold text-slate-900 dark:text-white mt-3">Recognizing Depression
-                            Signs</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Learn to identify early symptoms and
-                            when to seek professional help.</p>
-                        <button onclick="openResource('Recognizing Depression Signs', 'guide')"
-                            class="inline-flex items-center gap-1 text-primary font-medium mt-4 hover:underline">
-                            Read More <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Sleep Hygiene -->
-                <div class="resource-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow"
-                    data-type="article" data-title="Sleep Hygiene Tips">
-                    <div class="h-40 bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-6xl text-white/80">bedtime</span>
-                    </div>
-                    <div class="p-5">
-                        <span
-                            class="text-xs font-semibold text-indigo-600 bg-indigo-100 dark:bg-indigo-900/50 px-2 py-1 rounded-full">Article</span>
-                        <h4 class="text-lg font-semibold text-slate-900 dark:text-white mt-3">Sleep Hygiene Tips</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Improve your sleep quality with
-                            evidence-based recommendations.</p>
-                        <button onclick="openResource('Sleep Hygiene Tips', 'article')"
-                            class="inline-flex items-center gap-1 text-primary font-medium mt-4 hover:underline">
-                            Read More <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Breathing Exercises -->
-                <div class="resource-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow"
-                    data-type="video" data-title="Breathing Exercises">
-                    <div class="h-40 bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-6xl text-white/80">pulmonology</span>
-                    </div>
-                    <div class="p-5">
-                        <span
-                            class="text-xs font-semibold text-pink-600 bg-pink-100 dark:bg-pink-900/50 px-2 py-1 rounded-full">Video</span>
-                        <h4 class="text-lg font-semibold text-slate-900 dark:text-white mt-3">Breathing Exercises</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Follow along with guided breathing
-                            techniques to reduce anxiety.</p>
-                        <button onclick="openResource('Breathing Exercises', 'video')"
-                            class="inline-flex items-center gap-1 text-primary font-medium mt-4 hover:underline">
-                            Watch Now <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
+            <!-- Loading indicator -->
+            <div id="loadingIndicator" class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <span class="ml-3 text-slate-600 dark:text-slate-400">Loading resources...</span>
             </div>
         </main>
     </div>
@@ -178,15 +69,38 @@
         </div>
     </div>
 
+    <!-- Bookmarks Modal -->
+    <div id="bookmarksModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-900">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">My Bookmarks</h3>
+                <button onclick="closeBookmarksModal()" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="bookmarksContent" class="p-6">
+                <!-- Bookmarks list rendered here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Success Toast -->
     <div id="successToast"
-        class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
-        <span class="material-symbols-outlined">bookmark_added</span>
+        class="hidden fixed bottom-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
+        <span id="toastIcon" class="material-symbols-outlined">bookmark_added</span>
         <span id="toastMessage">Added to your reading list!</span>
     </div>
 
     <script>
         let currentFilter = 'all';
+        let allResources = [];
+        let userBookmarks = [];
+
+        // Load resources on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadResources();
+            loadBookmarks();
+        });
 
         function setFilter(filter, btn) {
             currentFilter = filter;
@@ -214,131 +128,285 @@
             });
         }
 
-        const resourceContent = {
-            'Coping Strategies for Stress': {
-                type: 'guide',
-                content: `
-                    <div class="prose dark:prose-invert max-w-none">
-                        <h4>Introduction</h4>
-                        <p>Stress is a normal part of life, especially for students. Learning effective coping strategies can help you manage stress and maintain your mental well-being.</p>
-                        
-                        <h4>Key Strategies</h4>
-                        <ol>
-                            <li><strong>Deep Breathing</strong> - Practice the 4-7-8 technique: inhale for 4 seconds, hold for 7, exhale for 8.</li>
-                            <li><strong>Physical Activity</strong> - Even a 10-minute walk can significantly reduce stress hormones.</li>
-                            <li><strong>Time Management</strong> - Break large tasks into smaller, manageable chunks.</li>
-                            <li><strong>Social Support</strong> - Talk to friends, family, or counselors about your feelings.</li>
-                            <li><strong>Mindfulness</strong> - Practice being present in the moment without judgment.</li>
-                        </ol>
-                        
-                        <h4>Try This Exercise</h4>
-                        <p>The 5-4-3-2-1 Grounding Technique:</p>
-                        <ul>
-                            <li>Name 5 things you can see</li>
-                            <li>Name 4 things you can touch</li>
-                            <li>Name 3 things you can hear</li>
-                            <li>Name 2 things you can smell</li>
-                            <li>Name 1 thing you can taste</li>
-                        </ul>
-                    </div>
-                    <button onclick="saveResource('Coping Strategies for Stress')" class="mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700 flex items-center gap-2">
-                        <span class="material-symbols-outlined">bookmark</span>
-                        Save to Reading List
-                    </button>
-                `
-            },
-            'Understanding Anxiety': {
-                type: 'video',
-                content: `
-                    <div class="aspect-video bg-slate-900 rounded-lg mb-6 flex items-center justify-center">
-                        <div class="text-center text-white">
-                            <span class="material-symbols-outlined text-6xl mb-4">play_circle</span>
-                            <p class="text-lg font-medium">Understanding Anxiety</p>
-                            <p class="text-sm text-slate-400">Duration: 12:34</p>
-                            <button class="mt-4 px-6 py-2 bg-primary rounded-lg font-medium hover:bg-indigo-700">Play Video</button>
-                        </div>
-                    </div>
-                    <div class="prose dark:prose-invert max-w-none">
-                        <h4>Video Summary</h4>
-                        <p>This video covers the basics of anxiety, including common symptoms, triggers, and management techniques. Learn from mental health experts about how to recognize anxiety and when to seek help.</p>
-                        
-                        <h4>Key Topics</h4>
-                        <ul>
-                            <li>What is anxiety?</li>
-                            <li>Physical symptoms of anxiety</li>
-                            <li>Common triggers for students</li>
-                            <li>Coping strategies</li>
-                            <li>When to seek professional help</li>
-                        </ul>
-                    </div>
-                    <button onclick="saveResource('Understanding Anxiety')" class="mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700 flex items-center gap-2">
-                        <span class="material-symbols-outlined">bookmark</span>
-                        Save to Watch Later
-                    </button>
-                `
-            },
-            'Mindfulness for Beginners': {
-                type: 'article',
-                content: `
-                    <div class="prose dark:prose-invert max-w-none">
-                        <h4>What is Mindfulness?</h4>
-                        <p>Mindfulness is the practice of being fully present and engaged in the current moment, without judgment. It can help reduce stress, improve focus, and enhance emotional regulation.</p>
-                        
-                        <h4>Simple Exercises to Start</h4>
-                        <ol>
-                            <li><strong>Mindful Breathing</strong> - Focus on your breath for 5 minutes. Notice the sensation of air entering and leaving your body.</li>
-                            <li><strong>Body Scan</strong> - Slowly move your attention through different parts of your body, noticing any tension or sensations.</li>
-                            <li><strong>Mindful Eating</strong> - Eat one meal slowly, savoring each bite and noticing the flavors and textures.</li>
-                        </ol>
-                        
-                        <h4>Tips for Success</h4>
-                        <ul>
-                            <li>Start with just 5 minutes a day</li>
-                            <li>Be patient with yourself</li>
-                            <li>Practice at the same time each day</li>
-                            <li>Use guided meditations if helpful</li>
-                        </ul>
-                    </div>
-                    <button onclick="saveResource('Mindfulness for Beginners')" class="mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700 flex items-center gap-2">
-                        <span class="material-symbols-outlined">bookmark</span>
-                        Save to Reading List
-                    </button>
-                `
+        async function loadResources() {
+            try {
+                const response = await fetch('/student/api/resources');
+                if (!response.ok) throw new Error('Failed to load resources');
+                allResources = await response.json();
+                renderResources(allResources);
+                document.getElementById('loadingIndicator').style.display = 'none';
+            } catch (error) {
+                console.error('Error loading resources:', error);
+                document.getElementById('loadingIndicator').innerHTML = '<p class="text-red-500">Failed to load resources. Please try again later.</p>';
             }
-        };
+        }
 
-        // Default content for resources not in the object
-        const defaultContent = `
-            <div class="prose dark:prose-invert max-w-none">
-                <p>This resource contains valuable information about mental health and well-being. The full content will be available soon.</p>
-                <p>In the meantime, explore our other resources or speak with a counselor for personalized guidance.</p>
-            </div>
-            <button onclick="saveResource('this resource')" class="mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700 flex items-center gap-2">
-                <span class="material-symbols-outlined">bookmark</span>
-                Save for Later
-            </button>
-        `;
+        async function loadBookmarks() {
+            try {
+                const response = await fetch('/student/api/bookmarks');
+                if (response.ok) {
+                    userBookmarks = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading bookmarks:', error);
+            }
+        }
 
-        function openResource(title, type) {
-            document.getElementById('modalTitle').textContent = title;
-            const content = resourceContent[title] ? resourceContent[title].content : defaultContent;
-            document.getElementById('modalContent').innerHTML = content;
-            document.getElementById('resourceModal').classList.remove('hidden');
+        function isBookmarked(resourceId) {
+            return userBookmarks && userBookmarks.some(b => Number(b.resourceId) === Number(resourceId));
+        }
+
+        function addBookmarkToLocal(entry) {
+            userBookmarks = userBookmarks || [];
+            const exists = userBookmarks.some(b => Number(b.resourceId) === Number(entry.resourceId) && b.bookmarkType === entry.bookmarkType);
+            if (!exists) userBookmarks.push(entry);
+        }
+
+        function removeBookmarkFromLocal(resourceId) {
+            if (!userBookmarks) return;
+            userBookmarks = userBookmarks.filter(b => Number(b.resourceId) !== Number(resourceId));
+        }
+
+        function updateBookmarkIcon(resourceId, bookmarked) {
+            const btn = document.getElementById(`bookmarkBtn-${resourceId}`);
+            if (!btn) return;
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (bookmarked) {
+                btn.classList.remove('text-slate-500');
+                btn.classList.add('text-primary');
+                if (icon) {
+                    icon.textContent = 'bookmark';
+                    icon.style.fontVariationSettings = '"FILL" 1';
+                }
+            } else {
+                btn.classList.remove('text-primary');
+                btn.classList.add('text-slate-500');
+                if (icon) {
+                    icon.textContent = 'bookmark_border';
+                    icon.style.fontVariationSettings = '"FILL" 0';
+                }
+            }
+        }
+
+        function renderResources(resources) {
+            const grid = document.getElementById('resourceGrid');
+            grid.innerHTML = '';
+
+            resources.forEach(resource => {
+                const card = createResourceCard(resource);
+                grid.appendChild(card);
+            });
+        }
+
+        function createResourceCard(resource) {
+            const card = document.createElement('div');
+            card.className = 'resource-card bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow';
+            card.dataset.type = resource.type;
+            card.dataset.title = resource.title;
+
+            const badgeColor = getBadgeColor(resource.badgeColor);
+            const buttonText = resource.type === 'video' ? 'Watch Now' : 'Read More';
+            const bookmarkText = resource.type === 'video' ? 'Save to Watch Later' : 'Save to Reading List';
+            const bookmarked = isBookmarked(resource.id);
+            const bookmarkIcon = bookmarked ? 'bookmark' : 'bookmark_border';
+            const bookmarkClass = bookmarked ? 'text-primary' : 'text-slate-500 hover:text-primary';
+            const bookmarkFillStyle = bookmarked ? 'font-variation-settings: "FILL" 1;' : 'font-variation-settings: "FILL" 0;';
+
+            // Use cover image if available, otherwise use gradient
+            const coverStyle = resource.coverImageUrl
+                ? `background-image: url('${resource.coverImageUrl}'); background-size: cover; background-position: center;`
+                : `background: linear-gradient(to bottom right, var(--tw-gradient-from), var(--tw-gradient-to));`;
+
+            const coverClass = resource.coverImageUrl
+                ? 'h-40 flex items-center justify-center'
+                : `h-40 bg-gradient-to-br from-${resource.gradientFrom} to-${resource.gradientTo} flex items-center justify-center`;
+
+            card.innerHTML = `
+                <div class="${coverClass}" style="${coverStyle}">
+                    ${resource.coverImageUrl ? '' : `<span class="material-symbols-outlined text-6xl text-white/80">${resource.icon}</span>`}
+                </div>
+                <div class="p-5">
+                    <span class="text-xs font-semibold text-${badgeColor}-600 bg-${badgeColor}-100 dark:bg-${badgeColor}-900/50 px-2 py-1 rounded-full capitalize">${resource.type}</span>
+                    <h4 class="text-lg font-semibold text-slate-900 dark:text-white mt-3">${resource.title}</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">${resource.description}</p>
+                    <div class="flex items-center gap-3 mt-4">
+                        <button onclick="openResource(${resource.id})" class="inline-flex items-center gap-1 text-primary font-medium hover:underline">
+                            ${buttonText} <span class="material-symbols-outlined text-base">arrow_forward</span>
+                        </button>
+                        <button id="bookmarkBtn-${resource.id}" onclick="saveResource(${resource.id}, '${resource.type === 'video' ? 'watch_later' : 'reading_list'}')" class="inline-flex items-center gap-1 ${bookmarkClass}">
+                            <span class="material-symbols-outlined" style="${bookmarkFillStyle}">${bookmarkIcon}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getBadgeColor(color) {
+            const colorMap = {
+                'teal': 'teal',
+                'purple': 'purple',
+                'amber': 'amber',
+                'blue': 'blue',
+                'indigo': 'indigo',
+                'pink': 'pink'
+            };
+            return colorMap[color] || 'teal';
+        }
+
+        async function openResource(resourceId) {
+            try {
+                const response = await fetch(`/student/api/resources/${resourceId}`);
+                if (!response.ok) throw new Error('Failed to load resource');
+                const resource = await response.json();
+
+                document.getElementById('modalTitle').textContent = resource.title;
+                document.getElementById('modalContent').innerHTML = resource.content + createBookmarkButton(resource);
+                document.getElementById('resourceModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading resource:', error);
+                showToast('Failed to load resource content');
+            }
+        }
+
+        function createBookmarkButton(resource) {
+            const bookmarkText = resource.type === 'video' ? 'Save to Watch Later' : 'Save to Reading List';
+            const bookmarkType = resource.type === 'video' ? 'watch_later' : 'reading_list';
+
+            return `
+                <button onclick="saveResource(${resource.id}, '${bookmarkType}')" class="mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700 flex items-center gap-2">
+                    <span class="material-symbols-outlined">bookmark</span>
+                    ${bookmarkText}
+                </button>
+            `;
+        }
+
+        async function saveResource(resourceId, bookmarkType) {
+            try {
+                const already = isBookmarked(resourceId);
+
+                if (already) {
+                    // remove
+                    const response = await fetch('/student/api/bookmarks', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `resourceId=${resourceId}`
+                    });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        removeBookmarkFromLocal(resourceId);
+                        updateBookmarkIcon(resourceId, false);
+                        showToast(result.message, 'remove');
+                    } else {
+                        showToast(result.message || 'Failed to remove bookmark', 'remove');
+                    }
+                } else {
+                    // add
+                    const response = await fetch('/student/api/bookmarks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `resourceId=${resourceId}&bookmarkType=${bookmarkType}`
+                    });
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        // add to local bookmarks
+                        addBookmarkToLocal({ resourceId: resourceId, title: '', type: '', bookmarkType: bookmarkType });
+                        updateBookmarkIcon(resourceId, true);
+                        showToast(result.message, 'success');
+                    } else {
+                        showToast(result.message || 'Failed to save bookmark');
+                    }
+                }
+
+                // refresh bookmarks from server/session to keep local data accurate
+                await loadBookmarks();
+            } catch (error) {
+                console.error('Error saving bookmark:', error);
+                showToast('Failed to save bookmark');
+            }
         }
 
         function closeModal() {
             document.getElementById('resourceModal').classList.add('hidden');
         }
 
-        function saveResource(title) {
-            showToast(`"${title}" saved to your list!`);
-        }
-
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('successToast');
-            document.getElementById('toastMessage').textContent = message;
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+            msg.textContent = message;
+            // reset classes
+            toast.classList.remove('hidden', 'bg-green-500', 'bg-red-500');
+            if (type === 'remove' || type === 'error') {
+                toast.classList.add('bg-red-500');
+                if (icon) icon.textContent = 'bookmark_remove';
+            } else {
+                toast.classList.add('bg-green-500');
+                if (icon) icon.textContent = 'bookmark_added';
+            }
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function showBookmarksModal() {
+            renderBookmarksModal();
+            document.getElementById('bookmarksModal').classList.remove('hidden');
+        }
+
+        function closeBookmarksModal() {
+            document.getElementById('bookmarksModal').classList.add('hidden');
+        }
+
+        function renderBookmarksModal() {
+            const container = document.getElementById('bookmarksContent');
+            container.innerHTML = '';
+
+            if (!userBookmarks || userBookmarks.length === 0) {
+                container.innerHTML = '<p class="text-slate-500">You have no bookmarks yet. Save resources to see them here.</p>';
+                return;
+            }
+
+            userBookmarks.forEach(b => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between gap-4 py-3 border-b border-slate-100 dark:border-slate-800';
+                item.innerHTML = `
+                    <div>
+                        <div class="text-sm font-semibold text-slate-900 dark:text-white">${b.title}</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">${b.type} • ${b.bookmarkType}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="closeBookmarksModal(); openResource(${b.resourceId})" class="px-3 py-2 bg-white border rounded-md text-sm hover:bg-slate-50">Open</button>
+                        <button onclick="unbookmark(${b.resourceId})" class="px-3 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700">Remove</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function unbookmark(resourceId) {
+            try {
+                const response = await fetch('/student/api/bookmarks', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `resourceId=${resourceId}`
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    // update local state and UI
+                    removeBookmarkFromLocal(resourceId);
+                    updateBookmarkIcon(resourceId, false);
+                    showToast(result.message, 'remove');
+                    await loadBookmarks();
+                    renderBookmarksModal();
+                } else {
+                    showToast(result.message || 'Failed to remove bookmark', 'remove');
+                }
+            } catch (err) {
+                console.error('Error removing bookmark', err);
+                showToast('Failed to remove bookmark', 'remove');
+            }
         }
     </script>
 </body>

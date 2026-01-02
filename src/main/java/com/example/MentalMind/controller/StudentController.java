@@ -1,8 +1,10 @@
 package com.example.MentalMind.controller;
 
 import com.example.MentalMind.model.MoodEntry;
+import com.example.MentalMind.model.User;
 
 import com.example.MentalMind.service.MoodService;
+import com.example.MentalMind.service.ResourceService;
 import com.example.MentalMind.service.SelfAssessmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -10,10 +12,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.servlet.http.HttpSession;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,6 +32,9 @@ public class StudentController {
 
     @Autowired
     private SelfAssessmentService selfAssessmentService;
+
+    @Autowired
+    private ResourceService resourceService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
@@ -149,6 +158,113 @@ public class StudentController {
     @GetMapping("/resources")
     public String resources() {
         return "student/resources";
+    }
+
+    @GetMapping("/api/resources")
+    @ResponseBody
+    public List<com.example.MentalMind.model.Resource> getResources(@RequestParam(required = false) String type,
+                                                                   @RequestParam(required = false) String search) {
+        if (search != null && !search.trim().isEmpty()) {
+            return resourceService.searchResources(search.trim());
+        } else if (type != null && !type.equals("all")) {
+            return resourceService.getResourcesByType(type);
+        } else {
+            return resourceService.getAllResources();
+        }
+    }
+
+    @GetMapping("/api/resources/{id}")
+    @ResponseBody
+    public Optional<com.example.MentalMind.model.Resource> getResource(@PathVariable Long id) {
+        return resourceService.getResourceById(id);
+    }
+
+    @GetMapping("/api/bookmarks")
+    @ResponseBody
+    public java.util.List<java.util.Map<String, Object>> getBookmarks(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            // return session-stored bookmarks for unauthenticated users (if any)
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session.getAttribute("tempBookmarks");
+            if (temp == null) return java.util.Collections.emptyList();
+            return temp;
+        }
+        // Convert persistent bookmarks to a simple map representation for the client
+        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService.getUserBookmarks(user.getId());
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (com.example.MentalMind.model.UserResourceBookmark b : bookmarks) {
+            java.util.Map<String, Object> m = new java.util.HashMap<>();
+            m.put("resourceId", b.getResource().getId());
+            m.put("title", b.getResource().getTitle());
+            m.put("type", b.getResource().getType());
+            m.put("bookmarkType", b.getBookmarkType());
+            out.add(m);
+        }
+        return out;
+    }
+
+    @PostMapping("/api/bookmarks")
+    @ResponseBody
+    public Map<String, String> addBookmark(@RequestParam Long resourceId,
+                                          @RequestParam String bookmarkType,
+                                          HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            // store bookmark in session for unauthenticated users
+            java.util.Optional<com.example.MentalMind.model.Resource> maybe = resourceService.getResourceById(resourceId);
+            if (maybe.isEmpty()) {
+                return Map.of("status", "error", "message", "Resource not found");
+            }
+            com.example.MentalMind.model.Resource res = maybe.get();
+
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session.getAttribute("tempBookmarks");
+            if (temp == null) {
+                temp = new java.util.ArrayList<>();
+            }
+            // prevent duplicates
+            boolean exists = temp.stream().anyMatch(m -> ((Number) m.getOrDefault("resourceId", -1)).longValue() == resourceId && bookmarkType.equals(m.getOrDefault("bookmarkType", "")));
+            if (exists) {
+                session.setAttribute("tempBookmarks", temp);
+                return Map.of("status", "error", "message", "Bookmark already exists");
+            }
+
+            java.util.Map<String, Object> entry = new java.util.HashMap<>();
+            entry.put("resourceId", resourceId);
+            entry.put("title", res.getTitle());
+            entry.put("type", res.getType());
+            entry.put("bookmarkType", bookmarkType);
+            temp.add(entry);
+            session.setAttribute("tempBookmarks", temp);
+            return Map.of("status", "success", "message", "Bookmark added (session)");
+        }
+
+        try {
+            resourceService.addBookmark(user.getId(), resourceId, bookmarkType);
+            return Map.of("status", "success", "message", "Bookmark added successfully");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/api/bookmarks")
+    @ResponseBody
+    public Map<String, String> removeBookmark(@RequestParam Long resourceId, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session.getAttribute("tempBookmarks");
+            if (temp == null) return Map.of("status", "error", "message", "No bookmarks in session");
+            boolean removed = temp.removeIf(m -> ((Number) m.getOrDefault("resourceId", -1)).longValue() == resourceId);
+            session.setAttribute("tempBookmarks", temp);
+            if (removed) return Map.of("status", "success", "message", "Bookmark removed (session)");
+            else return Map.of("status", "error", "message", "Bookmark not found");
+        }
+
+        try {
+            resourceService.removeBookmark(user.getId(), resourceId);
+            return Map.of("status", "success", "message", "Bookmark removed successfully");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
     }
 
     @GetMapping("/forum")
