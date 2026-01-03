@@ -154,6 +154,11 @@
                 showMessage('Resource uploaded successfully!', 'success');
                 // Clear the form
                 document.getElementById('uploadModal').classList.add('hidden');
+                try { new BroadcastChannel('mentalmind-resources').postMessage({type: 'resources-updated'}); } catch(e) {}
+            } else if (urlParams.get('success') === 'updated') {
+                showMessage('Resource updated successfully!', 'success');
+                document.getElementById('uploadModal').classList.add('hidden');
+                try { new BroadcastChannel('mentalmind-resources').postMessage({type: 'resources-updated'}); } catch(e) {}
             } else if (urlParams.get('error') === 'invalid') {
                 showMessage('Please fill in all required fields.', 'error');
             } else if (urlParams.get('error') === 'upload_failed') {
@@ -270,6 +275,7 @@
                 if (r.ok) {
                     loadResourcesTable();
                     showMessage('Resource deleted', 'success');
+                    try { new BroadcastChannel('mentalmind-resources').postMessage({type: 'resources-updated'}); } catch(e) {}
                 } else {
                     showMessage('Delete failed', 'error');
                 }

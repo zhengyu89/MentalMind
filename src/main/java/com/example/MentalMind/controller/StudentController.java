@@ -176,7 +176,13 @@ public class StudentController {
     @GetMapping("/api/resources/{id}")
     @ResponseBody
     public Optional<com.example.MentalMind.model.Resource> getResource(@PathVariable Long id) {
-        return resourceService.getResourceById(id);
+        Optional<com.example.MentalMind.model.Resource> opt = resourceService.getResourceById(id);
+        opt.ifPresent(r -> {
+            if (r.getContent() != null) {
+                r.setContent(r.getContent().replace("\n", "<br/>") );
+            }
+        });
+        return opt;
     }
 
     @GetMapping("/api/bookmarks")

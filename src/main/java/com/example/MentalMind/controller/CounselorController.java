@@ -192,19 +192,20 @@ public class CounselorController {
         return "redirect:/counselor/settings?success=updated";
     }
     private String generateResourceContent(String type, String url, String title, String description) {
+        String safeDesc = description == null ? "" : description.replace("\n", "<br/>");
         switch (type.toLowerCase()) {
             case "video":
                 if (isYouTubeUrl(url)) {
-                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><iframe width=\"100%\" height=\"100%\" src=\"" + convertToEmbedUrl(url) + "\" title=\"" + title + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe></div><div class=\"prose dark:prose-invert max-w-none\"><p>" + (description != null ? description : "") + "</p></div>";
+                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><iframe width=\"100%\" height=\"100%\" src=\"" + convertToEmbedUrl(url) + "\" title=\"" + title + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe></div><div class=\"prose dark:prose-invert max-w-none\"><p>" + safeDesc + "</p></div>";
                 } else {
-                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><video width=\"100%\" height=\"100%\" controls><source src=\"" + url + "\" type=\"video/mp4\">Your browser does not support the video tag.</video></div><div class=\"prose dark:prose-invert max-w-none\"><p>" + (description != null ? description : "") + "</p></div>";
+                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><video width=\"100%\" height=\"100%\" controls><source src=\"" + url + "\" type=\"video/mp4\">Your browser does not support the video tag.</video></div><div class=\"prose dark:prose-invert max-w-none\"><p>" + safeDesc + "</p></div>";
                 }
             case "article":
-                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Article content would be loaded from: " + url + "</p><p>" + (description != null ? description : "") + "</p></div>";
+                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Article content would be loaded from: " + url + "</p><p>" + safeDesc + "</p></div>";
             case "guide":
-                return "<div class=\"prose dark:prose-invert max-w-none\"><h3>Guide: " + title + "</h3><p>Guide content would be loaded from: " + url + "</p><p>" + (description != null ? description : "") + "</p></div>";
+                return "<div class=\"prose dark:prose-invert max-w-none\"><h3>Guide: " + title + "</h3><p>Guide content would be loaded from: " + url + "</p><p>" + safeDesc + "</p></div>";
             default:
-                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Content: " + url + "</p><p>" + (description != null ? description : "") + "</p></div>";
+                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Content: " + url + "</p><p>" + safeDesc + "</p></div>";
         }
     }
 
