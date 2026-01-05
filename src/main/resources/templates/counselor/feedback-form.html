@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Feedback Form - MindWell Counselor')}">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-slate-300 antialiased">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('feedback')}"></div>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <header class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Student Feedback Management</h2>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Review and respond to student feedback</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Counselor Response Form -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-6">Submit Response to Student Feedback</h3>
+                        <form id="responseForm" onsubmit="submitResponse(event)">
+                            <!-- Select Feedback Item -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select Feedback</label>
+                                <select id="feedbackSelect" name="feedbackId" class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary" required>
+                                    <option value="">Loading feedback...</option>
+                                </select>
+                            </div>
+
+                            <!-- Selected Feedback Display -->
+                            <div id="selectedFeedbackDisplay" class="mb-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg hidden">
+                                <h4 id="selectedSubject" class="font-semibold mb-2"></h4>
+                                <p id="selectedDetails" class="text-sm text-slate-600 dark:text-slate-400 mb-2"></p>
+                                <p id="selectedMeta" class="text-xs text-slate-500"></p>
+                            </div>
+
+                            <!-- Response Type -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Response Type</label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="responseType" value="acknowledgement" class="peer hidden" checked />
+                                        <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-primary peer-checked:bg-primary/5 transition-all text-center">
+                                            <span class="material-symbols-outlined text-2xl text-slate-400 peer-checked:text-primary mb-1">done</span>
+                                            <p class="text-sm font-medium">Acknowledgement</p>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="responseType" value="action" class="peer hidden" />
+                                        <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-blue-500 peer-checked:bg-blue-50 dark:peer-checked:bg-blue-900/30 transition-all text-center">
+                                            <span class="material-symbols-outlined text-2xl text-slate-400 peer-checked:text-blue-500 mb-1">build</span>
+                                            <p class="text-sm font-medium">Action Taken</p>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="responseType" value="followup" class="peer hidden" />
+                                        <div class="p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 peer-checked:border-amber-500 peer-checked:bg-amber-50 dark:peer-checked:bg-amber-900/30 transition-all text-center">
+                                            <span class="material-symbols-outlined text-2xl text-slate-400 peer-checked:text-amber-500 mb-1">mail</span>
+                                            <p class="text-sm font-medium">Follow-up</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Response Message -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Response Message</label>
+                                <textarea id="responseMessage" name="message" rows="5" placeholder="Write your response to the student's feedback..."
+                                    class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary"
+                                    required></textarea>
+                            </div>
+
+                            <!-- Submit -->
+                            <button type="submit" id="submitResponseBtn"
+                                class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">send</span>
+                                <span id="submitResponseBtnText">Send Response</span>
+                            </button>
+                        </form>
+
+                        <!-- Success State -->
+                        <div id="responseSuccessState" class="hidden text-center py-8">
+                            <div class="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="material-symbols-outlined text-3xl text-green-500">check_circle</span>
+                            </div>
+                            <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Response Sent!</h4>
+                            <p class="text-slate-500 mb-6">Your response has been recorded successfully.</p>
+                            <button onclick="resetResponseForm()"
+                                class="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700">Send Another Response</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Student Feedback Sidebar -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                        <h4 class="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">forum</span>
+                            Recent Student Feedback
+                        </h4>
+                        <div id="recentFeedbackList" class="space-y-3 text-sm">
+                            <p class="text-slate-500">Loading feedback...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Feedback Details Quick View -->
+                    <div id="feedbackDetailsPanel" class="bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hidden">
+                        <div class="flex items-start justify-between mb-3">
+                            <h5 class="font-semibold text-slate-800 dark:text-white text-sm">Feedback Details</h5>
+                            <button onclick="closeFeedbackDetails()" class="text-slate-400 hover:text-slate-600 text-lg">✕</button>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <p class="text-slate-500">Subject:</p>
+                                <p id="panelSubject" class="font-medium text-slate-800 dark:text-white"></p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">Details:</p>
+                                <p id="panelDetails" class="text-slate-600 dark:text-slate-400"></p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">Status:</p>
+                                <div id="panelStatus" class="inline-block px-2 py-1 rounded text-xs font-semibold"></div>
+                            </div>
+                            <div class="flex gap-2 mt-3">
+                                <button onclick="manageFeedbackStatus(document.getElementById('currentFeedbackId').value, 'reviewed')" 
+                                    class="flex-1 px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 disabled:opacity-50" id="statusBtnReviewed">
+                                    Mark Reviewed
+                                </button>
+                                <button onclick="manageFeedbackStatus(document.getElementById('currentFeedbackId').value, 'resolved')" 
+                                    class="flex-1 px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 disabled:opacity-50" id="statusBtnResolved">
+                                    Mark Resolved
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="currentFeedbackId" />
+
+                    <!-- Statistics -->
+                    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-indigo-100 dark:border-slate-700 p-6">
+                        <h4 class="font-semibold text-slate-800 dark:text-white mb-3">Feedback Statistics</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600 dark:text-slate-400">Total Feedback:</span>
+                                <span class="font-semibold text-slate-800 dark:text-white" id="statTotal">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600 dark:text-slate-400">Pending:</span>
+                                <span class="font-semibold text-yellow-600" id="statPending">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600 dark:text-slate-400">Reviewed:</span>
+                                <span class="font-semibold text-blue-600" id="statReviewed">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-600 dark:text-slate-400">Resolved:</span>
+                                <span class="font-semibold text-green-600" id="statResolved">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let allFeedback = [];
+
+        // Load feedback on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadFeedbackList();
+        });
+
+        // Load recent feedback and populate dropdown
+        async function loadFeedbackList() {
+            try {
+                const res = await fetch('/counselor/feedback/recent');
+                if (!res.ok) throw new Error('Failed to load feedback');
+                const data = await res.json();
+                
+                if (data.success) {
+                    allFeedback = data.feedback || [];
+                    populateFeedbackDropdown();
+                    updateStatistics();
+                    displayRecentFeedback();
+                }
+            } catch (err) {
+                console.error('Error loading feedback', err);
+                document.getElementById('recentFeedbackList').innerHTML = '<p class="text-red-500">Failed to load feedback</p>';
+            }
+        }
+
+        // Populate feedback dropdown
+        function populateFeedbackDropdown() {
+            const select = document.getElementById('feedbackSelect');
+            select.innerHTML = '<option value="">Select a feedback item...</option>';
+            
+            allFeedback.forEach(f => {
+                const option = document.createElement('option');
+                option.value = f.id;
+                option.textContent = `${f.type.toUpperCase()} - ${f.subject.substring(0, 40)}... (${f.status})`;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    const feedback = allFeedback.find(f => f.id == e.target.value);
+                    if (feedback) displaySelectedFeedback(feedback);
+                } else {
+                    document.getElementById('selectedFeedbackDisplay').classList.add('hidden');
+                }
+            });
+        }
+
+        // Display selected feedback details
+        function displaySelectedFeedback(feedback) {
+            document.getElementById('selectedSubject').textContent = feedback.subject;
+            document.getElementById('selectedDetails').textContent = feedback.details;
+            document.getElementById('selectedMeta').textContent = `Type: ${feedback.type} • Status: ${feedback.status} • Date: ${new Date(feedback.createdAt).toLocaleString()}`;
+            document.getElementById('selectedFeedbackDisplay').classList.remove('hidden');
+        }
+
+        // Display recent feedback in sidebar
+        function displayRecentFeedback() {
+            const container = document.getElementById('recentFeedbackList');
+            if (allFeedback.length === 0) {
+                container.innerHTML = '<p class="text-slate-500">No feedback yet.</p>';
+                return;
+            }
+
+            container.innerHTML = allFeedback.slice(0, 5).map(f => {
+                const icon = f.type === 'bug' ? '🐛' : (f.type === 'suggestion' ? '💡' : '💬');
+                const statusColor = f.status === 'pending' ? 'text-yellow-600' : (f.status === 'reviewed' ? 'text-blue-600' : 'text-green-600');
+                return `
+                    <div class="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" onclick="viewFeedbackDetails(${f.id})">
+                        <div class="flex items-start gap-2">
+                            <span class="text-lg">${icon}</span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-slate-900 dark:text-white truncate text-xs">${f.subject.substring(0, 30)}...</p>
+                                <p class="text-xs text-slate-500">${new Date(f.createdAt).toLocaleDateString()}</p>
+                                <p class="text-xs font-semibold ${statusColor}">${f.status}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const total = allFeedback.length;
+            const pending = allFeedback.filter(f => f.status === 'pending').length;
+            const reviewed = allFeedback.filter(f => f.status === 'reviewed').length;
+            const resolved = allFeedback.filter(f => f.status === 'resolved').length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statReviewed').textContent = reviewed;
+            document.getElementById('statResolved').textContent = resolved;
+        }
+
+        // Submit response
+        async function submitResponse(e) {
+            e.preventDefault();
+
+            const feedbackId = document.getElementById('feedbackSelect').value;
+            const responseType = document.querySelector('input[name="responseType"]:checked').value;
+            const message = document.getElementById('responseMessage').value;
+            const submitBtn = document.getElementById('submitResponseBtn');
+            const submitBtnText = document.getElementById('submitResponseBtnText');
+
+            if (!feedbackId) {
+                alert('Please select a feedback item');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtnText.textContent = 'Sending...';
+
+            try {
+                const form = new URLSearchParams();
+                form.append('feedbackId', feedbackId);
+                form.append('responseType', responseType);
+                form.append('message', message);
+
+                const res = await fetch('/counselor/feedback/respond', {
+                    method: 'POST',
+                    body: form
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('responseForm').classList.add('hidden');
+                    document.getElementById('responseSuccessState').classList.remove('hidden');
+                    
+                    // Reload feedback list
+                    setTimeout(() => {
+                        loadFeedbackList();
+                    }, 1000);
+                } else {
+                    alert(data.message || 'Failed to send response');
+                    submitBtn.disabled = false;
+                    submitBtnText.textContent = 'Send Response';
+                }
+            } catch (err) {
+                console.error('Error submitting response', err);
+                alert('Error submitting response');
+                submitBtn.disabled = false;
+                submitBtnText.textContent = 'Send Response';
+            }
+        }
+
+        // Reset form
+        function resetResponseForm() {
+            document.getElementById('responseForm').classList.remove('hidden');
+            document.getElementById('responseSuccessState').classList.add('hidden');
+            document.getElementById('responseForm').reset();
+            document.getElementById('selectedFeedbackDisplay').classList.add('hidden');
+            document.getElementById('submitResponseBtn').disabled = false;
+            document.getElementById('submitResponseBtnText').textContent = 'Send Response';
+        }
+
+        // View feedback details in quick panel
+        function viewFeedbackDetails(feedbackId) {
+            const feedback = allFeedback.find(f => f.id === feedbackId);
+            if (!feedback) return;
+
+            document.getElementById('currentFeedbackId').value = feedbackId;
+            document.getElementById('panelSubject').textContent = feedback.subject;
+            document.getElementById('panelDetails').textContent = feedback.details;
+            
+            const statusEl = document.getElementById('panelStatus');
+            const statusColor = feedback.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300' : 
+                               (feedback.status === 'reviewed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' : 
+                                'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300');
+            statusEl.textContent = feedback.status;
+            statusEl.className = statusColor;
+            
+            document.getElementById('feedbackDetailsPanel').classList.remove('hidden');
+            document.getElementById('feedbackSelect').value = feedbackId;
+            displaySelectedFeedback(feedback);
+        }
+
+        function closeFeedbackDetails() {
+            document.getElementById('feedbackDetailsPanel').classList.add('hidden');
+            document.getElementById('currentFeedbackId').value = '';
+        }
+
+        // Manage feedback status (from sidebar quick view)
+        async function manageFeedbackStatus(id, status) {
+            const niceStatus = status.charAt(0).toUpperCase() + status.slice(1);
+            if (!confirm(`Are you sure you want to mark this feedback as ${niceStatus}?`)) {
+                return;
+            }
+
+            const btn = status === 'reviewed' ? document.getElementById('statusBtnReviewed') : document.getElementById('statusBtnResolved');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+
+            try {
+                const form = new URLSearchParams();
+                form.append('id', id);
+                form.append('status', status);
+                const res = await fetch('/counselor/feedback/update-status', { method: 'POST', body: form });
+                const data = await res.json();
+                if (data.success) {
+                    await loadFeedbackList();
+                    closeFeedbackDetails();
+                } else {
+                    alert(data.message || 'Failed to update status');
+                }
+            } catch (err) {
+                console.error('Error updating status', err);
+                alert('Error updating status');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+    </script>
+</body>
+
+</html>

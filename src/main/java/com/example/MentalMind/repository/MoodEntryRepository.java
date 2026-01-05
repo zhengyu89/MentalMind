@@ -17,6 +17,10 @@ public interface MoodEntryRepository extends JpaRepository<MoodEntry, Long> {
     // Find all mood entries for a user ordered by date descending
     List<MoodEntry> findByUserOrderByCreatedAtDesc(User user);
 
+    // Find mood entries by user ID
+    @Query("SELECT m FROM MoodEntry m WHERE m.user.id = :userId ORDER BY m.createdAt DESC")
+    List<MoodEntry> findByUserId(@Param("userId") Long userId);
+
     // Find mood entries for a user within a date range
     List<MoodEntry> findByUserAndCreatedAtBetweenOrderByCreatedAtDesc(
             User user, LocalDateTime start, LocalDateTime end);

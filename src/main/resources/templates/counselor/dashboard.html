@@ -37,7 +37,7 @@
                                 <span class="material-symbols-outlined text-primary">event_available</span>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold">5</p>
+                                <p class="text-2xl font-bold" id="appointmentsCount">-</p>
                                 <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Today's
                                     Appointments</p>
                             </div>
@@ -51,7 +51,7 @@
                                 <span class="material-symbols-outlined text-amber-500">pending_actions</span>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold">3</p>
+                                <p class="text-2xl font-bold" id="pendingCount">-</p>
                                 <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Pending
                                     Requests</p>
                             </div>
@@ -65,7 +65,7 @@
                                 <span class="material-symbols-outlined text-red-500">warning</span>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold">2</p>
+                                <p class="text-2xl font-bold" id="flaggedCount">-</p>
                                 <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Flagged
                                     Students</p>
                             </div>
@@ -79,7 +79,7 @@
                                 <span class="material-symbols-outlined text-green-500">groups</span>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold">45</p>
+                                <p class="text-2xl font-bold" id="activeStudentsCount">-</p>
                                 <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Active
                                     Students</p>
                             </div>
@@ -96,47 +96,7 @@
                             <a th:href="@{/counselor/appointments}"
                                 class="text-primary text-sm font-medium hover:underline">View All</a>
                         </div>
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <div class="text-center">
-                                    <p class="text-lg font-bold text-primary">10:00</p>
-                                    <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">AM</p>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-semibold">Ahmad Danial</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Follow-up
-                                        session - Anxiety management</p>
-                                </div>
-                                <button
-                                    class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-indigo-700">Start</button>
-                            </div>
-                            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <div class="text-center">
-                                    <p class="text-lg font-bold">11:30</p>
-                                    <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">AM</p>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-semibold">Nur Farisya</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Initial
-                                        consultation</p>
-                                </div>
-                                <span
-                                    class="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-sm rounded-lg">Upcoming</span>
-                            </div>
-                            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                <div class="text-center">
-                                    <p class="text-lg font-bold">2:00</p>
-                                    <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">PM</p>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-semibold">Muhammad Hafiz</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Academic
-                                        stress counseling</p>
-                                </div>
-                                <span
-                                    class="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-sm rounded-lg">Upcoming</span>
-                            </div>
-                        </div>
+                        <div class="space-y-4" data-appointments-container></div>
                     </div>
 
                     <!-- Flagged Students -->
@@ -145,34 +105,9 @@
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-lg font-semibold">Flagged Students</h3>
                             <span
-                                class="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                                class="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold" id="flaggedCountBadge">0</span>
                         </div>
-                        <div class="space-y-4">
-                            <div
-                                class="p-4 border-2 border-red-200 dark:border-red-900 rounded-lg bg-red-50 dark:bg-red-900/20">
-                                <div class="flex items-center gap-3 mb-2">
-                                    <img alt="Student" class="w-10 h-10 rounded-full"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqZ6qQjWEuRB0pTQP6JMsaDeRtzgwRT1PS8A-YD5cBDtLtfxMr5wyqh1AYBksBZAG0ObH1WD6t2E3JTBJ8Blzgk4ptVEo4wZkw8tYk1tKM2x-lKz6E_bB-cE441U1LKU8Nrx-onqFcFPiHeQAjquBDqp2V5cDY4lH8yTndnDuRLBF7T-m1hxrimGrdZB7hTIByT0_Bduh1HlMCh5RknXsoqh-cWqpxaSOuwQqT3XxkxMOnOn_PMeUug7YYbSn4R-0aacwXqoNaRw3N" />
-                                    <div>
-                                        <p class="font-semibold">Amir Syafiq</p>
-                                        <p class="text-xs text-red-600">High Risk - GAD-7: 18</p>
-                                    </div>
-                                </div>
-                                <a href="#" class="text-primary text-sm font-medium hover:underline">View Profile →</a>
-                            </div>
-                            <div
-                                class="p-4 border-2 border-amber-200 dark:border-amber-900 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                                <div class="flex items-center gap-3 mb-2">
-                                    <img alt="Student" class="w-10 h-10 rounded-full"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3LjyXbBy_qVvL_N-8q5fgVu-haNd9fgBBFxvsRfa1tYwaQCqW2ojYGxT_TDLtJgfm207Eitb7HE5nKgu7o5Ac6xsBUXPaX7JUVpeaRnx32DBRC5s72zF8-7dRyd2VABxBzJntBUuZeYcMVK9FhIRFmeDvyw0byRktK4DL6h0Dwfh4-n3ROXGjuh1myFqOowDO7gxb-aAGgZoJuJjYZBYnyA70Ny5KUhBMvvH0ZfTHbUwEs6XF_KGEWzOxwjGZJQpxKVr4cqMvEYAo" />
-                                    <div>
-                                        <p class="font-semibold">Siti Khadijah</p>
-                                        <p class="text-xs text-amber-600">Moderate Risk - PHQ-9: 12</p>
-                                    </div>
-                                </div>
-                                <a href="#" class="text-primary text-sm font-medium hover:underline">View Profile →</a>
-                            </div>
-                        </div>
+                        <div class="space-y-4" data-flagged-container></div>
                     </div>
                 </div>
 
@@ -261,6 +196,159 @@
             </div>
         </main>
     </div>
+
+    <script>
+        // Load all dashboard data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDashboardStats();
+            await loadUpcomingAppointments();
+            await loadFlaggedStudents();
+            await loadRecentAssessments();
+        });
+
+        // Load dashboard statistics (appointments, pending, flagged, active students)
+        async function loadDashboardStats() {
+            try {
+                const [appointments, pending, flagged, active] = await Promise.all([
+                    fetch('/counselor/api/appointments-today').then(r => r.json()),
+                    fetch('/counselor/api/pending-requests').then(r => r.json()),
+                    fetch('/counselor/api/flagged-students').then(r => r.json()),
+                    fetch('/counselor/api/active-students').then(r => r.json())
+                ]);
+
+                if (appointments.success && appointments.data) {
+                    document.getElementById('appointmentsCount').textContent = appointments.data.todayAppointments || 0;
+                }
+                if (pending.success && pending.data) {
+                    document.getElementById('pendingCount').textContent = pending.data.totalPending || 0;
+                }
+                if (flagged.success && flagged.data) {
+                    document.getElementById('flaggedCount').textContent = (flagged.data || []).length;
+                }
+                if (active.success && active.data) {
+                    document.getElementById('activeStudentsCount').textContent = active.data.activeStudents || 0;
+                }
+            } catch (err) {
+                console.error('Error loading dashboard stats:', err);
+            }
+        }
+
+        // Load upcoming appointments
+        async function loadUpcomingAppointments() {
+            try {
+                const res = await fetch('/counselor/api/upcoming-appointments');
+                const data = await res.json();
+                
+                if (!data.success || !data.data) return;
+
+                const container = document.querySelector('[data-appointments-container]') || createScheduleContainer();
+                const appointments = data.data.slice(0, 3); // Show top 3
+
+                container.innerHTML = appointments.map(apt => `
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                        <div class="text-center">
+                            <p class="text-lg font-bold text-primary">${new Date(apt.scheduledTime).getHours().toString().padStart(2, '0')}:${new Date(apt.scheduledTime).getMinutes().toString().padStart(2, '0')}</p>
+                            <p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">${new Date(apt.scheduledTime).getHours() >= 12 ? 'PM' : 'AM'}</p>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-semibold">${apt.studentName}</p>
+                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">${apt.subject || apt.type || 'Meeting'}</p>
+                        </div>
+                        <span class="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-sm rounded-lg">${apt.status || 'Pending'}</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading appointments:', err);
+            }
+        }
+
+        // Load flagged students
+        async function loadFlaggedStudents() {
+            try {
+                const res = await fetch('/counselor/api/flagged-students');
+                const data = await res.json();
+                
+                if (!data.success || !data.data) return;
+
+                const container = document.querySelector('[data-flagged-container]');
+                const students = data.data.slice(0, 2); // Show top 2
+                
+                // Update badge count
+                document.getElementById('flaggedCountBadge').textContent = data.data.length;
+
+                if (!container) return;
+
+                container.innerHTML = students.map(student => {
+                    const borderColor = student.riskLevel === 'HIGH' ? 'border-red-200 dark:border-red-900' : 'border-amber-200 dark:border-amber-900';
+                    const bgColor = student.riskLevel === 'HIGH' ? 'bg-red-50 dark:bg-red-900/20' : 'bg-amber-50 dark:bg-amber-900/20';
+                    const textColor = student.riskLevel === 'HIGH' ? 'text-red-600' : 'text-amber-600';
+
+                    return `
+                        <div class="p-4 border-2 ${borderColor} rounded-lg ${bgColor}">
+                            <div class="flex items-center gap-3 mb-2">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center text-white font-bold">
+                                    ${student.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <p class="font-semibold">${student.name}</p>
+                                    <p class="text-xs ${textColor}">Risk Level: ${student.riskLevel || 'N/A'} - Score: ${student.score}</p>
+                                </div>
+                            </div>
+                            <a href="#" class="text-primary text-sm font-medium hover:underline">View Profile →</a>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Error loading flagged students:', err);
+            }
+        }
+
+        // Load recent assessments
+        async function loadRecentAssessments() {
+            try {
+                const res = await fetch('/counselor/api/recent-assessments');
+                const data = await res.json();
+                
+                if (!data.success || !data.data) return;
+
+                const tbody = document.querySelector('tbody');
+                if (!tbody) return;
+
+                const assessments = data.data.slice(0, 3); // Show top 3
+
+                tbody.innerHTML = assessments.map(assessment => {
+                    const riskColor = assessment.stressLevel === 'HIGH' ? 'bg-red-100 dark:bg-red-900/50 text-red-600' :
+                                     assessment.stressLevel === 'MODERATE' ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600' :
+                                     'bg-green-100 dark:bg-green-900/50 text-green-600';
+
+                    const date = new Date(assessment.completedAt).toLocaleDateString();
+                    const daysAgo = Math.floor((Date.now() - new Date(assessment.completedAt).getTime()) / (1000 * 60 * 60 * 24));
+                    let dateLabel = 'Today';
+                    if (daysAgo === 1) dateLabel = 'Yesterday';
+                    else if (daysAgo > 1) dateLabel = `${daysAgo} days ago`;
+
+                    return `
+                        <tr class="border-b border-border-light dark:border-border-dark">
+                            <td class="py-3 px-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center text-white font-bold text-xs">
+                                        ${assessment.studentName.charAt(0)}
+                                    </div>
+                                    <span>${assessment.studentName}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-4">Self-Assessment</td>
+                            <td class="py-3 px-4">${assessment.score}</td>
+                            <td class="py-3 px-4 text-text-secondary-light dark:text-text-secondary-dark">${dateLabel}</td>
+                            <td class="py-3 px-4"><span class="px-2 py-1 ${riskColor} text-xs font-semibold rounded-full">${assessment.stressLevel}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error('Error loading assessments:', err);
+            }
+        }
+    </script>
 </body>
 
 </html>

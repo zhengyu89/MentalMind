@@ -61,7 +61,7 @@
                             <div class="mb-4">
                                 <label
                                     class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Subject</label>
-                                <input type="text" id="feedbackSubject" placeholder="Brief summary of your feedback"
+                                <input type="text" id="feedbackSubject" name="subject" placeholder="Brief summary of your feedback"
                                     class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary"
                                     required />
                             </div>
@@ -70,7 +70,7 @@
                             <div class="mb-6">
                                 <label
                                     class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Details</label>
-                                <textarea id="feedbackDetails" rows="5"
+                                <textarea id="feedbackDetails" name="details" rows="5"
                                     placeholder="Please provide as much detail as possible..."
                                     class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary"
                                     required></textarea>
@@ -80,7 +80,7 @@
                             <button type="submit" id="submitBtn"
                                 class="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2">
                                 <span class="material-symbols-outlined">send</span>
-                                Submit Feedback
+                                <span id="submitBtnText">Submit Feedback</span>
                             </button>
                         </form>
 
@@ -155,32 +155,93 @@
     <script>
         let submissions = [];
 
+        // Load recent submissions on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRecentSubmissions();
+        });
+
         function submitFeedback(e) {
             e.preventDefault();
 
             const type = document.querySelector('input[name="type"]:checked').value;
             const subject = document.getElementById('feedbackSubject').value;
             const details = document.getElementById('feedbackDetails').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const submitBtnText = document.getElementById('submitBtnText');
 
-            // Add to submissions
-            submissions.unshift({
-                type: type,
-                subject: subject,
-                date: new Date().toLocaleDateString('en-MY')
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            const originalText = submitBtnText.textContent;
+            submitBtnText.textContent = 'Submitting...';
+
+            // Submit feedback to backend
+            fetch('/student/feedback/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    type: type,
+                    subject: subject,
+                    details: details
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success state
+                    document.getElementById('feedbackForm').classList.add('hidden');
+                    document.getElementById('successState').classList.remove('hidden');
+                    
+                    // Reload recent submissions
+                    setTimeout(() => {
+                        loadRecentSubmissions();
+                    }, 1000);
+                } else {
+                    showError(data.message || 'Failed to submit feedback');
+                    submitBtn.disabled = false;
+                    submitBtnText.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('An error occurred while submitting feedback');
+                submitBtn.disabled = false;
+                submitBtnText.textContent = originalText;
             });
+        }
 
-            // Update recent submissions
-            updateRecentSubmissions();
+        function showError(message) {
+            // Create and show error toast
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
 
-            // Show success state
-            document.getElementById('feedbackForm').classList.add('hidden');
-            document.getElementById('successState').classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
         }
 
         function resetForm() {
             document.getElementById('feedbackForm').reset();
             document.getElementById('feedbackForm').classList.remove('hidden');
             document.getElementById('successState').classList.add('hidden');
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        function loadRecentSubmissions() {
+            fetch('/student/feedback/list')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    submissions = data.feedback || [];
+                    updateRecentSubmissions();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading feedback:', error);
+            });
         }
 
         function updateRecentSubmissions() {
@@ -196,16 +257,36 @@
                 'suggestion': '💡'
             };
 
-            container.innerHTML = submissions.slice(0, 3).map(s => `
-                <div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <span class="text-lg">${typeIcons[s.type]}</span>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-medium truncate">${s.subject}</p>
-                        <p class="text-xs text-slate-400">${s.date}</p>
+            const typeLabels = {
+                'feedback': 'Feedback',
+                'bug': 'Bug Report',
+                'suggestion': 'Suggestion'
+            };
+
+            const statusColors = {
+                'pending': 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300',
+                'reviewed': 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300',
+                'resolved': 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300'
+            };
+
+            container.innerHTML = submissions.slice(0, 3).map(s => {
+                const date = new Date(s.createdAt);
+                const formattedDate = date.toLocaleDateString('en-MY');
+                const statusColor = statusColors[s.status] || 'bg-gray-100 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300';
+                
+                return `
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                        <span class="text-lg">${typeIcons[s.type] || '💭'}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-medium text-slate-900 dark:text-white truncate">${s.subject}</p>
+                            <p class="text-xs text-slate-400">${formattedDate}</p>
+                        </div>
+                        <span class="text-xs font-medium px-2 py-1 rounded-full whitespace-nowrap ${statusColor}">
+                            ${s.status.charAt(0).toUpperCase() + s.status.slice(1)}
+                        </span>
                     </div>
-                    <span class="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">Sent</span>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
     </script>
 </body>
