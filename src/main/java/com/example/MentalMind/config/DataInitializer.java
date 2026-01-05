@@ -41,26 +41,12 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(counselor);
         }
 
-        // Remove initial seeded resources (if present) to clear the starter data.
-        // This will only deactivate resources that match the original seed titles.
-        if (!resourceService.getAllResources().isEmpty()) {
-            removeSeededResources();
+        // Initialize sample resources
+        if (resourceService.getAllResources().isEmpty()) {
+            initializeResources();
         }
     }
 
-    private void removeSeededResources() {
-        java.util.List<com.example.MentalMind.model.Resource> list = resourceService.getAllResources();
-        for (com.example.MentalMind.model.Resource r : list) {
-            String t = r.getTitle() == null ? "" : r.getTitle().trim();
-            if ("Coping Strategies for Stress".equalsIgnoreCase(t) || "Mindfulness for Beginners".equalsIgnoreCase(t)) {
-                try {
-                    resourceService.deactivateResource(r.getId());
-                } catch (Exception e) {
-                    // ignore any errors during cleanup
-                }
-            }
-        }
-    }
 
     private void initializeMoodData(User student) {
         // Mock mood scores for the past 7 days (today going backwards)
@@ -90,28 +76,74 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void initializeResources() {
-        // Coping Strategies for Stress
+        // 1. Understanding Anxiety
         resourceService.createResource(
-            "Coping Strategies for Stress",
-            "guide",
-            "Learn practical techniques to manage daily stress and build resilience.",
-            "<div class=\"prose dark:prose-invert max-w-none\"><h4>Introduction</h4><p>Stress is a normal part of life, especially for students. Learning effective coping strategies can help you manage stress and maintain your mental well-being.</p><h4>Key Strategies</h4><ol><li><strong>Deep Breathing</strong> - Practice the 4-7-8 technique: inhale for 4 seconds, hold for 7, exhale for 8.</li><li><strong>Physical Activity</strong> - Even a 10-minute walk can significantly reduce stress hormones.</li><li><strong>Time Management</strong> - Break large tasks into smaller, manageable chunks.</li><li><strong>Social Support</strong> - Talk to friends, family, or counselors about your feelings.</li><li><strong>Mindfulness</strong> - Practice being present in the moment without judgment.</li></ol><h4>Try This Exercise</h4><p>The 5-4-3-2-1 Grounding Technique:</p><ul><li>Name 5 things you can see</li><li>Name 4 things you can touch</li><li>Name 3 things you can hear</li><li>Name 2 things you can smell</li><li>Name 1 thing you can taste</li></ul></div>",
-            "spa",
-            "teal-400",
-            "green-500",
-            "teal"
+            "Understanding Anxiety",
+            "article",
+            "Learn about anxiety symptoms and evidence-based treatments.",
+            "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Anxiety?</h4><p>Anxiety is a normal emotion characterized by worry, fear, or apprehension about future events. However, when anxiety becomes excessive and interferes with daily life, it may be a sign of an anxiety disorder.</p><h4>Common Symptoms</h4><ul><li>Persistent worry or fear</li><li>Difficulty concentrating</li><li>Sleep disturbances</li><li>Physical tension or restlessness</li><li>Rapid heartbeat or shortness of breath</li></ul><h4>Evidence-Based Treatments</h4><ol><li><strong>Cognitive Behavioral Therapy (CBT)</strong> - Identifies and challenges negative thought patterns</li><li><strong>Exposure Therapy</strong> - Gradual exposure to anxiety triggers</li><li><strong>Medication</strong> - Such as SSRIs prescribed by healthcare providers</li><li><strong>Lifestyle Changes</strong> - Regular exercise, meditation, and sleep hygiene</li></ol></div>",
+            "heart",
+            "red-400",
+            "pink-500",
+            "red",
+            "anxiety",
+            "/assets/download (2).jpeg"
         );
 
-        // Mindfulness for Beginners
+        // 2. Stress Management Techniques
         resourceService.createResource(
-            "Mindfulness for Beginners",
+            "Stress Management Techniques",
+            "guide",
+            "Practical techniques to manage stress and improve mental health.",
+            "<div class=\"prose dark:prose-invert max-w-none\"><h4>Introduction</h4><p>Stress is a natural response to challenges, but chronic stress can negatively impact your health. Learn practical techniques to manage stress effectively.</p><h4>Key Techniques</h4><ol><li><strong>Deep Breathing Exercises</strong> - The 4-7-8 technique can activate your relaxation response</li><li><strong>Progressive Muscle Relaxation</strong> - Tense and release each muscle group systematically</li><li><strong>Time Management</strong> - Prioritize tasks and break them into manageable chunks</li><li><strong>Physical Activity</strong> - Exercise releases endorphins and reduces stress hormones</li><li><strong>Maintain Healthy Routines</strong> - Consistent sleep, nutrition, and social connection</li></ol><h4>30-Minute Stress Relief Plan</h4><ul><li>5 min: Deep breathing exercises</li><li>10 min: Light exercise or walk</li><li>10 min: Journaling or meditation</li><li>5 min: Gratitude reflection</li></ul></div>",
+            "brain",
+            "blue-400",
+            "cyan-500",
+            "blue",
+            "stress",
+            "/assets/3145195-article-tips-to-reduce-stress-5a8c75818e1b6e0036533c47-922c3155e9c846eaa7447c75030b2c13.png"
+        );
+
+        // 3. Mental Health Resources and Support (with YouTube video)
+        resourceService.createResource(
+            "What Is Anxiety Really? Stress, Anxiety, and Worry",
+            "video",
+            "Comprehensive guide to mental health resources and getting support.",
+            "<div class=\"prose dark:prose-invert max-w-none\"><h4>Mental Health Support is Available</h4><p>If you're struggling with your mental health, know that support is available. Watch this helpful video about mental health resources.</p><h4>Video Resource</h4><p><a href=\"https://youtu.be/db3K8b3ftaY?si=AUjbZHPItFkiO82b\" target=\"_blank\" class=\"text-blue-500 hover:underline\">Mental Health Support Guide</a></p><h4>Types of Support</h4><ul><li><strong>Professional Therapy</strong> - Individual or group counseling with licensed therapists</li><li><strong>Support Groups</strong> - Connect with others facing similar challenges</li><li><strong>Crisis Services</strong> - 24/7 hotlines for immediate mental health crises</li><li><strong>Campus Resources</strong> - Free counseling and wellness programs at your institution</li><li><strong>Peer Support</strong> - Lean on trusted friends and family members</li></ul><h4>Remember</h4><p>Reaching out for help is a sign of strength, not weakness. Your mental health matters.</p></div>",
+            "video",
+            "purple-400",
+            "indigo-500",
+            "purple",
+            "anxiety",
+            null
+        );
+
+        // 4. Building Healthy Relationships
+        resourceService.createResource(
+            "Building Healthy Relationships",
+            "guide",
+            "Learn how to develop and maintain meaningful, healthy relationships.",
+            "<div class=\"prose dark:prose-invert max-w-none\"><h4>The Importance of Relationships</h4><p>Strong relationships are fundamental to mental health and well-being. They provide support, reduce stress, and give life meaning.</p><h4>Characteristics of Healthy Relationships</h4><ol><li><strong>Trust and Honesty</strong> - Open communication without fear of judgment</li><li><strong>Respect and Boundaries</strong> - Honoring each other's limits and individuality</li><li><strong>Mutual Support</strong> - Being there for each other during good and difficult times</li><li><strong>Effective Communication</strong> - Active listening and expressing feelings clearly</li><li><strong>Shared Values</strong> - Common goals and understanding of what matters</li></ol><h4>How to Build Stronger Relationships</h4><ul><li>Practice active listening without immediately giving advice</li><li>Be vulnerable and share your true feelings</li><li>Show appreciation and gratitude regularly</li><li>Spend quality time together</li><li>Address conflicts promptly and respectfully</li><li>Maintain individual identities and interests</li></ul></div>",
+            "people",
+            "green-400",
+            "emerald-500",
+            "green",
+            "relationships",
+            "/assets/download (1).jpeg"
+        );
+
+        // 5. Sleep and Mental Health
+        resourceService.createResource(
+            "Sleep and Mental Health",
             "article",
-            "Start your mindfulness journey with simple exercises you can do anywhere.",
-            "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Mindfulness?</h4><p>Mindfulness is the practice of being fully present and engaged in the current moment, without judgment. It can help reduce stress, improve focus, and enhance emotional regulation.</p><h4>Simple Exercises to Start</h4><ol><li><strong>Mindful Breathing</strong> - Focus on your breath for 5 minutes. Notice the sensation of air entering and leaving your body.</li><li><strong>Body Scan</strong> - Slowly move your attention through different parts of your body, noticing any tension or sensations.</li><li><strong>Mindful Eating</strong> - Eat one meal slowly, savoring each bite and noticing the flavors and textures.</li></ol><h4>Tips for Success</h4><ul><li>Start with just 5 minutes a day</li><li>Be patient with yourself</li><li>Practice at the same time each day</li><li>Use guided meditations if helpful</li></ul></div>",
-            "self_improvement",
-            "amber-400",
-            "orange-500",
-            "amber"
+            "Discover the crucial connection between sleep quality and mental well-being.",
+            "<div class=\"prose dark:prose-invert max-w-none\"><h4>Why Sleep Matters for Mental Health</h4><p>Sleep is essential for emotional regulation, cognitive function, and mental health. Poor sleep can worsen anxiety, depression, and stress.</p><h4>The Sleep-Mental Health Connection</h4><ul><li><strong>Emotional Processing</strong> - Sleep helps your brain process emotions and experiences</li><li><strong>Memory Consolidation</strong> - Sleep strengthens memory formation and learning</li><li><strong>Stress Hormone Regulation</strong> - Adequate sleep reduces cortisol and adrenaline levels</li><li><strong>Immune Function</strong> - Sleep supports the immune system and reduces inflammation</li></ul><h4>Tips for Better Sleep</h4><ol><li><strong>Maintain a Schedule</strong> - Go to bed and wake up at consistent times</li><li><strong>Create a Sleep Environment</strong> - Keep your bedroom dark, cool, and quiet</li><li><strong>Limit Screen Time</strong> - Avoid screens 1 hour before bed</li><li><strong>Avoid Caffeine Late</strong> - Limit caffeine intake after 2 PM</li><li><strong>Relaxation Techniques</strong> - Try meditation, breathing exercises, or gentle stretching</li><li><strong>Physical Activity</strong> - Exercise during the day but not close to bedtime</li></ol><h4>When to Seek Help</h4><p>If you consistently struggle with sleep despite good sleep hygiene, consult a healthcare provider.</p></div>",
+            "moon",
+            "indigo-400",
+            "blue-500",
+            "indigo",
+            "mindfulness",
+            "/assets/download.jpeg"
         );
     }
 }

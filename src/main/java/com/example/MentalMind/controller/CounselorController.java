@@ -65,6 +65,7 @@ public class CounselorController {
                                @RequestParam(required = false) String resourceUrl,
                                @RequestParam(required = false) String description,
                                @RequestParam(required = false) String category,
+                               @RequestParam(required = false) String coverImageUrl,
                                HttpSession session) {
         // Title is always required. URL is required only for videos.
         if (resourceTitle == null || resourceTitle.isEmpty()) {
@@ -77,7 +78,10 @@ public class CounselorController {
         try {
             // Determine content type and generate content
             String content = generateResourceContent(resourceType, resourceUrl, resourceTitle, description);
-            String coverImageUrl = extractCoverImageUrl(resourceType, resourceUrl);
+            // Use form coverImageUrl if provided, otherwise extract from video URL
+            String finalCoverImageUrl = (coverImageUrl != null && !coverImageUrl.isEmpty()) 
+                ? coverImageUrl 
+                : extractCoverImageUrl(resourceType, resourceUrl);
 
             // Set default styling based on type
             String icon = getIconForType(resourceType);
@@ -96,7 +100,7 @@ public class CounselorController {
                 gradientTo,
                 badgeColor,
                 category,
-                coverImageUrl
+                finalCoverImageUrl
             );
 
             session.setAttribute("lastResource", resourceTitle);
@@ -124,6 +128,7 @@ public class CounselorController {
                                  @RequestParam(required = false) String resourceUrl,
                                  @RequestParam(required = false) String description,
                                  @RequestParam(required = false) String category,
+                                 @RequestParam(required = false) String coverImageUrl,
                                  HttpSession session) {
         try {
             // If updating a non-video resource, allow empty resourceUrl
@@ -131,13 +136,16 @@ public class CounselorController {
                 return "redirect:/counselor/resources?error=invalid";
             }
             String content = generateResourceContent(resourceType, resourceUrl, resourceTitle, description);
-            String coverImageUrl = extractCoverImageUrl(resourceType, resourceUrl);
+            // Use form coverImageUrl if provided, otherwise extract from video URL
+            String finalCoverImageUrl = (coverImageUrl != null && !coverImageUrl.isEmpty()) 
+                ? coverImageUrl 
+                : extractCoverImageUrl(resourceType, resourceUrl);
             String icon = getIconForType(resourceType);
             String gradientFrom = getGradientFromForType(resourceType);
             String gradientTo = getGradientToForType(resourceType);
             String badgeColor = getBadgeColorForType(resourceType);
 
-            resourceService.updateResource(resourceId, resourceTitle, resourceType, description != null ? description : "", content, icon, gradientFrom, gradientTo, badgeColor, category, coverImageUrl);
+            resourceService.updateResource(resourceId, resourceTitle, resourceType, description != null ? description : "", content, icon, gradientFrom, gradientTo, badgeColor, category, finalCoverImageUrl);
             return "redirect:/counselor/resources?success=updated";
         } catch (Exception e) {
             return "redirect:/counselor/resources?error=update_failed";
