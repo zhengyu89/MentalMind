@@ -1,9 +1,12 @@
 package com.example.MentalMind.controller;
 
 import com.example.MentalMind.model.MoodEntry;
-
+import com.example.MentalMind.model.Feedback;
+import com.example.MentalMind.model.User;
 import com.example.MentalMind.service.MoodService;
 import com.example.MentalMind.service.SelfAssessmentService;
+import com.example.MentalMind.service.FeedbackService;
+import com.example.MentalMind.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -26,6 +32,12 @@ public class StudentController {
 
     @Autowired
     private SelfAssessmentService selfAssessmentService;
+
+    @Autowired
+    private FeedbackService feedbackService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
@@ -205,23 +217,99 @@ public class StudentController {
     }
 
     @GetMapping("/feedback")
-    public String feedback() {
+    public String feedback(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId != null) {
+            java.util.List<Feedback> recentFeedback = feedbackService.getRecentUserFeedback(userId);
+            model.addAttribute("recentFeedback", recentFeedback);
+        }
+        
         return "student/feedback";
     }
 
     @PostMapping("/feedback/submit")
-    public String submitFeedback(@RequestParam String feedbackType,
-            @RequestParam String message,
-            @RequestParam(required = false) String rating,
-            @RequestParam(required = false) String email,
+    @ResponseBody
+    public ResponseEntity<?> submitFeedback(
+            @RequestParam String type,
+            @RequestParam String subject,
+            @RequestParam String details,
             HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || message == null || message.isEmpty() ||
-                feedbackType == null || feedbackType.isEmpty()) {
-            return "redirect:/student/feedback?error=invalid";
+        
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Map.of("success", false, "message", "Not authenticated"));
         }
-        session.setAttribute("lastFeedbackType", feedbackType);
-        session.setAttribute("feedbackRating", rating != null ? rating : "");
-        session.setAttribute("feedbackContact", email != null ? email : "");
-        return "redirect:/student/feedback?success=submitted";
+        
+        if (type == null || type.isEmpty() || subject == null || subject.isEmpty() || 
+            details == null || details.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(java.util.Map.of("success", false, "message", "All fields are required"));
+        }
+        
+        // Validate feedback type
+        if (!type.matches("feedback|bug|suggestion")) {
+            return ResponseEntity.badRequest()
+                    .body(java.util.Map.of("success", false, "message", "Invalid feedback type"));
+        }
+        
+        try {
+            java.util.Optional<User> user = userRepository.findById(userId);
+            
+            if (user.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(java.util.Map.of("success", false, "message", "User not found"));
+            }
+            
+            Feedback feedback = feedbackService.submitFeedback(user.get(), type, subject, details);
+            
+            return ResponseEntity.ok(java.util.Map.of(
+                    "success", true, 
+                    "message", "Feedback submitted successfully",
+                    "feedbackId", feedback.getId(),
+                    "createdAt", feedback.getCreatedAt().toString()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("success", false, "message", "Error submitting feedback: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/feedback/list")
+    @ResponseBody
+    public ResponseEntity<?> getUserFeedback(HttpSession session) {
+        
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Map.of("success", false, "message", "Not authenticated"));
+        }
+        
+        try {
+            java.util.List<Feedback> feedbackList = feedbackService.getUserFeedback(userId);
+            java.util.List<java.util.Map<String, Object>> feedbackData = new java.util.ArrayList<>();
+            
+            for (Feedback f : feedbackList) {
+                feedbackData.add(java.util.Map.of(
+                        "id", f.getId(),
+                        "type", f.getType(),
+                        "subject", f.getSubject(),
+                        "details", f.getDetails(),
+                        "status", f.getStatus(),
+                        "createdAt", f.getCreatedAt().toString()
+                ));
+            }
+            
+            return ResponseEntity.ok(java.util.Map.of(
+                    "success", true,
+                    "feedback", feedbackData
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("success", false, "message", "Error fetching feedback"));
+        }
     }
 }

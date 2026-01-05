@@ -32,6 +32,37 @@ CREATE TABLE IF NOT EXISTS mood_entries (
     INDEX idx_created_at (created_at)
 );
 
+-- Create Feedback Table
+CREATE TABLE IF NOT EXISTS feedback (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    details LONGTEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_type (type),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+);
+
+-- Create Counselor Responses Table
+CREATE TABLE IF NOT EXISTS counselor_responses (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    feedback_id BIGINT NOT NULL,
+    counselor_id BIGINT NOT NULL,
+    response_type VARCHAR(50) NOT NULL,
+    message LONGTEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (feedback_id) REFERENCES feedback(id) ON DELETE CASCADE,
+    FOREIGN KEY (counselor_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_feedback_id (feedback_id),
+    INDEX idx_counselor_id (counselor_id),
+    INDEX idx_created_at (created_at)
+);
+
 
 
 COMMIT;

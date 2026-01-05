@@ -40,6 +40,12 @@
                 <span class="material-symbols-outlined">forum</span>
                 <span class="ml-4">Forum</span>
             </a>
+            <a th:href="@{/counselor/feedback-form}"
+                th:classappend="${activePage == 'feedback'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
+                class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined">rate_review</span>
+                <span class="ml-4">Feedback</span>
+            </a>
             <a th:href="@{/counselor/reports}"
                 th:classappend="${activePage == 'reports'} ? 'bg-primary/10 dark:bg-primary/20 text-primary font-semibold' : 'text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700'"
                 class="flex items-center px-4 py-2.5 rounded-lg transition-colors">
