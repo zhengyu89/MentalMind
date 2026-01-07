@@ -4,16 +4,19 @@ import com.example.MentalMind.model.MoodEntry;
 import com.example.MentalMind.model.User;
 import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.CounselorResponse;
+import com.example.MentalMind.model.Appointment;
 import com.example.MentalMind.repository.MoodEntryRepository;
 import com.example.MentalMind.repository.UserRepository;
 import com.example.MentalMind.repository.FeedbackRepository;
 import com.example.MentalMind.repository.CounselorResponseRepository;
+import com.example.MentalMind.repository.AppointmentRepository;
 import com.example.MentalMind.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -33,39 +36,71 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private CounselorResponseRepository counselorResponseRepository;
 
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
     @Override
     public void run(String... args) throws Exception {
-        // Only insert if users don't exist
+        // Initialize users
+        User student = initializeStudent();
+        User counselor = initializeCounselor("counselor@example.com", "Dr. Anya Sharma");
+        User counselor2 = initializeCounselor("counselor2@example.com", "Dr. Mike Johnson");
+        User counselor3 = initializeCounselor("counselor3@example.com", "Dr. Sarah Wilson");
+
+        // Initialize sample feedback and counselor responses
+        if (student != null && counselor != null) {
+            initializeFeedback(student, counselor);
+        }
+
+        // Initialize sample appointments
+        if (student != null && counselor != null && counselor2 != null && counselor3 != null) {
+            if (appointmentRepository.findByStudentOrderByAppointmentDateTimeDesc(student).isEmpty()) {
+                initializeAppointments(student, counselor, counselor2, counselor3);
+            }
+        }
+
+        // Remove initial seeded resources (if present) to clear the starter data.
+        if (!resourceService.getAllResources().isEmpty()) {
+            removeSeededResources();
+        }
+    }
+
+    private User initializeStudent() {
         if (userRepository.findByEmail("student@example.com").isEmpty()) {
             User student = new User("student@example.com", "password123", "student");
             student.setFullName("John Student");
-            userRepository.save(student);
+            student = userRepository.save(student);
 
             // Initialize mock mood data for the past week
             initializeMoodData(student);
             System.out.println("[DataInitializer] Inserted sample student: student@example.com");
+            return student;
         } else {
             System.out.println("[DataInitializer] Sample student already exists.");
+            return userRepository.findByEmail("student@example.com").orElse(null);
         }
+    }
 
-        User counselorUser;
-        if (userRepository.findByEmail("counselor@example.com").isEmpty()) {
-            counselorUser = new User("counselor@example.com", "password123", "counselor");
-            counselorUser.setFullName("Jane Counselor");
-            userRepository.save(counselorUser);
-            System.out.println("[DataInitializer] Inserted sample counselor: counselor@example.com");
+    private User initializeCounselor(String email, String fullName) {
+        if (userRepository.findByEmail(email).isEmpty()) {
+            User counselor = new User(email, "password123", "counselor");
+            counselor.setFullName(fullName);
+            counselor = userRepository.save(counselor);
+            System.out.println("[DataInitializer] Inserted sample counselor: " + email);
+            return counselor;
         } else {
-            counselorUser = userRepository.findByEmail("counselor@example.com").orElse(null);
-            System.out.println("[DataInitializer] Sample counselor already exists.");
+            System.out.println("[DataInitializer] Sample counselor already exists: " + email);
+            return userRepository.findByEmail(email).orElse(null);
         }
+    }
 
-        // Insert sample feedback and counselor responses if the example subjects are
-        // not present
+    private void initializeFeedback(User student, User counselor) {
+        // Insert sample feedback and counselor responses if not present
         if (!feedbackRepository.findAll().stream().anyMatch(f -> "Need help with study plan".equals(f.getSubject()))) {
             try {
                 // Create two sample feedback entries from the student
                 Feedback fb1 = new Feedback();
-                fb1.setUser(userRepository.findByEmail("student@example.com").orElse(null));
+                fb1.setUser(student);
                 fb1.setType("general");
                 fb1.setSubject("Need help with study plan");
                 fb1.setDetails(
@@ -74,7 +109,7 @@ public class DataInitializer implements CommandLineRunner {
                 feedbackRepository.save(fb1);
 
                 Feedback fb2 = new Feedback();
-                fb2.setUser(userRepository.findByEmail("student@example.com").orElse(null));
+                fb2.setUser(student);
                 fb2.setType("report");
                 fb2.setSubject("Issue with course materials");
                 fb2.setDetails(
@@ -86,18 +121,14 @@ public class DataInitializer implements CommandLineRunner {
 
                 // Add a counselor response to the first feedback if one with similar message
                 // isn't present
-                boolean needResponse = true;
-                try {
-                    needResponse = counselorResponseRepository.findAll().stream()
-                            .noneMatch(r -> r.getMessage() != null
-                                    && r.getMessage().contains("I can help build a study plan"));
-                } catch (Exception ignored) {
-                }
+                boolean needResponse = counselorResponseRepository.findAll().stream()
+                        .noneMatch(r -> r.getMessage() != null
+                                && r.getMessage().contains("I can help build a study plan"));
 
-                if (counselorUser != null && needResponse) {
+                if (needResponse) {
                     CounselorResponse resp = new CounselorResponse();
                     resp.setFeedback(fb1);
-                    resp.setCounselor(counselorUser);
+                    resp.setCounselor(counselor);
                     resp.setResponseType("advice");
                     resp.setMessage(
                             "Thanks for reaching out — I can help build a study plan. Let's schedule a short session this week.");
@@ -115,12 +146,6 @@ public class DataInitializer implements CommandLineRunner {
             }
         } else {
             System.out.println("[DataInitializer] Sample feedback subject already present; skipping sample insert.");
-        }
-
-        // Remove initial seeded resources (if present) to clear the starter data.
-        // This will only deactivate resources that match the original seed titles.
-        if (!resourceService.getAllResources().isEmpty()) {
-            removeSeededResources();
         }
     }
 
@@ -165,27 +190,47 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void initializeResources() {
-        // Coping Strategies for Stress
-        resourceService.createResource(
-                "Coping Strategies for Stress",
-                "guide",
-                "Learn practical techniques to manage daily stress and build resilience.",
-                "<div class=\"prose dark:prose-invert max-w-none\"><h4>Introduction</h4><p>Stress is a normal part of life, especially for students. Learning effective coping strategies can help you manage stress and maintain your mental well-being.</p><h4>Key Strategies</h4><ol><li><strong>Deep Breathing</strong> - Practice the 4-7-8 technique: inhale for 4 seconds, hold for 7, exhale for 8.</li><li><strong>Physical Activity</strong> - Even a 10-minute walk can significantly reduce stress hormones.</li><li><strong>Time Management</strong> - Break large tasks into smaller, manageable chunks.</li><li><strong>Social Support</strong> - Talk to friends, family, or counselors about your feelings.</li><li><strong>Mindfulness</strong> - Practice being present in the moment without judgment.</li></ol><h4>Try This Exercise</h4><p>The 5-4-3-2-1 Grounding Technique:</p><ul><li>Name 5 things you can see</li><li>Name 4 things you can touch</li><li>Name 3 things you can hear</li><li>Name 2 things you can smell</li><li>Name 1 thing you can taste</li></ul></div>",
-                "spa",
-                "teal-400",
-                "green-500",
-                "teal");
+    private void initializeAppointments(User student, User counselor, User counselor2, User counselor3) {
+        LocalDateTime now = LocalDateTime.now();
 
-        // Mindfulness for Beginners
-        resourceService.createResource(
-                "Mindfulness for Beginners",
-                "article",
-                "Start your mindfulness journey with simple exercises you can do anywhere.",
-                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Mindfulness?</h4><p>Mindfulness is the practice of being fully present and engaged in the current moment, without judgment. It can help reduce stress, improve focus, and enhance emotional regulation.</p><h4>Simple Exercises to Start</h4><ol><li><strong>Mindful Breathing</strong> - Focus on your breath for 5 minutes. Notice the sensation of air entering and leaving your body.</li><li><strong>Body Scan</strong> - Slowly move your attention through different parts of your body, noticing any tension or sensations.</li><li><strong>Mindful Eating</strong> - Eat one meal slowly, savoring each bite and noticing the flavors and textures.</li></ol><h4>Tips for Success</h4><ul><li>Start with just 5 minutes a day</li><li>Be patient with yourself</li><li>Practice at the same time each day</li><li>Use guided meditations if helpful</li></ul></div>",
-                "self_improvement",
-                "amber-400",
-                "orange-500",
-                "amber");
+        // Upcoming appointment - Approved
+        Appointment appointment1 = new Appointment();
+        appointment1.setStudent(student);
+        appointment1.setCounselor(counselor);
+        appointment1.setAppointmentDateTime(now.plusDays(3).withHour(10).withMinute(0).withSecond(0));
+        appointment1.setReason("Anxiety management and stress relief techniques");
+        appointment1.setStatus("APPROVED");
+        appointment1.setCreatedAt(now.minusDays(1));
+        appointmentRepository.save(appointment1);
+
+        // Upcoming appointment - Pending
+        Appointment appointment2 = new Appointment();
+        appointment2.setStudent(student);
+        appointment2.setCounselor(counselor2);
+        appointment2.setAppointmentDateTime(now.plusDays(7).withHour(14).withMinute(0).withSecond(0));
+        appointment2.setReason("Depression support and coping strategies");
+        appointment2.setStatus("PENDING");
+        appointment2.setCreatedAt(now.minusHours(6));
+        appointmentRepository.save(appointment2);
+
+        // Past appointment - Completed
+        Appointment appointment3 = new Appointment();
+        appointment3.setStudent(student);
+        appointment3.setCounselor(counselor);
+        appointment3.setAppointmentDateTime(now.minusDays(7).withHour(11).withMinute(0).withSecond(0));
+        appointment3.setReason("Initial consultation and assessment");
+        appointment3.setStatus("COMPLETED");
+        appointment3.setCreatedAt(now.minusDays(10));
+        appointmentRepository.save(appointment3);
+
+        // Past appointment - Completed
+        Appointment appointment4 = new Appointment();
+        appointment4.setStudent(student);
+        appointment4.setCounselor(counselor3);
+        appointment4.setAppointmentDateTime(now.minusDays(14).withHour(15).withMinute(30).withSecond(0));
+        appointment4.setReason("Follow-up session and progress review");
+        appointment4.setStatus("COMPLETED");
+        appointment4.setCreatedAt(now.minusDays(17));
+        appointmentRepository.save(appointment4);
     }
 }
