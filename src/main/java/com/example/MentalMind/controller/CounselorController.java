@@ -1,5 +1,7 @@
 package com.example.MentalMind.controller;
 
+import com.example.MentalMind.service.ResourceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +25,9 @@ import java.util.Map;
 @Controller
 @RequestMapping("/counselor")
 public class CounselorController {
+
+    @Autowired
+    private ResourceService resourceService;
 
     @Autowired
     private FeedbackService feedbackService;
@@ -237,17 +242,86 @@ public class CounselorController {
     @PostMapping("/resources/upload")
     public String uploadResource(@RequestParam String resourceTitle,
                                @RequestParam String resourceType,
-                               @RequestParam String resourceUrl,
+                               @RequestParam(required = false) String resourceUrl,
                                @RequestParam(required = false) String description,
+                               @RequestParam(required = false) String category,
                                HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || resourceTitle == null || resourceTitle.isEmpty() ||
-            resourceUrl == null || resourceUrl.isEmpty()) {
+        // Title is always required. URL is required only for videos.
+        if (resourceTitle == null || resourceTitle.isEmpty()) {
             return "redirect:/counselor/resources?error=invalid";
         }
-        session.setAttribute("lastResource", resourceTitle);
-        session.setAttribute("resourceType", resourceType);
-        session.setAttribute("resourceDescription", description != null ? description : "");
-        return "redirect:/counselor/resources?success=uploaded";
+        if ("video".equalsIgnoreCase(resourceType) && (resourceUrl == null || resourceUrl.isEmpty())) {
+            return "redirect:/counselor/resources?error=invalid";
+        }
+
+        try {
+            // Determine content type and generate content
+            String content = generateResourceContent(resourceType, resourceUrl, resourceTitle, description);
+            String coverImageUrl = extractCoverImageUrl(resourceType, resourceUrl);
+
+            // Set default styling based on type
+            String icon = getIconForType(resourceType);
+            String gradientFrom = getGradientFromForType(resourceType);
+            String gradientTo = getGradientToForType(resourceType);
+            String badgeColor = getBadgeColorForType(resourceType);
+
+            // Create the resource (include category)
+            resourceService.createResource(
+                resourceTitle,
+                resourceType,
+                description != null ? description : "",
+                content,
+                icon,
+                gradientFrom,
+                gradientTo,
+                badgeColor,
+                category,
+                coverImageUrl
+            );
+
+            session.setAttribute("lastResource", resourceTitle);
+            return "redirect:/counselor/resources?success=uploaded";
+        } catch (Exception e) {
+            session.setAttribute("uploadError", e.getMessage());
+            return "redirect:/counselor/resources?error=upload_failed";
+        }
+    }
+
+    @PostMapping("/resources/delete")
+    public String deleteResource(@RequestParam Long resourceId, HttpSession session) {
+        try {
+            resourceService.deactivateResource(resourceId);
+            return "redirect:/counselor/resources?success=deleted";
+        } catch (Exception e) {
+            return "redirect:/counselor/resources?error=delete_failed";
+        }
+    }
+
+    @PostMapping("/resources/update")
+    public String updateResource(@RequestParam Long resourceId,
+                                 @RequestParam String resourceTitle,
+                                 @RequestParam String resourceType,
+                                 @RequestParam(required = false) String resourceUrl,
+                                 @RequestParam(required = false) String description,
+                                 @RequestParam(required = false) String category,
+                                 HttpSession session) {
+        try {
+            // If updating a non-video resource, allow empty resourceUrl
+            if ("video".equalsIgnoreCase(resourceType) && (resourceUrl == null || resourceUrl.isEmpty())) {
+                return "redirect:/counselor/resources?error=invalid";
+            }
+            String content = generateResourceContent(resourceType, resourceUrl, resourceTitle, description);
+            String coverImageUrl = extractCoverImageUrl(resourceType, resourceUrl);
+            String icon = getIconForType(resourceType);
+            String gradientFrom = getGradientFromForType(resourceType);
+            String gradientTo = getGradientToForType(resourceType);
+            String badgeColor = getBadgeColorForType(resourceType);
+
+            resourceService.updateResource(resourceId, resourceTitle, resourceType, description != null ? description : "", content, icon, gradientFrom, gradientTo, badgeColor, category, coverImageUrl);
+            return "redirect:/counselor/resources?success=updated";
+        } catch (Exception e) {
+            return "redirect:/counselor/resources?error=update_failed";
+        }
     }
 
     @GetMapping("/forum")
@@ -372,6 +446,99 @@ public class CounselorController {
         session.setAttribute("notificationsEnabled", notificationsEnabled);
         return "redirect:/counselor/settings?success=updated";
     }
+    private String generateResourceContent(String type, String url, String title, String description) {
+        String safeDesc = description == null ? "" : description.replace("\n", "<br/>");
+        switch (type.toLowerCase()) {
+            case "video":
+                if (isYouTubeUrl(url)) {
+                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><iframe width=\"100%\" height=\"100%\" src=\"" + convertToEmbedUrl(url) + "\" title=\"" + title + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe></div><div class=\"prose dark:prose-invert max-w-none\"><p>" + safeDesc + "</p></div>";
+                } else {
+                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><video width=\"100%\" height=\"100%\" controls><source src=\"" + url + "\" type=\"video/mp4\">Your browser does not support the video tag.</video></div><div class=\"prose dark:prose-invert max-w-none\"><p>" + safeDesc + "</p></div>";
+                }
+            case "article":
+                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Article content would be loaded from: " + url + "</p><p>" + safeDesc + "</p></div>";
+            case "guide":
+                return "<div class=\"prose dark:prose-invert max-w-none\"><h3>Guide: " + title + "</h3><p>Guide content would be loaded from: " + url + "</p><p>" + safeDesc + "</p></div>";
+            default:
+                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Content: " + url + "</p><p>" + safeDesc + "</p></div>";
+        }
+    }
+
+    private String extractCoverImageUrl(String type, String url) {
+        if (type.equalsIgnoreCase("video") && isYouTubeUrl(url)) {
+            String videoId = extractYouTubeVideoId(url);
+            if (videoId != null) {
+                return "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+            }
+        }
+        return null; // No cover image for other types
+    }
+
+    private boolean isYouTubeUrl(String url) {
+        return url.contains("youtube.com") || url.contains("youtu.be");
+    }
+
+    private String convertToEmbedUrl(String url) {
+        String videoId = extractYouTubeVideoId(url);
+        if (videoId != null) {
+            return "https://www.youtube.com/embed/" + videoId;
+        }
+        return url;
+    }
+
+    private String extractYouTubeVideoId(String url) {
+        // Handle youtube.com URLs
+        if (url.contains("youtube.com/watch?v=")) {
+            int startIndex = url.indexOf("v=") + 2;
+            int endIndex = url.indexOf("&", startIndex);
+            if (endIndex == -1) endIndex = url.length();
+            return url.substring(startIndex, endIndex);
+        }
+        // Handle youtu.be URLs
+        else if (url.contains("youtu.be/")) {
+            int startIndex = url.indexOf("youtu.be/") + 9;
+            int endIndex = url.indexOf("?", startIndex);
+            if (endIndex == -1) endIndex = url.length();
+            return url.substring(startIndex, endIndex);
+        }
+        return null;
+    }
+
+    private String getIconForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video": return "play_circle";
+            case "article": return "article";
+            case "guide": return "menu_book";
+            default: return "link";
+        }
+    }
+
+    private String getGradientFromForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video": return "purple-400";
+            case "article": return "teal-400";
+            case "guide": return "amber-400";
+            default: return "blue-400";
+        }
+    }
+
+    private String getGradientToForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video": return "purple-600";
+            case "article": return "teal-600";
+            case "guide": return "amber-600";
+            default: return "blue-600";
+        }
+    }
+
+    private String getBadgeColorForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video": return "purple";
+            case "article": return "teal";
+            case "guide": return "amber";
+            default: return "blue";
+        }
+    }}
 
     @GetMapping("/feedback-form")
     public String feedbackForm() {
