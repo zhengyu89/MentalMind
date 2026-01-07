@@ -123,6 +123,45 @@
                     <textarea id="description" name="description" rows="3"
                         class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg"></textarea>
                 </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Cover Image (Optional)</label>
+                    <input type="hidden" id="coverImageUrl" name="coverImageUrl" value="">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div onclick="selectBackground('')" 
+                            class="background-option cursor-pointer border-2 border-transparent hover:border-primary rounded-lg overflow-hidden transition-all" 
+                            data-value="">
+                            <div class="aspect-video bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center">
+                                <span class="text-white text-xs font-semibold">Default</span>
+                            </div>
+                        </div>
+                        <div onclick="selectBackground('/assets/background1.jpeg')" 
+                            class="background-option cursor-pointer border-2 border-transparent hover:border-primary rounded-lg overflow-hidden transition-all" 
+                            data-value="/assets/background1.jpeg">
+                            <img src="/assets/background1.jpeg" alt="Background 1" class="w-full h-full object-cover aspect-video">
+                        </div>
+                        <div onclick="selectBackground('/assets/background2.jpeg')" 
+                            class="background-option cursor-pointer border-2 border-transparent hover:border-primary rounded-lg overflow-hidden transition-all" 
+                            data-value="/assets/background2.jpeg">
+                            <img src="/assets/background2.jpeg" alt="Background 2" class="w-full h-full object-cover aspect-video">
+                        </div>
+                        <div onclick="selectBackground('/assets/background3.jpeg')" 
+                            class="background-option cursor-pointer border-2 border-transparent hover:border-primary rounded-lg overflow-hidden transition-all" 
+                            data-value="/assets/background3.jpeg">
+                            <img src="/assets/background3.jpeg" alt="Background 3" class="w-full h-full object-cover aspect-video">
+                        </div>
+                        <div onclick="selectBackground('/assets/background4.jpeg')" 
+                            class="background-option cursor-pointer border-2 border-transparent hover:border-primary rounded-lg overflow-hidden transition-all" 
+                            data-value="/assets/background4.jpeg">
+                            <img src="/assets/background4.jpeg" alt="Background 4" class="w-full h-full object-cover aspect-video">
+                        </div>
+                        <div onclick="selectBackground('/assets/background5.jpeg')" 
+                            class="background-option cursor-pointer border-2 border-transparent hover:border-primary rounded-lg overflow-hidden transition-all" 
+                            data-value="/assets/background5.jpeg">
+                            <img src="/assets/background5.jpeg" alt="Background 5" class="w-full h-full object-cover aspect-video">
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Click to select a background image for your resource card</p>
+                </div>
                 <div id="urlField" class="mb-6 hidden">
                     <label class="block text-sm font-medium mb-2">Link / URL</label>
                     <input id="resourceUrl" type="url" name="resourceUrl" placeholder="https://..."
@@ -185,6 +224,22 @@
         }
     </script>
     <script>
+        // Background selection
+        function selectBackground(value) {
+            document.getElementById('coverImageUrl').value = value;
+            // Remove selected state from all options
+            document.querySelectorAll('.background-option').forEach(opt => {
+                opt.classList.remove('border-primary', 'ring-2', 'ring-primary');
+                opt.classList.add('border-transparent');
+            });
+            // Add selected state to clicked option
+            const selected = document.querySelector(`[data-value="${value}"]`);
+            if (selected) {
+                selected.classList.remove('border-transparent');
+                selected.classList.add('border-primary', 'ring-2', 'ring-primary');
+            }
+        }
+
         // Load resources into table
         function toggleUrlField() {
             const type = document.getElementById('resourceType').value;
