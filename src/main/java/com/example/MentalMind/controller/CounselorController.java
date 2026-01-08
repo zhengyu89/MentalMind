@@ -1,12 +1,13 @@
 package com.example.MentalMind.controller;
 
+import com.example.MentalMind.service.ResourceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,9 @@ import java.util.Map;
 @Controller
 @RequestMapping("/counselor")
 public class CounselorController {
+
+    @Autowired
+    private ResourceService resourceService;
 
     @Autowired
     private FeedbackService feedbackService;
@@ -45,14 +49,16 @@ public class CounselorController {
     @GetMapping("/api/dashboard-data")
     @ResponseBody
     public ResponseEntity<?> getDashboardData(HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null
+                || !"counselor".equals(session.getAttribute("userRole"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Forbidden"));
         }
         try {
             Map<String, Object> data = dashboardService.getCompleteDashboardData();
             return ResponseEntity.ok(Map.of("success", true, "data", data));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "Error loading dashboard data"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error loading dashboard data"));
         }
     }
 
@@ -213,8 +219,8 @@ public class CounselorController {
 
     @PostMapping("/appointments/reject")
     public String rejectAppointment(@RequestParam String appointmentId,
-                                   @RequestParam(required = false) String reason,
-                                   HttpSession session) {
+            @RequestParam(required = false) String reason,
+            HttpSession session) {
         if (session.getAttribute("isAuthenticated") == null || appointmentId == null || appointmentId.isEmpty()) {
             return "redirect:/counselor/appointments?error=invalid";
         }
@@ -236,18 +242,96 @@ public class CounselorController {
 
     @PostMapping("/resources/upload")
     public String uploadResource(@RequestParam String resourceTitle,
-                               @RequestParam String resourceType,
-                               @RequestParam String resourceUrl,
-                               @RequestParam(required = false) String description,
-                               HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || resourceTitle == null || resourceTitle.isEmpty() ||
-            resourceUrl == null || resourceUrl.isEmpty()) {
+            @RequestParam String resourceType,
+            @RequestParam(required = false) String resourceUrl,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String coverImageUrl,
+            HttpSession session) {
+        // Title is always required. URL is required only for videos.
+        if (resourceTitle == null || resourceTitle.isEmpty()) {
             return "redirect:/counselor/resources?error=invalid";
         }
-        session.setAttribute("lastResource", resourceTitle);
-        session.setAttribute("resourceType", resourceType);
-        session.setAttribute("resourceDescription", description != null ? description : "");
-        return "redirect:/counselor/resources?success=uploaded";
+        if ("video".equalsIgnoreCase(resourceType) && (resourceUrl == null || resourceUrl.isEmpty())) {
+            return "redirect:/counselor/resources?error=invalid";
+        }
+
+        try {
+            // Determine content type and generate content
+            String content = generateResourceContent(resourceType, resourceUrl, resourceTitle, description);
+            // Use form coverImageUrl if provided, otherwise extract from video URL
+            String finalCoverImageUrl = (coverImageUrl != null && !coverImageUrl.isEmpty())
+                    ? coverImageUrl
+                    : extractCoverImageUrl(resourceType, resourceUrl);
+
+            // Set default styling based on type
+            String icon = getIconForType(resourceType);
+            String gradientFrom = getGradientFromForType(resourceType);
+            String gradientTo = getGradientToForType(resourceType);
+            String badgeColor = getBadgeColorForType(resourceType);
+
+            // Create the resource (include category)
+            resourceService.createResource(
+                    resourceTitle,
+                    resourceType,
+                    description != null ? description : "",
+                    content,
+                    icon,
+                    gradientFrom,
+                    gradientTo,
+                    badgeColor,
+                    category,
+                    finalCoverImageUrl);
+
+            session.setAttribute("lastResource", resourceTitle);
+            return "redirect:/counselor/resources?success=uploaded";
+        } catch (Exception e) {
+            session.setAttribute("uploadError", e.getMessage());
+            return "redirect:/counselor/resources?error=upload_failed";
+        }
+    }
+
+    @PostMapping("/resources/delete")
+    public String deleteResource(@RequestParam Long resourceId, HttpSession session) {
+        try {
+            resourceService.deactivateResource(resourceId);
+            return "redirect:/counselor/resources?success=deleted";
+        } catch (Exception e) {
+            return "redirect:/counselor/resources?error=delete_failed";
+        }
+    }
+
+    @PostMapping("/resources/update")
+    public String updateResource(@RequestParam Long resourceId,
+            @RequestParam String resourceTitle,
+            @RequestParam String resourceType,
+            @RequestParam(required = false) String resourceUrl,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String coverImageUrl,
+            HttpSession session) {
+        try {
+            // If updating a non-video resource, allow empty resourceUrl
+            if ("video".equalsIgnoreCase(resourceType) && (resourceUrl == null || resourceUrl.isEmpty())) {
+                return "redirect:/counselor/resources?error=invalid";
+            }
+            String content = generateResourceContent(resourceType, resourceUrl, resourceTitle, description);
+            // Use form coverImageUrl if provided, otherwise extract from video URL
+            String finalCoverImageUrl = (coverImageUrl != null && !coverImageUrl.isEmpty())
+                    ? coverImageUrl
+                    : extractCoverImageUrl(resourceType, resourceUrl);
+            String icon = getIconForType(resourceType);
+            String gradientFrom = getGradientFromForType(resourceType);
+            String gradientTo = getGradientToForType(resourceType);
+            String badgeColor = getBadgeColorForType(resourceType);
+
+            resourceService.updateResource(resourceId, resourceTitle, resourceType,
+                    description != null ? description : "", content, icon, gradientFrom, gradientTo, badgeColor,
+                    category, finalCoverImageUrl);
+            return "redirect:/counselor/resources?success=updated";
+        } catch (Exception e) {
+            return "redirect:/counselor/resources?error=update_failed";
+        }
     }
 
     @GetMapping("/forum")
@@ -257,11 +341,11 @@ public class CounselorController {
 
     @PostMapping("/forum/moderate")
     public String moderatePost(@RequestParam String postId,
-                             @RequestParam String action,
-                             @RequestParam(required = false) String moderationNote,
-                             HttpSession session) {
+            @RequestParam String action,
+            @RequestParam(required = false) String moderationNote,
+            HttpSession session) {
         if (session.getAttribute("isAuthenticated") == null || postId == null || postId.isEmpty() ||
-            action == null || (!action.equals("approve") && !action.equals("reject") && !action.equals("flag"))) {
+                action == null || (!action.equals("approve") && !action.equals("reject") && !action.equals("flag"))) {
             return "redirect:/counselor/forum?error=invalid";
         }
         session.setAttribute("lastModerationAction", action);
@@ -278,8 +362,10 @@ public class CounselorController {
     @GetMapping("/feedback/recent")
     @ResponseBody
     public ResponseEntity<?> recentFeedback(HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null || !"counselor".equals(session.getAttribute("userRole"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Map.of("success", false, "message", "Forbidden"));
+        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null
+                || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(java.util.Map.of("success", false, "message", "Forbidden"));
         }
         try {
             java.util.List<Feedback> recent = feedbackService.getRecentFeedback(5);
@@ -292,25 +378,29 @@ public class CounselorController {
                         "details", f.getDetails(),
                         "status", f.getStatus(),
                         "createdAt", f.getCreatedAt().toString(),
-                        "userId", f.getUser() != null ? f.getUser().getId() : null
-                ));
+                        "userId", f.getUser() != null ? f.getUser().getId() : null));
             }
             return ResponseEntity.ok(java.util.Map.of("success", true, "feedback", out));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of("success", false, "message", "Error loading feedback"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("success", false, "message", "Error loading feedback"));
         }
     }
 
     @GetMapping("/feedback/{id}")
     @ResponseBody
-    public ResponseEntity<?> feedbackDetail(@org.springframework.web.bind.annotation.PathVariable Long id, HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null || !"counselor".equals(session.getAttribute("userRole"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Map.of("success", false, "message", "Forbidden"));
+    public ResponseEntity<?> feedbackDetail(@org.springframework.web.bind.annotation.PathVariable Long id,
+            HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null
+                || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(java.util.Map.of("success", false, "message", "Forbidden"));
         }
         try {
             java.util.Optional<Feedback> opt = feedbackService.getFeedbackById(id);
             if (opt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of("success", false, "message", "Not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(java.util.Map.of("success", false, "message", "Not found"));
             }
             Feedback f = opt.get();
             return ResponseEntity.ok(java.util.Map.of(
@@ -322,19 +412,21 @@ public class CounselorController {
                             "details", f.getDetails(),
                             "status", f.getStatus(),
                             "createdAt", f.getCreatedAt().toString(),
-                            "userId", f.getUser() != null ? f.getUser().getId() : null
-                    )
-            ));
+                            "userId", f.getUser() != null ? f.getUser().getId() : null)));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of("success", false, "message", "Error"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("success", false, "message", "Error"));
         }
     }
 
     @PostMapping("/feedback/update-status")
     @ResponseBody
-    public ResponseEntity<?> updateFeedbackStatus(@RequestParam Long id, @RequestParam String status, HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null || !"counselor".equals(session.getAttribute("userRole"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Map.of("success", false, "message", "Forbidden"));
+    public ResponseEntity<?> updateFeedbackStatus(@RequestParam Long id, @RequestParam String status,
+            HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null
+                || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(java.util.Map.of("success", false, "message", "Forbidden"));
         }
         if (status == null || !(status.equals("pending") || status.equals("reviewed") || status.equals("resolved"))) {
             return ResponseEntity.badRequest().body(java.util.Map.of("success", false, "message", "Invalid status"));
@@ -342,11 +434,14 @@ public class CounselorController {
         try {
             Feedback updated = feedbackService.updateFeedbackStatus(id, status);
             if (updated == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of("success", false, "message", "Not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(java.util.Map.of("success", false, "message", "Not found"));
             }
-            return ResponseEntity.ok(java.util.Map.of("success", true, "feedback", java.util.Map.of("id", updated.getId(), "status", updated.getStatus())));
+            return ResponseEntity.ok(java.util.Map.of("success", true, "feedback",
+                    java.util.Map.of("id", updated.getId(), "status", updated.getStatus())));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of("success", false, "message", "Error updating status"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("success", false, "message", "Error updating status"));
         }
     }
 
@@ -357,11 +452,11 @@ public class CounselorController {
 
     @PostMapping("/settings/update")
     public String updateSettings(@RequestParam(required = false) String fullName,
-                               @RequestParam(required = false) String specialization,
-                               @RequestParam(required = false) String availabilityHours,
-                               @RequestParam(required = false) String bio,
-                               @RequestParam(defaultValue = "false") String notificationsEnabled,
-                               HttpSession session) {
+            @RequestParam(required = false) String specialization,
+            @RequestParam(required = false) String availabilityHours,
+            @RequestParam(required = false) String bio,
+            @RequestParam(defaultValue = "false") String notificationsEnabled,
+            HttpSession session) {
         if (session.getAttribute("isAuthenticated") == null) {
             return "redirect:/counselor/settings?error=unauthorized";
         }
@@ -373,6 +468,127 @@ public class CounselorController {
         return "redirect:/counselor/settings?success=updated";
     }
 
+    private String generateResourceContent(String type, String url, String title, String description) {
+        String safeDesc = description == null ? "" : description.replace("\n", "<br/>");
+        switch (type.toLowerCase()) {
+            case "video":
+                if (isYouTubeUrl(url)) {
+                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><iframe width=\"100%\" height=\"100%\" src=\""
+                            + convertToEmbedUrl(url) + "\" title=\"" + title
+                            + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe></div><div class=\"prose dark:prose-invert max-w-none\"><p>"
+                            + safeDesc + "</p></div>";
+                } else {
+                    return "<div class=\"aspect-video bg-slate-900 rounded-lg mb-6 overflow-hidden\"><video width=\"100%\" height=\"100%\" controls><source src=\""
+                            + url
+                            + "\" type=\"video/mp4\">Your browser does not support the video tag.</video></div><div class=\"prose dark:prose-invert max-w-none\"><p>"
+                            + safeDesc + "</p></div>";
+                }
+            case "article":
+                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Article content would be loaded from: "
+                        + url + "</p><p>" + safeDesc + "</p></div>";
+            case "guide":
+                return "<div class=\"prose dark:prose-invert max-w-none\"><h3>Guide: " + title
+                        + "</h3><p>Guide content would be loaded from: " + url + "</p><p>" + safeDesc + "</p></div>";
+            default:
+                return "<div class=\"prose dark:prose-invert max-w-none\"><p>Content: " + url + "</p><p>" + safeDesc
+                        + "</p></div>";
+        }
+    }
+
+    private String extractCoverImageUrl(String type, String url) {
+        if (type.equalsIgnoreCase("video") && isYouTubeUrl(url)) {
+            String videoId = extractYouTubeVideoId(url);
+            if (videoId != null) {
+                return "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
+            }
+        }
+        return null; // No cover image for other types
+    }
+
+    private boolean isYouTubeUrl(String url) {
+        return url.contains("youtube.com") || url.contains("youtu.be");
+    }
+
+    private String convertToEmbedUrl(String url) {
+        String videoId = extractYouTubeVideoId(url);
+        if (videoId != null) {
+            return "https://www.youtube.com/embed/" + videoId;
+        }
+        return url;
+    }
+
+    private String extractYouTubeVideoId(String url) {
+        // Handle youtube.com URLs
+        if (url.contains("youtube.com/watch?v=")) {
+            int startIndex = url.indexOf("v=") + 2;
+            int endIndex = url.indexOf("&", startIndex);
+            if (endIndex == -1)
+                endIndex = url.length();
+            return url.substring(startIndex, endIndex);
+        }
+        // Handle youtu.be URLs
+        else if (url.contains("youtu.be/")) {
+            int startIndex = url.indexOf("youtu.be/") + 9;
+            int endIndex = url.indexOf("?", startIndex);
+            if (endIndex == -1)
+                endIndex = url.length();
+            return url.substring(startIndex, endIndex);
+        }
+        return null;
+    }
+
+    private String getIconForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video":
+                return "play_circle";
+            case "article":
+                return "article";
+            case "guide":
+                return "menu_book";
+            default:
+                return "link";
+        }
+    }
+
+    private String getGradientFromForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video":
+                return "purple-400";
+            case "article":
+                return "teal-400";
+            case "guide":
+                return "amber-400";
+            default:
+                return "blue-400";
+        }
+    }
+
+    private String getGradientToForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video":
+                return "purple-600";
+            case "article":
+                return "teal-600";
+            case "guide":
+                return "amber-600";
+            default:
+                return "blue-600";
+        }
+    }
+
+    private String getBadgeColorForType(String type) {
+        switch (type.toLowerCase()) {
+            case "video":
+                return "purple";
+            case "article":
+                return "teal";
+            case "guide":
+                return "amber";
+            default:
+                return "blue";
+        }
+    }
+
     @GetMapping("/feedback-form")
     public String feedbackForm() {
         return "counselor/feedback-form";
@@ -380,12 +596,14 @@ public class CounselorController {
 
     @PostMapping("/feedback/respond")
     @ResponseBody
-    public ResponseEntity<?> respondToFeedback(@RequestParam Long feedbackId, 
-                                               @RequestParam String responseType, 
-                                               @RequestParam String message, 
-                                               HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null || !"counselor".equals(session.getAttribute("userRole"))) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(java.util.Map.of("success", false, "message", "Forbidden"));
+    public ResponseEntity<?> respondToFeedback(@RequestParam Long feedbackId,
+            @RequestParam String responseType,
+            @RequestParam String message,
+            HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null
+                || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(java.util.Map.of("success", false, "message", "Forbidden"));
         }
 
         if (feedbackId == null || message == null || message.isEmpty() || responseType == null) {
@@ -393,19 +611,22 @@ public class CounselorController {
         }
 
         if (!responseType.matches("acknowledgement|action|followup")) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("success", false, "message", "Invalid response type"));
+            return ResponseEntity.badRequest()
+                    .body(java.util.Map.of("success", false, "message", "Invalid response type"));
         }
 
         try {
             java.util.Optional<Feedback> feedback = feedbackService.getFeedbackById(feedbackId);
             if (feedback.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of("success", false, "message", "Feedback not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(java.util.Map.of("success", false, "message", "Feedback not found"));
             }
 
             Long counselorId = (Long) session.getAttribute("userId");
             java.util.Optional<User> counselor = userRepository.findById(counselorId);
             if (counselor.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(java.util.Map.of("success", false, "message", "Counselor not found"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(java.util.Map.of("success", false, "message", "Counselor not found"));
             }
 
             CounselorResponse response = new CounselorResponse(feedback.get(), counselor.get(), responseType, message);
@@ -414,10 +635,10 @@ public class CounselorController {
             return ResponseEntity.ok(java.util.Map.of(
                     "success", true,
                     "message", "Response recorded successfully",
-                    "responseId", saved.getId()
-            ));
+                    "responseId", saved.getId()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of("success", false, "message", "Error saving response"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(java.util.Map.of("success", false, "message", "Error saving response"));
         }
     }
 }

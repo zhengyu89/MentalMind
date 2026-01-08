@@ -63,6 +63,23 @@ CREATE TABLE IF NOT EXISTS counselor_responses (
     INDEX idx_created_at (created_at)
 );
 
-
+-- Create Appointments Table
+CREATE TABLE IF NOT EXISTS appointments (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT NOT NULL,
+    counselor_id BIGINT NOT NULL,
+    appointment_date_time DATETIME NOT NULL,
+    reason TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    rejection_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (counselor_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_student_id (student_id),
+    INDEX idx_counselor_id (counselor_id),
+    INDEX idx_status (status),
+    INDEX idx_appointment_date_time (appointment_date_time)
+);
 
 COMMIT;

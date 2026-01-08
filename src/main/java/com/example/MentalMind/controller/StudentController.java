@@ -2,10 +2,13 @@ package com.example.MentalMind.controller;
 
 import com.example.MentalMind.model.MoodEntry;
 import com.example.MentalMind.model.Feedback;
+import com.example.MentalMind.model.Appointment;
 import com.example.MentalMind.model.User;
 import com.example.MentalMind.service.MoodService;
+import com.example.MentalMind.service.ResourceService;
 import com.example.MentalMind.service.SelfAssessmentService;
 import com.example.MentalMind.service.FeedbackService;
+import com.example.MentalMind.service.AppointmentService;
 import com.example.MentalMind.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,6 +16,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +25,10 @@ import org.springframework.http.HttpStatus;
 
 import jakarta.servlet.http.HttpSession;
 
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,7 +43,13 @@ public class StudentController {
     private SelfAssessmentService selfAssessmentService;
 
     @Autowired
+    private ResourceService resourceService;
+
+    @Autowired
     private FeedbackService feedbackService;
+
+    @Autowired
+    private AppointmentService appointmentService;
 
     @Autowired
     private UserRepository userRepository;
@@ -163,6 +178,130 @@ public class StudentController {
         return "student/resources";
     }
 
+    @GetMapping("/api/resources")
+    @ResponseBody
+    public List<com.example.MentalMind.model.Resource> getResources(@RequestParam(required = false) String type,
+            @RequestParam(required = false) String search) {
+        if (search != null && !search.trim().isEmpty()) {
+            return resourceService.searchResources(search.trim());
+        } else if (type != null && !type.equals("all")) {
+            return resourceService.getResourcesByType(type);
+        } else {
+            return resourceService.getAllResources();
+        }
+    }
+
+    @GetMapping("/api/resources/{id}")
+    @ResponseBody
+    public Optional<com.example.MentalMind.model.Resource> getResource(@PathVariable Long id) {
+        Optional<com.example.MentalMind.model.Resource> opt = resourceService.getResourceById(id);
+        opt.ifPresent(r -> {
+            if (r.getContent() != null) {
+                r.setContent(r.getContent().replace("\n", "<br/>"));
+            }
+        });
+        return opt;
+    }
+
+    @GetMapping("/api/bookmarks")
+    @ResponseBody
+    public java.util.List<java.util.Map<String, Object>> getBookmarks(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            // return session-stored bookmarks for unauthenticated users (if any)
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
+                    .getAttribute("tempBookmarks");
+            if (temp == null)
+                return java.util.Collections.emptyList();
+            return temp;
+        }
+        // Convert persistent bookmarks to a simple map representation for the client
+        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService
+                .getUserBookmarks(user.getId());
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (com.example.MentalMind.model.UserResourceBookmark b : bookmarks) {
+            java.util.Map<String, Object> m = new java.util.HashMap<>();
+            m.put("resourceId", b.getResource().getId());
+            m.put("title", b.getResource().getTitle());
+            m.put("type", b.getResource().getType());
+            m.put("bookmarkType", b.getBookmarkType());
+            out.add(m);
+        }
+        return out;
+    }
+
+    @PostMapping("/api/bookmarks")
+    @ResponseBody
+    public Map<String, String> addBookmark(@RequestParam Long resourceId,
+            @RequestParam String bookmarkType,
+            HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            // store bookmark in session for unauthenticated users
+            java.util.Optional<com.example.MentalMind.model.Resource> maybe = resourceService
+                    .getResourceById(resourceId);
+            if (maybe.isEmpty()) {
+                return Map.of("status", "error", "message", "Resource not found");
+            }
+            com.example.MentalMind.model.Resource res = maybe.get();
+
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
+                    .getAttribute("tempBookmarks");
+            if (temp == null) {
+                temp = new java.util.ArrayList<>();
+            }
+            // prevent duplicates
+            boolean exists = temp.stream()
+                    .anyMatch(m -> ((Number) m.getOrDefault("resourceId", -1)).longValue() == resourceId
+                            && bookmarkType.equals(m.getOrDefault("bookmarkType", "")));
+            if (exists) {
+                session.setAttribute("tempBookmarks", temp);
+                return Map.of("status", "error", "message", "Bookmark already exists");
+            }
+
+            java.util.Map<String, Object> entry = new java.util.HashMap<>();
+            entry.put("resourceId", resourceId);
+            entry.put("title", res.getTitle());
+            entry.put("type", res.getType());
+            entry.put("bookmarkType", bookmarkType);
+            temp.add(entry);
+            session.setAttribute("tempBookmarks", temp);
+            return Map.of("status", "success", "message", "Bookmark added (session)");
+        }
+
+        try {
+            resourceService.addBookmark(user.getId(), resourceId, bookmarkType);
+            return Map.of("status", "success", "message", "Bookmark added successfully");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/api/bookmarks")
+    @ResponseBody
+    public Map<String, String> removeBookmark(@RequestParam Long resourceId, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
+                    .getAttribute("tempBookmarks");
+            if (temp == null)
+                return Map.of("status", "error", "message", "No bookmarks in session");
+            boolean removed = temp.removeIf(m -> ((Number) m.getOrDefault("resourceId", -1)).longValue() == resourceId);
+            session.setAttribute("tempBookmarks", temp);
+            if (removed)
+                return Map.of("status", "success", "message", "Bookmark removed (session)");
+            else
+                return Map.of("status", "error", "message", "Bookmark not found");
+        }
+
+        try {
+            resourceService.removeBookmark(user.getId(), resourceId);
+            return Map.of("status", "success", "message", "Bookmark removed successfully");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
     @GetMapping("/forum")
     public String forum() {
         return "student/forum";
@@ -185,7 +324,24 @@ public class StudentController {
     }
 
     @GetMapping("/appointments")
-    public String appointments() {
+    public String appointments(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId != null) {
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                User student = userOpt.get();
+
+                // Get upcoming and past appointments
+                List<Appointment> upcomingAppointments = appointmentService.getStudentUpcomingAppointments(student);
+                List<Appointment> pastAppointments = appointmentService.getStudentPastAppointments(student);
+
+                model.addAttribute("upcomingAppointments", upcomingAppointments);
+                model.addAttribute("pastAppointments", pastAppointments);
+                model.addAttribute("studentName", student.getFullName() != null ? student.getFullName() : "Student");
+            }
+        }
+
         return "student/appointments";
     }
 
@@ -195,15 +351,44 @@ public class StudentController {
             @RequestParam String preferredTime,
             @RequestParam(required = false) String reason,
             HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || counselorId == null || counselorId.isEmpty() ||
+
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null || counselorId == null || counselorId.isEmpty() ||
                 preferredDate == null || preferredDate.isEmpty() || preferredTime == null || preferredTime.isEmpty()) {
             return "redirect:/student/appointments?error=invalid";
         }
-        session.setAttribute("lastAppointmentRequest", counselorId);
-        session.setAttribute("preferredDate", preferredDate);
-        session.setAttribute("preferredTime", preferredTime);
-        session.setAttribute("appointmentReason", reason != null ? reason : "");
-        return "redirect:/student/appointments?success=requested";
+
+        try {
+            // Get student and counselor users
+            Optional<User> studentOpt = userRepository.findById(userId);
+            Optional<User> counselorOpt = userRepository.findById(Long.parseLong(counselorId));
+
+            if (studentOpt.isPresent() && counselorOpt.isPresent()) {
+                User student = studentOpt.get();
+                User counselor = counselorOpt.get();
+
+                // Parse date and time
+                LocalDate date = LocalDate.parse(preferredDate);
+                LocalDateTime appointmentDateTime = date.atTime(
+                        Integer.parseInt(preferredTime.split(":")[0]),
+                        Integer.parseInt(preferredTime.split(":")[1]));
+
+                // Create appointment
+                Appointment appointment = appointmentService.createAppointment(
+                        student, counselor, appointmentDateTime, reason != null ? reason : "");
+
+                session.setAttribute("lastAppointmentRequest", counselorId);
+                session.setAttribute("preferredDate", preferredDate);
+                session.setAttribute("preferredTime", preferredTime);
+                return "redirect:/student/appointments?success=requested";
+            }
+
+            return "redirect:/student/appointments?error=invalid";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/student/appointments?error=failed";
+        }
     }
 
     @GetMapping("/emergency")
@@ -219,12 +404,12 @@ public class StudentController {
     @GetMapping("/feedback")
     public String feedback(Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-        
+
         if (userId != null) {
             java.util.List<Feedback> recentFeedback = feedbackService.getRecentUserFeedback(userId);
             model.addAttribute("recentFeedback", recentFeedback);
         }
-        
+
         return "student/feedback";
     }
 
@@ -235,63 +420,63 @@ public class StudentController {
             @RequestParam String subject,
             @RequestParam String details,
             HttpSession session) {
-        
+
         Long userId = (Long) session.getAttribute("userId");
-        
+
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(java.util.Map.of("success", false, "message", "Not authenticated"));
         }
-        
-        if (type == null || type.isEmpty() || subject == null || subject.isEmpty() || 
-            details == null || details.isEmpty()) {
+
+        if (type == null || type.isEmpty() || subject == null || subject.isEmpty() ||
+                details == null || details.isEmpty()) {
             return ResponseEntity.badRequest()
                     .body(java.util.Map.of("success", false, "message", "All fields are required"));
         }
-        
+
         // Validate feedback type
         if (!type.matches("feedback|bug|suggestion")) {
             return ResponseEntity.badRequest()
                     .body(java.util.Map.of("success", false, "message", "Invalid feedback type"));
         }
-        
+
         try {
             java.util.Optional<User> user = userRepository.findById(userId);
-            
+
             if (user.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(java.util.Map.of("success", false, "message", "User not found"));
             }
-            
+
             Feedback feedback = feedbackService.submitFeedback(user.get(), type, subject, details);
-            
+
             return ResponseEntity.ok(java.util.Map.of(
-                    "success", true, 
+                    "success", true,
                     "message", "Feedback submitted successfully",
                     "feedbackId", feedback.getId(),
-                    "createdAt", feedback.getCreatedAt().toString()
-            ));
+                    "createdAt", feedback.getCreatedAt().toString()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(java.util.Map.of("success", false, "message", "Error submitting feedback: " + e.getMessage()));
+                    .body(java.util.Map.of("success", false, "message",
+                            "Error submitting feedback: " + e.getMessage()));
         }
     }
 
     @GetMapping("/feedback/list")
     @ResponseBody
     public ResponseEntity<?> getUserFeedback(HttpSession session) {
-        
+
         Long userId = (Long) session.getAttribute("userId");
-        
+
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(java.util.Map.of("success", false, "message", "Not authenticated"));
         }
-        
+
         try {
             java.util.List<Feedback> feedbackList = feedbackService.getUserFeedback(userId);
             java.util.List<java.util.Map<String, Object>> feedbackData = new java.util.ArrayList<>();
-            
+
             for (Feedback f : feedbackList) {
                 feedbackData.add(java.util.Map.of(
                         "id", f.getId(),
@@ -299,14 +484,12 @@ public class StudentController {
                         "subject", f.getSubject(),
                         "details", f.getDetails(),
                         "status", f.getStatus(),
-                        "createdAt", f.getCreatedAt().toString()
-                ));
+                        "createdAt", f.getCreatedAt().toString()));
             }
-            
+
             return ResponseEntity.ok(java.util.Map.of(
                     "success", true,
-                    "feedback", feedbackData
-            ));
+                    "feedback", feedbackData));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(java.util.Map.of("success", false, "message", "Error fetching feedback"));
