@@ -6,12 +6,14 @@ import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.CounselorResponse;
 import com.example.MentalMind.model.Appointment;
 import com.example.MentalMind.model.SelfAssessmentResult;
+import com.example.MentalMind.model.CounselorSettings;
 import com.example.MentalMind.repository.MoodEntryRepository;
 import com.example.MentalMind.repository.UserRepository;
 import com.example.MentalMind.repository.FeedbackRepository;
 import com.example.MentalMind.repository.CounselorResponseRepository;
 import com.example.MentalMind.repository.AppointmentRepository;
 import com.example.MentalMind.repository.SelfAssessmentRepository;
+import com.example.MentalMind.repository.CounselorSettingsRepository;
 import com.example.MentalMind.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -47,6 +49,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private SelfAssessmentRepository selfAssessmentRepository;
+
+    @Autowired
+    private CounselorSettingsRepository counselorSettingsRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -85,6 +90,11 @@ public class DataInitializer implements CommandLineRunner {
         } else {
             System.out.println(LOG_PREFIX + " Resources already exist; skipping resource initialization.");
         }
+
+        // Initialize counselor settings
+        initializeCounselorSettings(counselor);
+        initializeCounselorSettings(counselor2);
+        initializeCounselorSettings(counselor3);
 
         System.out.println(LOG_PREFIX + " ========== Data Initialization Complete ==========");
     }
@@ -436,5 +446,53 @@ public class DataInitializer implements CommandLineRunner {
 
             selfAssessmentRepository.save(result);
         }
+    }
+
+    private void initializeCounselorSettings(User counselor) {
+        if (counselor == null) {
+            return;
+        }
+
+        // Check if settings already exist
+        if (counselorSettingsRepository.findByCounselor(counselor).isPresent()) {
+            System.out.println(LOG_PREFIX + " Settings already exist for counselor: " + counselor.getEmail());
+            return;
+        }
+
+        System.out.println(LOG_PREFIX + " Creating settings for counselor: " + counselor.getEmail());
+
+        CounselorSettings settings = new CounselorSettings(counselor);
+        settings.setBio(
+                "Licensed counselor with expertise in helping students navigate mental health challenges. Committed to providing a safe, supportive environment for all students.");
+        settings.setSpecialization("Anxiety, Depression, Academic Stress");
+
+        // Default availability: Mon-Thu 9 AM - 5 PM, Fri 9 AM - 3 PM
+        settings.setMondayStart("09:00");
+        settings.setMondayEnd("17:00");
+        settings.setMondayActive(true);
+
+        settings.setTuesdayStart("09:00");
+        settings.setTuesdayEnd("17:00");
+        settings.setTuesdayActive(true);
+
+        settings.setWednesdayStart("09:00");
+        settings.setWednesdayEnd("17:00");
+        settings.setWednesdayActive(true);
+
+        settings.setThursdayStart("09:00");
+        settings.setThursdayEnd("17:00");
+        settings.setThursdayActive(true);
+
+        settings.setFridayStart("09:00");
+        settings.setFridayEnd("15:00");
+        settings.setFridayActive(true);
+
+        // Enable all notifications by default
+        settings.setNotifyAppointments(true);
+        settings.setNotifyHighRisk(true);
+        settings.setNotifyForumReports(true);
+
+        counselorSettingsRepository.save(settings);
+        System.out.println(LOG_PREFIX + " ✓ Created settings for counselor: " + counselor.getEmail());
     }
 }

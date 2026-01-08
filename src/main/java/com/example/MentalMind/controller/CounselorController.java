@@ -14,11 +14,14 @@ import org.springframework.http.HttpStatus;
 
 import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.CounselorResponse;
+import com.example.MentalMind.model.CounselorSettings;
 import com.example.MentalMind.model.User;
 import com.example.MentalMind.service.FeedbackService;
 import com.example.MentalMind.service.DashboardService;
+import com.example.MentalMind.service.CounselorSettingsService;
 import com.example.MentalMind.repository.CounselorResponseRepository;
 import com.example.MentalMind.repository.UserRepository;
+import org.springframework.ui.Model;
 import java.util.Map;
 
 @Controller
@@ -39,6 +42,9 @@ public class CounselorController {
 
     @Autowired
     private DashboardService dashboardService;
+
+    @Autowired
+    private CounselorSettingsService counselorSettingsService;
 
     @GetMapping("/dashboard")
     public String dashboard() {
@@ -446,26 +452,214 @@ public class CounselorController {
     }
 
     @GetMapping("/settings")
-    public String settings() {
+    public String settings(HttpSession session, Model model) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return "redirect:/login";
+        }
+
+        Long userId = (Long) session.getAttribute("userId");
+        java.util.Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        User counselor = userOpt.get();
+        CounselorSettings settings = counselorSettingsService.getOrCreateSettings(counselor);
+
+        model.addAttribute("counselor", counselor);
+        model.addAttribute("settings", settings);
+
         return "counselor/settings";
     }
 
-    @PostMapping("/settings/update")
-    public String updateSettings(@RequestParam(required = false) String fullName,
+    @PostMapping("/settings/profile")
+    @ResponseBody
+    public ResponseEntity<?> updateProfile(
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone,
             @RequestParam(required = false) String specialization,
-            @RequestParam(required = false) String availabilityHours,
             @RequestParam(required = false) String bio,
-            @RequestParam(defaultValue = "false") String notificationsEnabled,
             HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null) {
-            return "redirect:/counselor/settings?error=unauthorized";
+
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Unauthorized"));
         }
-        session.setAttribute("counselorName", fullName != null ? fullName : "");
-        session.setAttribute("specialization", specialization != null ? specialization : "");
-        session.setAttribute("availabilityHours", availabilityHours != null ? availabilityHours : "");
-        session.setAttribute("bio", bio != null ? bio : "");
-        session.setAttribute("notificationsEnabled", notificationsEnabled);
-        return "redirect:/counselor/settings?success=updated";
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            java.util.Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+            }
+
+            User counselor = userOpt.get();
+
+            // Update user entity fields
+            if (fullName != null && !fullName.isEmpty()) {
+                counselor.setFullName(fullName);
+            }
+            if (email != null && !email.isEmpty()) {
+                counselor.setEmail(email);
+            }
+            if (phone != null) {
+                counselor.setPhoneNumber(phone);
+            }
+            counselor.setUpdatedAt(java.time.LocalDateTime.now());
+            userRepository.save(counselor);
+
+            // Update settings entity fields
+            counselorSettingsService.updateProfile(counselor, bio, specialization, null);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Profile updated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error updating profile: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/settings/availability")
+    @ResponseBody
+    public ResponseEntity<?> updateAvailability(
+            @RequestParam String day,
+            @RequestParam String startTime,
+            @RequestParam String endTime,
+            @RequestParam(defaultValue = "true") Boolean active,
+            HttpSession session) {
+
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            java.util.Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+            }
+
+            User counselor = userOpt.get();
+            CounselorSettings settings = counselorSettingsService.updateAvailability(counselor, day, startTime, endTime,
+                    active);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Availability updated successfully",
+                    "formattedTime", settings.getFormattedAvailability(day)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error updating availability: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/settings/notifications")
+    @ResponseBody
+    public ResponseEntity<?> updateNotifications(
+            @RequestParam(defaultValue = "false") Boolean notifyAppointments,
+            @RequestParam(defaultValue = "false") Boolean notifyHighRisk,
+            @RequestParam(defaultValue = "false") Boolean notifyForumReports,
+            HttpSession session) {
+
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            java.util.Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+            }
+
+            User counselor = userOpt.get();
+            counselorSettingsService.updateNotifications(counselor, notifyAppointments, notifyHighRisk,
+                    notifyForumReports);
+
+            return ResponseEntity
+                    .ok(Map.of("success", true, "message", "Notification preferences updated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error updating notifications: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/settings/photo")
+    @ResponseBody
+    public ResponseEntity<?> uploadPhoto(
+            @RequestParam("photo") org.springframework.web.multipart.MultipartFile file,
+            HttpSession session) {
+
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        // Validate file
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "No file selected"));
+        }
+
+        // Check file size (max 2MB)
+        if (file.getSize() > 2 * 1024 * 1024) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "File size must be less than 2MB"));
+        }
+
+        // Check file type
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png")
+                && !contentType.equals("image/gif"))) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Only JPG, PNG, and GIF images are allowed"));
+        }
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            java.util.Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+            }
+
+            User counselor = userOpt.get();
+
+            // Create uploads directory if it doesn't exist
+            String uploadDir = "src/main/resources/static/uploads/profiles";
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir);
+            if (!java.nio.file.Files.exists(uploadPath)) {
+                java.nio.file.Files.createDirectories(uploadPath);
+            }
+
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String filename = "counselor_" + userId + "_" + System.currentTimeMillis() + extension;
+
+            // Save the file
+            java.nio.file.Path filePath = uploadPath.resolve(filename);
+            java.nio.file.Files.copy(file.getInputStream(), filePath,
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            // Update the profile photo URL in the database
+            String photoUrl = "/uploads/profiles/" + filename;
+            counselorSettingsService.updateProfile(counselor, null, null, photoUrl);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Photo uploaded successfully",
+                    "photoUrl", photoUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error uploading photo: " + e.getMessage()));
+        }
     }
 
     private String generateResourceContent(String type, String url, String title, String description) {
