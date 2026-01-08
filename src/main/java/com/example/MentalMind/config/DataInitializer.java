@@ -5,17 +5,22 @@ import com.example.MentalMind.model.User;
 import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.CounselorResponse;
 import com.example.MentalMind.model.Appointment;
+import com.example.MentalMind.model.SelfAssessmentResult;
 import com.example.MentalMind.repository.MoodEntryRepository;
 import com.example.MentalMind.repository.UserRepository;
 import com.example.MentalMind.repository.FeedbackRepository;
 import com.example.MentalMind.repository.CounselorResponseRepository;
 import com.example.MentalMind.repository.AppointmentRepository;
+import com.example.MentalMind.repository.SelfAssessmentRepository;
 import com.example.MentalMind.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -40,6 +45,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
+    @Autowired
+    private SelfAssessmentRepository selfAssessmentRepository;
+
     @Override
     public void run(String... args) throws Exception {
         System.out.println(LOG_PREFIX + " ========== Starting Data Initialization ==========");
@@ -49,6 +57,9 @@ public class DataInitializer implements CommandLineRunner {
         User counselor = initializeCounselor("counselor@example.com", "Dr. Anya Sharma");
         User counselor2 = initializeCounselor("counselor2@example.com", "Dr. Mike Johnson");
         User counselor3 = initializeCounselor("counselor3@example.com", "Dr. Sarah Wilson");
+
+        // Initialize 20 students with self-assessment results
+        List<User> students = initializeStudents();
 
         // Initialize sample feedback and counselor responses
         if (student != null && counselor != null) {
@@ -322,5 +333,108 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println(LOG_PREFIX + " ✓ Created resource: 'Sleep and Mental Health'");
 
         System.out.println(LOG_PREFIX + " ✓ Total: 5 resources created.");
+    }
+
+    private List<User> initializeStudents() {
+        System.out.println(LOG_PREFIX + " Initializing 20 students with self-assessments...");
+        List<User> students = new ArrayList<>();
+        Random random = new Random(42); // Fixed seed for reproducible data
+
+        // Malaysian student names
+        String[] names = {
+                "Ahmad Farhan bin Ismail",
+                "Nurul Aisyah binti Rahman",
+                "Muhammad Haziq bin Abdullah",
+                "Siti Nurhaliza binti Hassan",
+                "Lee Wei Ming",
+                "Tan Mei Ling",
+                "Rajesh Kumar a/l Subramaniam",
+                "Priya Devi a/p Krishnan",
+                "Muhammad Aiman bin Yusof",
+                "Fatimah Zahra binti Omar",
+                "Wong Jia Wei",
+                "Lim Shi Ting",
+                "Aravind a/l Muthu",
+                "Kavitha a/p Rajan",
+                "Nur Syafiqah binti Mohd Ali",
+                "Ahmad Danial bin Karim",
+                "Chen Xiao Yu",
+                "Ng Hui Wen",
+                "Ganesh a/l Vellu",
+                "Deepa a/p Naidu"
+        };
+
+        for (int i = 0; i < 20; i++) {
+            String email = "student" + (i + 1) + "@example.com";
+
+            // Check if student already exists
+            if (userRepository.findByEmail(email).isPresent()) {
+                System.out.println(LOG_PREFIX + " Student " + email + " already exists; skipping.");
+                students.add(userRepository.findByEmail(email).get());
+                continue;
+            }
+
+            // Create new student
+            User student = new User(email, "password123", "student");
+            student.setFullName(names[i]);
+            student = userRepository.save(student);
+            students.add(student);
+
+            // Generate self-assessment results for this student
+            int assessmentCount = 3 + random.nextInt(8); // 3 to 10 assessments per student
+            initializeSelfAssessments(student, assessmentCount, random);
+
+            System.out.println(LOG_PREFIX + " ✓ Created student: " + names[i] + " (" + email + ") with "
+                    + assessmentCount + " assessments");
+        }
+
+        System.out.println(LOG_PREFIX + " ✓ Total: 20 students initialized with self-assessments.");
+        return students;
+    }
+
+    private void initializeSelfAssessments(User student, int count, Random random) {
+        LocalDateTime now = LocalDateTime.now();
+
+        for (int i = 0; i < count; i++) {
+            // Spread assessments over the past 60 days
+            int daysAgo = random.nextInt(60);
+            LocalDateTime completedAt = now.minusDays(daysAgo)
+                    .withHour(8 + random.nextInt(12)) // Between 8 AM and 8 PM
+                    .withMinute(random.nextInt(60))
+                    .withSecond(0);
+
+            // Generate a realistic PSS-10 score (0-40)
+            // Using a distribution that creates varied stress levels
+            int score;
+            int pattern = random.nextInt(10);
+            if (pattern < 4) {
+                // 40% LOW stress (0-13)
+                score = random.nextInt(14);
+            } else if (pattern < 8) {
+                // 40% MODERATE stress (14-26)
+                score = 14 + random.nextInt(13);
+            } else {
+                // 20% HIGH stress (27-40)
+                score = 27 + random.nextInt(14);
+            }
+
+            // Determine stress level based on score
+            String stressLevel;
+            if (score <= 13) {
+                stressLevel = "LOW";
+            } else if (score <= 26) {
+                stressLevel = "MODERATE";
+            } else {
+                stressLevel = "HIGH";
+            }
+
+            SelfAssessmentResult result = new SelfAssessmentResult();
+            result.setUser(student);
+            result.setScore(score);
+            result.setStressLevel(stressLevel);
+            result.setCompletedAt(completedAt);
+
+            selfAssessmentRepository.save(result);
+        }
     }
 }
