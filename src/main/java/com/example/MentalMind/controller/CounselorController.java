@@ -24,7 +24,6 @@ import com.example.MentalMind.repository.UserRepository;
 import org.springframework.ui.Model;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.ui.Model;
 
 @Controller
 @RequestMapping("/counselor")
