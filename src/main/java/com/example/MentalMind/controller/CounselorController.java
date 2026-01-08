@@ -23,6 +23,8 @@ import com.example.MentalMind.repository.CounselorResponseRepository;
 import com.example.MentalMind.repository.UserRepository;
 import org.springframework.ui.Model;
 import java.util.Map;
+import java.util.Optional;
+import org.springframework.ui.Model;
 
 @Controller
 @RequestMapping("/counselor")
@@ -47,7 +49,14 @@ public class CounselorController {
     private CounselorSettingsService counselorSettingsService;
 
     @GetMapping("/dashboard")
-    public String dashboard() {
+    public String dashboard(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId != null) {
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                model.addAttribute("userFullName", user.get().getFullName());
+            }
+        }
         return "counselor/dashboard";
     }
 

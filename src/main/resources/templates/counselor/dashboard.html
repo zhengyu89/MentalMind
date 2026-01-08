@@ -14,8 +14,7 @@
                 class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
                 <div>
                     <h2 class="text-2xl font-bold">Dashboard</h2>
-                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Welcome back, Pn. Nur
-                        Aisyah</p>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark" th:text="'Welcome back, ' + ${userFullName != null ? userFullName : 'Counselor'}">Welcome back, Counselor</p>
                 </div>
                 <div class="flex items-center gap-4">
                     <button class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">

@@ -11,7 +11,7 @@
         <main class="flex-1 p-8 overflow-y-auto">
             <!-- Header -->
             <header class="mb-8">
-                <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Welcome back, Ahmad Danial! 👋</h2>
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-white" th:text="'Welcome back, ' + ${userFullName != null ? userFullName : 'Student'} + '! 👋'">Welcome back, Student! 👋</h2>
                 <p class="text-slate-500 dark:text-slate-400 mt-1">Here's an overview of your mental wellness journey.
                 </p>
             </header>
