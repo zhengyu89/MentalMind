@@ -59,6 +59,12 @@ public class StudentController {
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId != null) {
+            // Get user full name
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                model.addAttribute("userFullName", user.get().getFullName());
+            }
+
             // Get mood entries as a map keyed by date (yyyy-MM-dd)
             java.util.Map<String, MoodEntry> moodMap = moodService.getWeeklyMoodsMap(userId);
             model.addAttribute("moodMap", moodMap);

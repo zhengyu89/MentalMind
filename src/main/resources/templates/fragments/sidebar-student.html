@@ -74,7 +74,7 @@
                 <img alt="Student avatar" class="w-10 h-10 rounded-full"
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3LHfbcdwLaTLI60k0wic323QVott6STHg6CSNJkKYokVtKZNlh1bgP9WlQ5V-9H-gDX5o56ir1uDKWF8xxAzgpLlPUAYaQ_Hf0c8TWn9qYBckDqq14YGBNPVKQhuIuZ9juqe5tbVvsSZfCJe2HhlR77KfYbpVgK77GAHOi-8JdsgJUz6PTk0S-tWtngMbdp9_mJDLiC7UIT8eYDXhjwmry7BFHFzcgkCKP1hc2_NnjgyKVOrypdfcmFaj8HBK7EpGWW3uoveLPlw3" />
                 <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-slate-800 dark:text-slate-200 truncate">Ahmad Danial</p>
+                    <p class="font-semibold text-slate-800 dark:text-slate-200 truncate" th:text="${userFullName != null ? userFullName : 'Student'}">Student</p>
                     <p class="text-sm text-slate-500 dark:text-slate-400">Student</p>
                 </div>
                 <a th:href="@{/logout}"
