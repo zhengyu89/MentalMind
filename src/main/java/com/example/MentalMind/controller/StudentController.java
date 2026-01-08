@@ -219,8 +219,8 @@ public class StudentController {
     @GetMapping("/api/bookmarks")
     @ResponseBody
     public java.util.List<java.util.Map<String, Object>> getBookmarks(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             // return session-stored bookmarks for unauthenticated users (if any)
             java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
                     .getAttribute("tempBookmarks");
@@ -229,8 +229,7 @@ public class StudentController {
             return temp;
         }
         // Convert persistent bookmarks to a simple map representation for the client
-        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService
-                .getUserBookmarks(user.getId());
+        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService.getUserBookmarks(userId);
         java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
         for (com.example.MentalMind.model.UserResourceBookmark b : bookmarks) {
             java.util.Map<String, Object> m = new java.util.HashMap<>();
@@ -246,10 +245,10 @@ public class StudentController {
     @PostMapping("/api/bookmarks")
     @ResponseBody
     public Map<String, String> addBookmark(@RequestParam Long resourceId,
-            @RequestParam String bookmarkType,
-            HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
+                                          @RequestParam String bookmarkType,
+                                          HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             // store bookmark in session for unauthenticated users
             java.util.Optional<com.example.MentalMind.model.Resource> maybe = resourceService
                     .getResourceById(resourceId);
@@ -283,7 +282,7 @@ public class StudentController {
         }
 
         try {
-            resourceService.addBookmark(user.getId(), resourceId, bookmarkType);
+            resourceService.addBookmark(userId, resourceId, bookmarkType);
             return Map.of("status", "success", "message", "Bookmark added successfully");
         } catch (Exception e) {
             return Map.of("status", "error", "message", e.getMessage());
@@ -293,12 +292,10 @@ public class StudentController {
     @DeleteMapping("/api/bookmarks")
     @ResponseBody
     public Map<String, String> removeBookmark(@RequestParam Long resourceId, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
-                    .getAttribute("tempBookmarks");
-            if (temp == null)
-                return Map.of("status", "error", "message", "No bookmarks in session");
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session.getAttribute("tempBookmarks");
+            if (temp == null) return Map.of("status", "error", "message", "No bookmarks in session");
             boolean removed = temp.removeIf(m -> ((Number) m.getOrDefault("resourceId", -1)).longValue() == resourceId);
             session.setAttribute("tempBookmarks", temp);
             if (removed)
@@ -308,7 +305,7 @@ public class StudentController {
         }
 
         try {
-            resourceService.removeBookmark(user.getId(), resourceId);
+            resourceService.removeBookmark(userId, resourceId);
             return Map.of("status", "success", "message", "Bookmark removed successfully");
         } catch (Exception e) {
             return Map.of("status", "error", "message", e.getMessage());
