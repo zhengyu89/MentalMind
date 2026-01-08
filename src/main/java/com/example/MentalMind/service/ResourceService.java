@@ -59,7 +59,11 @@ public class ResourceService {
     public List<UserResourceBookmark> getUserBookmarks(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return bookmarkRepository.findByUserAndIsActiveTrue(user);
+        // Only return bookmarks that point to active resources
+        return bookmarkRepository.findByUserAndIsActiveTrue(user)
+            .stream()
+            .filter(b -> b.getResource() != null && Boolean.TRUE.equals(b.getResource().getIsActive()))
+            .toList();
     }
 
     /**
@@ -72,6 +76,11 @@ public class ResourceService {
 
         Resource resource = resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new RuntimeException("Resource not found"));
+
+        // Remove any old inactive bookmark rows to avoid duplicates
+        bookmarkRepository.findByUserAndResource(user, resource)
+            .filter(b -> !Boolean.TRUE.equals(b.getIsActive()))
+            .ifPresent(bookmarkRepository::delete);
 
         // Check if bookmark already exists
         if (bookmarkRepository.existsByUserAndResourceAndBookmarkTypeAndIsActiveTrue(user, resource, bookmarkType)) {
@@ -95,8 +104,8 @@ public class ResourceService {
 
         Optional<UserResourceBookmark> bookmark = bookmarkRepository.findByUserAndResourceAndIsActiveTrue(user, resource);
         if (bookmark.isPresent()) {
-            bookmark.get().setIsActive(false);
-            bookmarkRepository.save(bookmark.get());
+            // Hard delete so the row is gone from DB
+            bookmarkRepository.delete(bookmark.get());
         }
     }
 
@@ -136,6 +145,13 @@ public class ResourceService {
         Resource resource = resourceRepository.findById(id).orElseThrow(() -> new RuntimeException("Resource not found"));
         resource.setIsActive(false);
         resourceRepository.save(resource);
+
+        // Soft-delete related bookmarks so they disappear for users
+        List<UserResourceBookmark> bookmarks = bookmarkRepository.findByResourceAndIsActiveTrue(resource);
+        for (UserResourceBookmark b : bookmarks) {
+            b.setIsActive(false);
+            bookmarkRepository.save(b);
+        }
     }
 
     @Transactional
