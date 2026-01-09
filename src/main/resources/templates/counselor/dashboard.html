@@ -46,20 +46,6 @@
                         class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
                         <div class="flex items-center gap-4">
                             <div
-                                class="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 rounded-lg flex items-center justify-center">
-                                <span class="material-symbols-outlined text-amber-500">pending_actions</span>
-                            </div>
-                            <div>
-                                <p class="text-2xl font-bold" id="pendingCount">-</p>
-                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Pending
-                                    Requests</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div
-                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
-                        <div class="flex items-center gap-4">
-                            <div
                                 class="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-lg flex items-center justify-center">
                                 <span class="material-symbols-outlined text-red-500">warning</span>
                             </div>
@@ -73,21 +59,75 @@
                     <div
                         class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
                         <div class="flex items-center gap-4">
-                            <div
-                                class="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
-                                <span class="material-symbols-outlined text-green-500">groups</span>
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary">group</span>
                             </div>
                             <div>
-                                <p class="text-2xl font-bold" id="activeStudentsCount">-</p>
-                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Active
-                                    Students</p>
+                                <p class="text-2xl font-bold" id="totalStudentsCount">-</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Total Students</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-teal-100 dark:bg-teal-900/50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-teal-500">assessment</span>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold" id="assessmentsTakenCount">-</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Assessments Taken</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assessment Score Distribution -->
+                <div
+                    class="mb-8 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                    <h3 class="text-lg font-semibold mb-6">Assessment Score Distribution</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium">Low Risk (0-5)</span>
+                                <span class="text-sm font-medium text-green-600">45%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="bg-green-500 h-3 rounded-full" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium">Moderate Risk (6-10)</span>
+                                <span class="text-sm font-medium text-yellow-600">35%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="bg-yellow-500 h-3 rounded-full" style="width: 35%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium">High Risk (11-15)</span>
+                                <span class="text-sm font-medium text-orange-600">15%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="bg-orange-500 h-3 rounded-full" style="width: 15%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium">Severe Risk (16+)</span>
+                                <span class="text-sm font-medium text-red-600">5%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                                <div class="bg-red-500 h-3 rounded-full" style="width: 5%"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Upcoming Appointments -->
+                    <!-- Today's Schedule -->
                     <div
                         class="lg:col-span-2 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
                         <div class="flex justify-between items-center mb-6">
@@ -95,7 +135,50 @@
                             <a th:href="@{/counselor/appointments}"
                                 class="text-primary text-sm font-medium hover:underline">View All</a>
                         </div>
-                        <div class="space-y-4" data-appointments-container></div>
+                        <div
+                            class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
+                            <div
+                                class="grid grid-cols-4 text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark border-b border-border-light dark:border-border-dark">
+                                <div class="px-6 py-3">Time</div>
+                                <div class="px-6 py-3">Student</div>
+                                <div class="px-6 py-3">Type</div>
+                                <div class="px-6 py-3">Actions</div>
+                            </div>
+                            <div class="grid grid-cols-4 items-center border-b border-border-light dark:border-border-dark">
+                                <div class="px-6 py-4 font-medium">10:00 AM</div>
+                                <div class="px-6 py-4 flex items-center gap-3">
+                                    <img alt="Student" class="w-8 h-8 rounded-full"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3LHfbcdwLaTLI60k0wic323QVott6STHg6CSNJkKYokVtKZNlh1bgP9WlQ5V-9H-gDX5o56ir1uDKWF8xxAzgpLlPUAYaQ_Hf0c8TWn9qYBckDqq14YGBNPVKQhuIuZ9juqe5tbVvsSZfCJe2HhlR77KfYbpVgK77GAHOi-8JdsgJUz6PTk0S-tWtngMbdp9_mJDLiC7UIT8eYDXhjwmry7BFHFzcgkCKP1hc2_NnjgyKVOrypdfcmFaj8HBK7EpGWW3uoveLPlw3" />
+                                    Alex Johnson
+                                </div>
+                                <div class="px-6 py-4"><span
+                                        class="text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-600 px-2 py-1 rounded-full">Counseling</span>
+                                </div>
+                                <div class="px-6 py-4">
+                                    <button
+                                        class="px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-base">videocam</span> Start Session
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-4 items-center">
+                                <div class="px-6 py-4 font-medium">2:00 PM</div>
+                                <div class="px-6 py-4 flex items-center gap-3">
+                                    <img alt="Student" class="w-8 h-8 rounded-full"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyeBxRRBy6_m_akwvqwfX3lmPH2tAdOKDy7jhoG2fcWhQ32j3HCIeslVZC2rmXkqWbvw5g27nddH6CHlAbErDt_2cfKtbOmX36cTnq2mN6dwPGRzbmoVwc1YudwcNuuf5V0cjSa_afadFiIZ2hAiq54Gn35uGdD78QasZb1J-ckWB5bxC4hi4noFvkYW-F0Ib40VbIKGYCgxU4Q7q0fzR04fph1UVVRSvPa0D9DlOu65LfGN5RPIXr4PTslGuR8IwivtjUbLqMNBDo" />
+                                    Samantha Lee
+                                </div>
+                                <div class="px-6 py-4"><span
+                                        class="text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-600 px-2 py-1 rounded-full">Follow-up</span>
+                                </div>
+                                <div class="px-6 py-4">
+                                    <button
+                                        class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-sm font-medium rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Flagged Students -->
@@ -200,32 +283,35 @@
         // Load all dashboard data on page load
         document.addEventListener('DOMContentLoaded', async () => {
             await loadDashboardStats();
-            await loadUpcomingAppointments();
             await loadFlaggedStudents();
             await loadRecentAssessments();
         });
 
-        // Load dashboard statistics (appointments, pending, flagged, active students)
+        // Load dashboard statistics (appointments, flagged, total students, assessments taken)
         async function loadDashboardStats() {
             try {
-                const [appointments, pending, flagged, active] = await Promise.all([
+                const [appointments, flagged, totalStudents, assessments] = await Promise.all([
                     fetch('/counselor/api/appointments-today').then(r => r.json()),
-                    fetch('/counselor/api/pending-requests').then(r => r.json()),
                     fetch('/counselor/api/flagged-students').then(r => r.json()),
-                    fetch('/counselor/api/active-students').then(r => r.json())
+                    fetch('/counselor/api/total-students').then(r => r.json()).catch(() => ({ success: false })),
+                    fetch('/counselor/api/assessments-taken').then(r => r.json()).catch(() => ({ success: false }))
                 ]);
 
                 if (appointments.success && appointments.data) {
                     document.getElementById('appointmentsCount').textContent = appointments.data.todayAppointments || 0;
                 }
-                if (pending.success && pending.data) {
-                    document.getElementById('pendingCount').textContent = pending.data.totalPending || 0;
-                }
                 if (flagged.success && flagged.data) {
                     document.getElementById('flaggedCount').textContent = (flagged.data || []).length;
                 }
-                if (active.success && active.data) {
-                    document.getElementById('activeStudentsCount').textContent = active.data.activeStudents || 0;
+                if (totalStudents.success && totalStudents.data) {
+                    document.getElementById('totalStudentsCount').textContent = totalStudents.data.totalStudents || totalStudents.data.count || 0;
+                } else {
+                    document.getElementById('totalStudentsCount').textContent = '-';
+                }
+                if (assessments.success && assessments.data) {
+                    document.getElementById('assessmentsTakenCount').textContent = assessments.data.totalAssessments || assessments.data.count || 0;
+                } else {
+                    document.getElementById('assessmentsTakenCount').textContent = '-';
                 }
             } catch (err) {
                 console.error('Error loading dashboard stats:', err);
@@ -313,7 +399,9 @@
                 const tbody = document.querySelector('tbody');
                 if (!tbody) return;
 
-                const assessments = data.data.slice(0, 3); // Show top 3
+                // Only show HIGH risk assessments, top 3
+                const highRiskOnly = data.data.filter(assessment => assessment.stressLevel === 'HIGH');
+                const assessments = highRiskOnly.slice(0, 3);
 
                 tbody.innerHTML = assessments.map(assessment => {
                     const riskColor = assessment.stressLevel === 'HIGH' ? 'bg-red-100 dark:bg-red-900/50 text-red-600' :

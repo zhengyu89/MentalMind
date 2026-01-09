@@ -19,6 +19,7 @@ import com.example.MentalMind.model.User;
 import com.example.MentalMind.service.FeedbackService;
 import com.example.MentalMind.service.DashboardService;
 import com.example.MentalMind.service.CounselorSettingsService;
+import com.example.MentalMind.service.StudentOverviewService;
 import com.example.MentalMind.repository.CounselorResponseRepository;
 import com.example.MentalMind.repository.UserRepository;
 import org.springframework.ui.Model;
@@ -46,6 +47,9 @@ public class CounselorController {
 
     @Autowired
     private CounselorSettingsService counselorSettingsService;
+
+    @Autowired
+    private StudentOverviewService studentOverviewService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
@@ -245,7 +249,19 @@ public class CounselorController {
     }
 
     @GetMapping("/students")
-    public String students() {
+    public String students(
+            Model model,
+            HttpSession session,
+            @RequestParam(name = "search", required = false) String search,
+            @RequestParam(name = "filter", required = false) String filter) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return "redirect:/login";
+        }
+
+        java.util.List<java.util.Map<String, Object>> students = studentOverviewService.getStudentsOverview(search, filter);
+        model.addAttribute("students", students);
+        model.addAttribute("searchQuery", search != null ? search : "");
+        model.addAttribute("filterOption", filter != null ? filter : "");
         return "counselor/students";
     }
 
