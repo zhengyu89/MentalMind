@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Learning Module - MindWell')}">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-slate-300 antialiased">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-student :: sidebar('learning')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header -->
+            <header class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm z-10">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white" th:text="${module.title}">Module Title</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
+                        <span th:text="${completedCount}">0</span> of <span th:text="${totalCount}">0</span> materials completed
+                    </p>
+                </div>
+                <a th:href="@{/student/learning}" class="inline-flex items-center gap-2 px-4 py-2 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Back to Modules</span>
+                </a>
+            </header>
+
+            <div class="p-8">
+                <!-- Module Description -->
+                <div th:if="${module.description != null}" class="mb-6 bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2">About This Module</h3>
+                    <p class="text-slate-600 dark:text-slate-400" th:text="${module.description}">Module description</p>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-6 bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Your Progress</h3>
+                        <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400" th:text="${progressPercentage + '%'}">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500"
+                             th:style="'width: ' + ${progressPercentage} + '%'"></div>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        <span th:text="${completedCount}">0</span> of <span th:text="${totalCount}">0</span> materials completed
+                    </p>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${materials.isEmpty()}" class="text-center py-12 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600 block mb-4">folder_open</span>
+                    <h3 class="text-xl font-semibold text-slate-600 dark:text-slate-300 mb-2">No Materials Yet</h3>
+                    <p class="text-slate-500 dark:text-slate-400">This module doesn't have any learning materials yet. Check back soon!</p>
+                </div>
+
+                <!-- Materials List -->
+                <div th:if="${!materials.isEmpty()}" class="space-y-4">
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Learning Materials</h3>
+                    
+                    <div th:each="material, iterStat : ${materials}" 
+                         th:id="'material-card-' + ${material.id}"
+                         th:class="'bg-white dark:bg-slate-900 rounded-xl p-6 border-2 transition-all duration-300 ' + (${completedMaterialIds.contains(material.id)} ? 'border-green-400 dark:border-green-600' : 'border-slate-200 dark:border-slate-800 hover:shadow-md')">
+                        
+                        <div class="flex items-start gap-4">
+                            <!-- Completion Checkbox / Material Icon -->
+                            <div class="flex-shrink-0 relative">
+                                <!-- Completed Badge -->
+                                <div th:if="${completedMaterialIds.contains(material.id)}"
+                                     class="w-12 h-12 rounded-lg flex items-center justify-center bg-green-100 dark:bg-green-900/30">
+                                    <span class="material-symbols-outlined text-2xl text-green-600 dark:text-green-400">check_circle</span>
+                                </div>
+                                <!-- Normal Icon -->
+                                <div th:unless="${completedMaterialIds.contains(material.id)}"
+                                     class="w-12 h-12 rounded-lg flex items-center justify-center"
+                                     th:classappend="${material.materialType.name() == 'VIDEO'} ? 'bg-red-100 dark:bg-red-900/30' : (${material.materialType.name() == 'DOCUMENT'} ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30')">
+                                    <span class="material-symbols-outlined text-2xl"
+                                          th:classappend="${material.materialType.name() == 'VIDEO'} ? 'text-red-600 dark:text-red-400' : (${material.materialType.name() == 'DOCUMENT'} ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400')"
+                                          th:text="${material.materialType.name() == 'VIDEO'} ? 'play_circle' : (${material.materialType.name() == 'DOCUMENT'} ? 'description' : 'quiz')">play_circle</span>
+                                </div>
+                            </div>
+
+                            <!-- Material Content -->
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-medium px-2 py-0.5 rounded-full"
+                                          th:classappend="${material.materialType.name() == 'VIDEO'} ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : (${material.materialType.name() == 'DOCUMENT'} ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300')"
+                                          th:text="${material.materialType.name()}">VIDEO</span>
+                                    <span class="text-xs text-slate-400" th:text="'Material ' + ${iterStat.count}">Material 1</span>
+                                </div>
+                                
+                                <h4 class="text-lg font-semibold text-slate-900 dark:text-white mb-2" th:text="${material.title}">Material Title</h4>
+                                
+                                <!-- Video Content - Embedded Player -->
+                                <div th:if="${material.materialType.name() == 'VIDEO'}" class="mt-4">
+                                    <div class="aspect-video w-full max-w-2xl rounded-lg overflow-hidden bg-black">
+                                        <iframe 
+                                            th:data-video-url="${material.content}"
+                                            class="w-full h-full youtube-embed"
+                                            frameborder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <a th:href="${material.content}" target="_blank" rel="noopener noreferrer"
+                                       class="inline-flex items-center gap-2 mt-3 text-sm text-red-600 dark:text-red-400 hover:underline">
+                                        <span class="material-symbols-outlined text-base">open_in_new</span>
+                                        Open in YouTube
+                                    </a>
+                                </div>
+
+                                <!-- Document Content -->
+                                <div th:if="${material.materialType.name() == 'DOCUMENT'}" class="mt-4">
+                                    <div class="prose prose-slate dark:prose-invert max-w-none bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                                        <div th:utext="${material.content}">Document content will appear here</div>
+                                    </div>
+                                </div>
+
+                                <!-- Quiz Content (placeholder for future) -->
+                                <div th:if="${material.materialType.name() == 'QUIZ'}" class="mt-4">
+                                    <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                                        <p class="text-green-700 dark:text-green-300 text-sm">
+                                            <span class="material-symbols-outlined align-middle mr-1">info</span>
+                                            Quiz functionality coming soon!
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Mark as Done Button -->
+                                <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                    <!-- Not Completed State -->
+                                    <button th:unless="${completedMaterialIds.contains(material.id)}"
+                                            th:data-material-id="${material.id}"
+                                            onclick="markAsComplete(this)"
+                                            class="mark-complete-btn inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors">
+                                        <span class="material-symbols-outlined text-xl">check_circle</span>
+                                        <span>Mark as Done</span>
+                                    </button>
+                                    
+                                    <!-- Completed State -->
+                                    <div th:if="${completedMaterialIds.contains(material.id)}"
+                                         class="flex items-center gap-4">
+                                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg font-medium">
+                                            <span class="material-symbols-outlined text-xl">task_alt</span>
+                                            <span>Completed</span>
+                                        </span>
+                                        <button th:data-material-id="${material.id}"
+                                                onclick="markAsIncomplete(this)"
+                                                class="mark-incomplete-btn text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 underline">
+                                            Undo
+                                        </button>
+                                    </div>
+                                    
+                                    <span class="text-xs text-slate-400" th:text="'Material ' + ${iterStat.count} + ' of ' + ${totalCount}">Material 1 of 5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completion Banner -->
+                <div th:if="${progressPercentage == 100}" class="mt-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">🎉 Module Completed!</h3>
+                            <p class="text-green-100 text-sm">Congratulations! You've completed all materials in this module.</p>
+                        </div>
+                        <span class="material-symbols-outlined text-4xl text-green-200">emoji_events</span>
+                    </div>
+                </div>
+
+                <!-- Progress Section -->
+                <div th:unless="${progressPercentage == 100}" class="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-1">Keep Going!</h3>
+                            <p class="text-indigo-100 text-sm">
+                                You're <span th:text="${progressPercentage}">0</span>% through this module. Complete all materials to finish!
+                            </p>
+                        </div>
+                        <span class="material-symbols-outlined text-4xl text-indigo-200">trending_up</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Mark material as complete
+        async function markAsComplete(button) {
+            const materialId = button.getAttribute('data-material-id');
+            button.disabled = true;
+            button.innerHTML = '<span class="material-symbols-outlined text-xl animate-spin">sync</span><span>Saving...</span>';
+            
+            try {
+                const response = await fetch(`/student/learning/material/${materialId}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Reload the page to reflect the changes
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    alert('Error: ' + (data.error || 'Failed to mark as complete'));
+                    button.disabled = false;
+                    button.innerHTML = '<span class="material-symbols-outlined text-xl">check_circle</span><span>Mark as Done</span>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error marking material as complete');
+                button.disabled = false;
+                button.innerHTML = '<span class="material-symbols-outlined text-xl">check_circle</span><span>Mark as Done</span>';
+            }
+        }
+
+        // Mark material as incomplete (undo)
+        async function markAsIncomplete(button) {
+            const materialId = button.getAttribute('data-material-id');
+            button.disabled = true;
+            button.textContent = 'Undoing...';
+            
+            try {
+                const response = await fetch(`/student/learning/material/${materialId}/incomplete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    // Reload the page to reflect the changes
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    alert('Error: ' + (data.error || 'Failed to undo'));
+                    button.disabled = false;
+                    button.textContent = 'Undo';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error undoing completion');
+                button.disabled = false;
+                button.textContent = 'Undo';
+            }
+        }
+
+        // Convert YouTube URLs to embed format
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.youtube-embed').forEach(function(iframe) {
+                const url = iframe.getAttribute('data-video-url');
+                if (url) {
+                    let videoId = null;
+                    
+                    // Handle youtube.com/watch?v= format
+                    if (url.includes('youtube.com/watch')) {
+                        const urlParams = new URL(url).searchParams;
+                        videoId = urlParams.get('v');
+                    }
+                    // Handle youtu.be/ short format
+                    else if (url.includes('youtu.be/')) {
+                        videoId = url.split('youtu.be/')[1];
+                        if (videoId && videoId.includes('?')) {
+                            videoId = videoId.split('?')[0];
+                        }
+                    }
+                    // Handle youtube.com/embed/ format (already embed)
+                    else if (url.includes('youtube.com/embed/')) {
+                        iframe.src = url;
+                        return;
+                    }
+                    
+                    if (videoId) {
+                        iframe.src = 'https://www.youtube.com/embed/' + videoId;
+                    } else {
+                        // Fallback: try to use the URL as-is
+                        iframe.src = url;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

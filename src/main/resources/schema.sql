@@ -82,4 +82,54 @@ CREATE TABLE IF NOT EXISTS appointments (
     INDEX idx_appointment_date_time (appointment_date_time)
 );
 
+-- Create Learning Modules Table
+CREATE TABLE IF NOT EXISTS learning_modules (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description LONGTEXT,
+    created_by BIGINT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_created_by (created_by),
+    INDEX idx_is_active (is_active),
+    INDEX idx_created_at (created_at)
+);
+
+-- Create Learning Materials Table
+CREATE TABLE IF NOT EXISTS learning_materials (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    module_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    material_type VARCHAR(50) NOT NULL,
+    content LONGTEXT,
+    created_by BIGINT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (module_id) REFERENCES learning_modules(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_module_id (module_id),
+    INDEX idx_material_type (material_type),
+    INDEX idx_created_by (created_by),
+    INDEX idx_is_active (is_active)
+);
+
+-- Create Student Material Progress Table
+CREATE TABLE IF NOT EXISTS student_material_progress (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT NOT NULL,
+    material_id BIGINT NOT NULL,
+    is_completed BOOLEAN DEFAULT false,
+    completed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (material_id) REFERENCES learning_materials(id) ON DELETE CASCADE,
+    INDEX idx_student_id (student_id),
+    INDEX idx_material_id (material_id),
+    INDEX idx_is_completed (is_completed),
+    UNIQUE KEY uk_student_material (student_id, material_id)
+);
+
 COMMIT;

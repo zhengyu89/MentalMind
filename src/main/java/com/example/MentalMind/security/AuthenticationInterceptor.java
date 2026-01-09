@@ -25,7 +25,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         // Allow public paths for both GET and POST
         if (requestPath.equals("/") || requestPath.equals("/login") || requestPath.equals("/register") ||
                 requestPath.startsWith("/css/") || requestPath.startsWith("/js/") || 
-                requestPath.startsWith("/assets/")) {
+                requestPath.startsWith("/assets/") || requestPath.equals("/error")) {
             logger.debug("Public path allowed: {}", requestPath);
             return true;
         }
@@ -41,15 +41,33 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         // Check role-based access
         String userRole = (String) session.getAttribute("userRole");
         
+        // Handle null or empty role - redirect to login
+        if (userRole == null || userRole.isEmpty()) {
+            logger.warn("User role is null or empty, redirecting to login");
+            session.invalidate();
+            response.sendRedirect("/login?error=session_expired");
+            return false;
+        }
+        
         if (requestPath.startsWith("/student/") && !"student".equalsIgnoreCase(userRole)) {
             logger.warn("Unauthorized access to student path with role: {}", userRole);
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            // Redirect to appropriate dashboard instead of 403
+            if ("counselor".equalsIgnoreCase(userRole)) {
+                response.sendRedirect("/counselor/dashboard");
+            } else {
+                response.sendRedirect("/login?error=unauthorized");
+            }
             return false;
         }
         
         if (requestPath.startsWith("/counselor/") && !"counselor".equalsIgnoreCase(userRole)) {
             logger.warn("Unauthorized access to counselor path with role: {}", userRole);
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            // Redirect to appropriate dashboard instead of 403
+            if ("student".equalsIgnoreCase(userRole)) {
+                response.sendRedirect("/student/dashboard");
+            } else {
+                response.sendRedirect("/login?error=unauthorized");
+            }
             return false;
         }
         

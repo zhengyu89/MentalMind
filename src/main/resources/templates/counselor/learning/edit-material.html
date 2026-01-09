@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Edit Material')}">
+</head>
+
+<body class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <!-- TinyMCE Editor -->
+    <script th:src="'https://cdn.tiny.cloud/1/' + ${@environment.getProperty('tinymce.api.key')} + '/tinymce/6/tinymce.min.js'" referrerpolicy="origin"></script>
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('learning')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <h2 class="text-2xl font-bold">Edit Material</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark" th:text="'Module: ' + ${module.title}">Module name</p>
+                </div>
+                <a th:href="@{/counselor/learning/module/{moduleId}(moduleId=${module.id})}" class="inline-flex items-center gap-2 px-4 py-2 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Back</span>
+                </a>
+            </header>
+
+            <div class="p-8">
+                <div class="max-w-2xl mx-auto">
+                    <!-- Error Message -->
+                    <div th:if="${error}" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-8 text-red-700 dark:text-red-400">
+                        <p class="font-semibold">Error</p>
+                        <p th:text="${error}">Error message</p>
+                    </div>
+
+                    <!-- Edit Form -->
+                    <form th:action="@{/counselor/learning/material/{materialId}/update(materialId=${material.id})}" method="post" class="space-y-6" onsubmit="prepareFormSubmission()">
+                        <!-- Step 1: Material Title -->
+                        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 border border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold">1</div>
+                                <h2 class="text-xl font-bold text-slate-800 dark:text-white">Material Title</h2>
+                            </div>
+
+                            <label for="materialTitle" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                                Title <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="materialTitle" name="materialTitle" required
+                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                placeholder="Enter material title"
+                                th:value="${material.title}">
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                Give your material a descriptive and clear title.
+                            </p>
+                        </div>
+
+                        <!-- Step 2: Material Type -->
+                        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 border border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold">2</div>
+                                <h2 class="text-xl font-bold text-slate-800 dark:text-white">Material Type</h2>
+                            </div>
+
+                            <div class="space-y-3">
+                                <label class="flex items-center gap-3 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
+                                    th:classappend="${material.materialType.toString() == 'VIDEO' ? 'border-primary bg-primary/5' : ''}">
+                                    <input type="radio" name="materialType" value="VIDEO" class="w-5 h-5 text-primary cursor-pointer"
+                                        th:checked="${material.materialType.toString() == 'VIDEO'}">
+                                    <div>
+                                        <p class="font-semibold text-slate-700 dark:text-slate-200">Video</p>
+                                        <p class="text-sm text-slate-500 dark:text-slate-400">YouTube, Vimeo, or other video links</p>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-center gap-3 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
+                                    th:classappend="${material.materialType.toString() == 'DOCUMENT' ? 'border-primary bg-primary/5' : ''}">
+                                    <input type="radio" name="materialType" value="DOCUMENT" class="w-5 h-5 text-primary cursor-pointer"
+                                        th:checked="${material.materialType.toString() == 'DOCUMENT'}">
+                                    <div>
+                                        <p class="font-semibold text-slate-700 dark:text-slate-200">Document</p>
+                                        <p class="text-sm text-slate-500 dark:text-slate-400">Reading material with HTML formatting</p>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-center gap-3 p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
+                                    th:classappend="${material.materialType.toString() == 'QUIZ' ? 'border-primary bg-primary/5' : ''}">
+                                    <input type="radio" name="materialType" value="QUIZ" class="w-5 h-5 text-primary cursor-pointer"
+                                        th:checked="${material.materialType.toString() == 'QUIZ'}">
+                                    <div>
+                                        <p class="font-semibold text-slate-700 dark:text-slate-200">Quiz</p>
+                                        <p class="text-sm text-slate-500 dark:text-slate-400">Assessment and self-evaluation (coming soon)</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Material Content -->
+                        <div id="contentSection" class="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 border border-slate-200 dark:border-slate-800">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white font-bold">3</div>
+                                <h2 class="text-xl font-bold text-slate-800 dark:text-white">Material Content</h2>
+                            </div>
+
+                            <!-- Video Content -->
+                            <div id="videoContent" class="hidden">
+                                <label for="videoMaterialContent" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                                    Video URL <span class="text-red-500">*</span>
+                                </label>
+                                <input type="url" id="videoMaterialContent" name="materialContent"
+                                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    placeholder="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                                    th:value="${material.materialType.toString() == 'VIDEO' ? material.content : ''}">
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                    Paste the full YouTube embed URL or video link
+                                </p>
+                            </div>
+
+                            <!-- Document Content -->
+                            <div id="documentContent" class="hidden">
+                                <label for="documentMaterialContent" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                                    Document Content <span class="text-red-500">*</span>
+                                </label>
+                                <textarea id="documentMaterialContent" name="materialContent" rows="10"
+                                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
+                                    placeholder="Use the editor below to format your content. You can add text, lists, links, and more."
+                                    th:text="${material.materialType.toString() == 'DOCUMENT' ? material.content : ''}"></textarea>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                    Use the toolbar above to format your content. No HTML knowledge needed!
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex gap-4">
+                            <a th:href="@{/counselor/learning/module/{moduleId}(moduleId=${module.id})}"
+                                class="flex-1 inline-flex items-center justify-center px-6 py-3 border-2 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                                Cancel
+                            </a>
+                            <button type="submit"
+                                class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition">
+                                <span class="material-symbols-outlined">save</span>
+                                <span>Save Changes</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const radioButtons = document.querySelectorAll('input[name="materialType"]');
+        const videoContent = document.getElementById('videoContent');
+        const documentContent = document.getElementById('documentContent');
+        let editorInitialized = false;
+
+        function updateContentSection() {
+            const selectedType = document.querySelector('input[name="materialType"]:checked')?.value;
+            const videoInput = document.getElementById('videoMaterialContent');
+            const documentTextarea = document.getElementById('documentMaterialContent');
+            
+            videoContent.classList.add('hidden');
+            documentContent.classList.add('hidden');
+            
+            // Remove required from all inputs
+            videoInput.removeAttribute('required');
+            if (tinymce.get('documentMaterialContent')) {
+                tinymce.get('documentMaterialContent').setRequiredLevel(false);
+            } else {
+                documentTextarea.removeAttribute('required');
+            }
+            
+            if (selectedType === 'VIDEO') {
+                videoContent.classList.remove('hidden');
+                videoInput.setAttribute('required', 'required');
+            } else if (selectedType === 'DOCUMENT') {
+                documentContent.classList.remove('hidden');
+                if (!editorInitialized) {
+                    initializeTinyMCE();
+                    editorInitialized = true;
+                }
+                if (tinymce.get('documentMaterialContent')) {
+                    tinymce.get('documentMaterialContent').setRequiredLevel(true);
+                } else {
+                    documentTextarea.setAttribute('required', 'required');
+                }
+            }
+        }
+
+        function initializeTinyMCE() {
+            tinymce.init({
+                selector: '#documentMaterialContent',
+                plugins: 'lists link image table code',
+                toolbar: 'undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist | link image table | code',
+                menubar: false,
+                height: 300,
+                skin: 'oxide-dark',
+                content_css: 'dark',
+                promotion: false,
+                branding: false
+            });
+        }
+
+        function prepareFormSubmission() {
+            const videoInput = document.getElementById('videoMaterialContent');
+            const documentTextarea = document.getElementById('documentMaterialContent');
+            
+            // Clear name attribute from hidden inputs to prevent submission
+            if (videoContent.classList.contains('hidden')) {
+                videoInput.removeAttribute('name');
+            } else {
+                documentTextarea.removeAttribute('name');
+            }
+            
+            return true;
+        }
+
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', updateContentSection);
+        });
+
+        // Initial update
+        updateContentSection();
+    </script>
+</body>
+
+</html>
