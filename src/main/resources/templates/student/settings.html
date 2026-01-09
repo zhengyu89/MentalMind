@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Settings - MindWell Student')}">
+</head>
+
+<body
+    class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-student :: sidebar('settings')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header
+                class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <h2 class="text-2xl font-bold">Settings</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Manage your profile and
+                        preferences</p>
+                </div>
+            </header>
+
+            <!-- Success/Error Toast -->
+            <div id="toast" class="fixed top-20 right-8 z-50 hidden">
+                <div id="toast-content" class="px-6 py-3 rounded-lg shadow-lg font-medium"></div>
+            </div>
+
+            <div class="p-8 max-w-4xl">
+                <!-- Profile Section -->
+                <div
+                    class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark mb-8">
+                    <h3 class="text-lg font-semibold mb-6">Profile Information</h3>
+                    <div class="flex items-start gap-6 mb-6">
+                        <img alt="Profile" id="profilePhoto" class="w-24 h-24 rounded-full object-cover"
+                            th:src="${settings.profilePhotoUrl != null ? settings.profilePhotoUrl : 'https://ui-avatars.com/api/?name=' + (student.fullName != null ? student.fullName : 'Student') + '&background=6366f1&color=fff&size=128'}" />
+                        <div>
+                            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/gif" class="hidden" />
+                            <button type="button" id="changePhotoBtn"
+                                class="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                                <span>Change Photo</span>
+                                <svg class="hidden w-4 h-4 animate-spin" id="photoSpinner"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                            </button>
+                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-2">JPG, PNG, or
+                                GIF.
+                                Max 2MB.</p>
+                        </div>
+                    </div>
+                    <form id="profileForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Full Name</label>
+                                <input type="text" name="fullName" id="fullName" th:value="${student.fullName}"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Email</label>
+                                <input type="email" name="email" id="email" th:value="${student.email}"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Phone</label>
+                                <input type="tel" name="phone" id="phone" th:value="${student.phoneNumber}"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Faculty</label>
+                                <input type="text" name="faculty" id="faculty" th:value="${settings.faculty}"
+                                    placeholder="e.g., Faculty of Computing"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Course/Program</label>
+                                <input type="text" name="course" id="course" th:value="${settings.course}"
+                                    placeholder="e.g., Bachelor of Computer Science"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Year of Study</label>
+                                <select name="yearOfStudy" id="yearOfStudy"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="">Select Year</option>
+                                    <option value="Year 1" th:selected="${settings.yearOfStudy == 'Year 1'}">Year 1
+                                    </option>
+                                    <option value="Year 2" th:selected="${settings.yearOfStudy == 'Year 2'}">Year 2
+                                    </option>
+                                    <option value="Year 3" th:selected="${settings.yearOfStudy == 'Year 3'}">Year 3
+                                    </option>
+                                    <option value="Year 4" th:selected="${settings.yearOfStudy == 'Year 4'}">Year 4
+                                    </option>
+                                    <option value="Postgraduate"
+                                        th:selected="${settings.yearOfStudy == 'Postgraduate'}">Postgraduate</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Bio</label>
+                            <textarea rows="3" name="bio" id="bio" placeholder="Tell us a bit about yourself..."
+                                class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                th:text="${settings.bio}"></textarea>
+                        </div>
+                        <button type="submit" id="saveProfileBtn"
+                            class="bg-primary text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                            <span>Save Changes</span>
+                            <svg class="hidden w-5 h-5 animate-spin" id="profileSpinner"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Privacy & Preferences -->
+                <div
+                    class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark">
+                    <h3 class="text-lg font-semibold mb-6">Privacy & Preferences</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Profile Visibility</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Allow
+                                    counselors to view your profile</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked class="sr-only peer" />
+                                <div
+                                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary">
+                                </div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Anonymous Forum Posts</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Post
+                                    anonymously by default in forums</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" />
+                                <div
+                                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary">
+                                </div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Mood Reminders</p>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Get daily
+                                    reminders to log your mood</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" checked class="sr-only peer" />
+                                <div
+                                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary">
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Toast notification helper
+        function showToast(message, isSuccess) {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toast-content');
+
+            toastContent.textContent = message;
+            toastContent.className = `px-6 py-3 rounded-lg shadow-lg font-medium ${isSuccess ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Photo upload functionality
+        const photoInput = document.getElementById('photoInput');
+        const changePhotoBtn = document.getElementById('changePhotoBtn');
+        const photoSpinner = document.getElementById('photoSpinner');
+        const profilePhoto = document.getElementById('profilePhoto');
+
+        changePhotoBtn.addEventListener('click', function () {
+            photoInput.click();
+        });
+
+        photoInput.addEventListener('change', async function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            // Validate file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('File size must be less than 2MB', false);
+                this.value = '';
+                return;
+            }
+
+            // Validate file type
+            if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+                showToast('Only JPG, PNG, and GIF images are allowed', false);
+                this.value = '';
+                return;
+            }
+
+            // Show loading state
+            changePhotoBtn.disabled = true;
+            photoSpinner.classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            try {
+                const response = await fetch('/student/settings/photo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update the profile photo preview
+                    profilePhoto.src = result.photoUrl + '?t=' + Date.now(); // Add timestamp to bust cache
+                    showToast('Photo uploaded successfully!', true);
+                } else {
+                    showToast(result.message || 'Failed to upload photo', false);
+                }
+            } catch (error) {
+                showToast('An error occurred. Please try again.', false);
+            } finally {
+                changePhotoBtn.disabled = false;
+                photoSpinner.classList.add('hidden');
+                this.value = ''; // Reset input for future uploads
+            }
+        });
+
+        // Profile form submission
+        document.getElementById('profileForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('saveProfileBtn');
+            const spinner = document.getElementById('profileSpinner');
+
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/student/settings/profile', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('Profile updated successfully!', true);
+                } else {
+                    showToast(result.message || 'Failed to update profile', false);
+                }
+            } catch (error) {
+                showToast('An error occurred. Please try again.', false);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

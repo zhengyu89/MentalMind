@@ -19,55 +19,82 @@
                 </div>
             </header>
 
+            <!-- Success/Error Toast -->
+            <div id="toast" class="fixed top-20 right-8 z-50 hidden">
+                <div id="toast-content" class="px-6 py-3 rounded-lg shadow-lg font-medium"></div>
+            </div>
+
             <div class="p-8 max-w-4xl">
                 <!-- Profile Section -->
                 <div
                     class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark mb-8">
                     <h3 class="text-lg font-semibold mb-6">Profile Information</h3>
                     <div class="flex items-start gap-6 mb-6">
-                        <img alt="Profile" class="w-24 h-24 rounded-full"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAybdscvpFX0XfT4U2HZdV2KuLuT6-elKaEc2LasnS5AXSrnjDMLlbGhKK2dVD0cByQ-kqmY_qVkxWaoSXJdWzpWVZnKcWLKEjK-IeZ4XEDNfuVw161Ed6Ld7pknDqnlBBOTP3WZEVaYBULW8miXI5lARNfrh8kvYy7RiE-EeCiark_DUwtE0pkzJ4gVSc2Kbj4qQ9wrhK6o4Jqem5Gr5IvMUZVjyGdlSNdNm0gYQ3q8vN8QG3qvZmF6ZWio6GIPzukt__Mf1pBho0C" />
+                        <img alt="Profile" id="profilePhoto" class="w-24 h-24 rounded-full object-cover"
+                            th:src="${settings.profilePhotoUrl != null ? settings.profilePhotoUrl : 'https://lh3.googleusercontent.com/aida-public/AB6AXuAybdscvpFX0XfT4U2HZdV2KuLuT6-elKaEc2LasnS5AXSrnjDMLlbGhKK2dVD0cByQ-kqmY_qVkxWaoSXJdWzpWVZnKcWLKEjK-IeZ4XEDNfuVw161Ed6Ld7pknDqnlBBOTP3WZEVaYBULW8miXI5lARNfrh8kvYy7RiE-EeCiark_DUwtE0pkzJ4gVSc2Kbj4qQ9wrhK6o4Jqem5Gr5IvMUZVjyGdlSNdNm0gYQ3q8vN8QG3qvZmF6ZWio6GIPzukt__Mf1pBho0C'}" />
                         <div>
-                            <button
-                                class="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors">Change
-                                Photo</button>
-                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-2">JPG or PNG.
+                            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/gif" class="hidden" />
+                            <button type="button" id="changePhotoBtn"
+                                class="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                                <span>Change Photo</span>
+                                <svg class="hidden w-4 h-4 animate-spin" id="photoSpinner"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                            </button>
+                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-2">JPG, PNG, or
+                                GIF.
                                 Max 2MB.</p>
                         </div>
                     </div>
-                    <form class="space-y-4">
+                    <form id="profileForm" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium mb-2">Full Name</label>
-                                <input type="text" value="Pn. Nur Aisyah binti Ahmad"
-                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
+                                <input type="text" name="fullName" id="fullName" th:value="${counselor.fullName}"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">Email</label>
-                                <input type="email" value="nur.aisyah@utm.my"
-                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
+                                <input type="email" name="email" id="email" th:value="${counselor.email}"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
                             </div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium mb-2">Phone</label>
-                                <input type="tel" value="+60 19-234 5678"
-                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
+                                <input type="tel" name="phone" id="phone" th:value="${counselor.phoneNumber}"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">Specialization</label>
-                                <input type="text" value="Anxiety, Depression, Academic Stress"
-                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg" />
+                                <input type="text" name="specialization" id="specialization"
+                                    th:value="${settings.specialization}"
+                                    class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-2">Bio</label>
-                            <textarea rows="3"
-                                class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg">Kaunselor berlesen dengan pengalaman 10+ tahun membantu pelajar menghadapi cabaran kesihatan mental. Licensed counselor helping students navigate mental health challenges.</textarea>
+                            <textarea rows="3" name="bio" id="bio"
+                                class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                th:text="${settings.bio}"></textarea>
                         </div>
-                        <button type="submit"
-                            class="bg-primary text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors">Save
-                            Changes</button>
+                        <button type="submit" id="saveProfileBtn"
+                            class="bg-primary text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                            <span>Save Changes</span>
+                            <svg class="hidden w-5 h-5 animate-spin" id="profileSpinner"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </button>
                     </form>
                 </div>
 
@@ -76,48 +103,68 @@
                     class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark mb-8">
                     <h3 class="text-lg font-semibold mb-6">Availability</h3>
                     <div class="space-y-4">
-                        <div
-                            class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark">
+                        <!-- Monday -->
+                        <div class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark"
+                            data-day="monday">
                             <span class="font-medium">Isnin (Monday)</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-text-secondary-light dark:text-text-secondary-dark">9:00 AM - 5:00
-                                    PM</span>
-                                <button class="text-primary hover:underline text-sm">Edit</button>
+                                <span
+                                    class="availability-display text-text-secondary-light dark:text-text-secondary-dark"
+                                    th:text="${settings.getFormattedAvailability('monday')}">9:00 AM - 5:00 PM</span>
+                                <button type="button" class="edit-availability-btn text-primary hover:underline text-sm"
+                                    th:data-start="${settings.mondayStart}"
+                                    th:data-end="${settings.mondayEnd}">Edit</button>
                             </div>
                         </div>
-                        <div
-                            class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark">
+                        <!-- Tuesday -->
+                        <div class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark"
+                            data-day="tuesday">
                             <span class="font-medium">Selasa (Tuesday)</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-text-secondary-light dark:text-text-secondary-dark">9:00 AM - 5:00
-                                    PM</span>
-                                <button class="text-primary hover:underline text-sm">Edit</button>
+                                <span
+                                    class="availability-display text-text-secondary-light dark:text-text-secondary-dark"
+                                    th:text="${settings.getFormattedAvailability('tuesday')}">9:00 AM - 5:00 PM</span>
+                                <button type="button" class="edit-availability-btn text-primary hover:underline text-sm"
+                                    th:data-start="${settings.tuesdayStart}"
+                                    th:data-end="${settings.tuesdayEnd}">Edit</button>
                             </div>
                         </div>
-                        <div
-                            class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark">
+                        <!-- Wednesday -->
+                        <div class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark"
+                            data-day="wednesday">
                             <span class="font-medium">Rabu (Wednesday)</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-text-secondary-light dark:text-text-secondary-dark">9:00 AM - 5:00
-                                    PM</span>
-                                <button class="text-primary hover:underline text-sm">Edit</button>
+                                <span
+                                    class="availability-display text-text-secondary-light dark:text-text-secondary-dark"
+                                    th:text="${settings.getFormattedAvailability('wednesday')}">9:00 AM - 5:00 PM</span>
+                                <button type="button" class="edit-availability-btn text-primary hover:underline text-sm"
+                                    th:data-start="${settings.wednesdayStart}"
+                                    th:data-end="${settings.wednesdayEnd}">Edit</button>
                             </div>
                         </div>
-                        <div
-                            class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark">
+                        <!-- Thursday -->
+                        <div class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark"
+                            data-day="thursday">
                             <span class="font-medium">Khamis (Thursday)</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-text-secondary-light dark:text-text-secondary-dark">9:00 AM - 5:00
-                                    PM</span>
-                                <button class="text-primary hover:underline text-sm">Edit</button>
+                                <span
+                                    class="availability-display text-text-secondary-light dark:text-text-secondary-dark"
+                                    th:text="${settings.getFormattedAvailability('thursday')}">9:00 AM - 5:00 PM</span>
+                                <button type="button" class="edit-availability-btn text-primary hover:underline text-sm"
+                                    th:data-start="${settings.thursdayStart}"
+                                    th:data-end="${settings.thursdayEnd}">Edit</button>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between py-3">
+                        <!-- Friday -->
+                        <div class="flex items-center justify-between py-3" data-day="friday">
                             <span class="font-medium">Jumaat (Friday)</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-text-secondary-light dark:text-text-secondary-dark">9:00 AM - 3:00
-                                    PM</span>
-                                <button class="text-primary hover:underline text-sm">Edit</button>
+                                <span
+                                    class="availability-display text-text-secondary-light dark:text-text-secondary-dark"
+                                    th:text="${settings.getFormattedAvailability('friday')}">9:00 AM - 3:00 PM</span>
+                                <button type="button" class="edit-availability-btn text-primary hover:underline text-sm"
+                                    th:data-start="${settings.fridayStart}"
+                                    th:data-end="${settings.fridayEnd}">Edit</button>
                             </div>
                         </div>
                     </div>
@@ -135,7 +182,8 @@
                                     when students request appointments</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" checked class="sr-only peer" />
+                                <input type="checkbox" id="notifyAppointments" class="sr-only peer notification-toggle"
+                                    th:checked="${settings.notifyAppointments}" />
                                 <div
                                     class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary">
                                 </div>
@@ -148,7 +196,8 @@
                                     alerts for high-risk assessment scores</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" checked class="sr-only peer" />
+                                <input type="checkbox" id="notifyHighRisk" class="sr-only peer notification-toggle"
+                                    th:checked="${settings.notifyHighRisk}" />
                                 <div
                                     class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary">
                                 </div>
@@ -161,7 +210,8 @@
                                     when forum content is flagged</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" checked class="sr-only peer" />
+                                <input type="checkbox" id="notifyForumReports" class="sr-only peer notification-toggle"
+                                    th:checked="${settings.notifyForumReports}" />
                                 <div
                                     class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary">
                                 </div>
@@ -172,6 +222,255 @@
             </div>
         </main>
     </div>
+
+    <!-- Availability Edit Modal -->
+    <div id="availabilityModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-surface-light dark:bg-surface-dark rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <h3 class="text-lg font-semibold mb-4">Edit Availability</h3>
+            <form id="availabilityForm" class="space-y-4">
+                <input type="hidden" id="availabilityDay" name="day" />
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Start Time</label>
+                        <input type="time" name="startTime" id="startTime"
+                            class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">End Time</label>
+                        <input type="time" name="endTime" id="endTime"
+                            class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="cancelAvailability"
+                        class="px-4 py-2 border border-border-light dark:border-border-dark rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                        <span>Save</span>
+                        <svg class="hidden w-4 h-4 animate-spin" id="availabilitySpinner"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Toast notification helper
+        function showToast(message, isSuccess) {
+            const toast = document.getElementById('toast');
+            const toastContent = document.getElementById('toast-content');
+
+            toastContent.textContent = message;
+            toastContent.className = `px-6 py-3 rounded-lg shadow-lg font-medium ${isSuccess ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Photo upload functionality
+        const photoInput = document.getElementById('photoInput');
+        const changePhotoBtn = document.getElementById('changePhotoBtn');
+        const photoSpinner = document.getElementById('photoSpinner');
+        const profilePhoto = document.getElementById('profilePhoto');
+
+        changePhotoBtn.addEventListener('click', function () {
+            photoInput.click();
+        });
+
+        photoInput.addEventListener('change', async function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            // Validate file size (2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('File size must be less than 2MB', false);
+                this.value = '';
+                return;
+            }
+
+            // Validate file type
+            if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+                showToast('Only JPG, PNG, and GIF images are allowed', false);
+                this.value = '';
+                return;
+            }
+
+            // Show loading state
+            changePhotoBtn.disabled = true;
+            photoSpinner.classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('photo', file);
+
+            try {
+                const response = await fetch('/counselor/settings/photo', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update the profile photo preview
+                    profilePhoto.src = result.photoUrl + '?t=' + Date.now(); // Add timestamp to bust cache
+                    showToast('Photo uploaded successfully!', true);
+                } else {
+                    showToast(result.message || 'Failed to upload photo', false);
+                }
+            } catch (error) {
+                showToast('An error occurred. Please try again.', false);
+            } finally {
+                changePhotoBtn.disabled = false;
+                photoSpinner.classList.add('hidden');
+                this.value = ''; // Reset input for future uploads
+            }
+        });
+
+        // Profile form submission
+        document.getElementById('profileForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('saveProfileBtn');
+            const spinner = document.getElementById('profileSpinner');
+
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/counselor/settings/profile', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('Profile updated successfully!', true);
+                } else {
+                    showToast(result.message || 'Failed to update profile', false);
+                }
+            } catch (error) {
+                showToast('An error occurred. Please try again.', false);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+            }
+        });
+
+        // Availability modal handling
+        const modal = document.getElementById('availabilityModal');
+        let currentDayRow = null;
+
+        document.querySelectorAll('.edit-availability-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const row = this.closest('[data-day]');
+                currentDayRow = row;
+                const day = row.dataset.day;
+                const start = this.dataset.start || '09:00';
+                const end = this.dataset.end || '17:00';
+
+                document.getElementById('availabilityDay').value = day;
+                document.getElementById('startTime').value = start;
+                document.getElementById('endTime').value = end;
+
+                modal.classList.remove('hidden');
+            });
+        });
+
+        document.getElementById('cancelAvailability').addEventListener('click', function () {
+            modal.classList.add('hidden');
+        });
+
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('availabilityForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const spinner = document.getElementById('availabilitySpinner');
+            spinner.classList.remove('hidden');
+
+            const formData = new FormData(this);
+            formData.append('active', 'true');
+
+            try {
+                const response = await fetch('/counselor/settings/availability', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update the display
+                    if (currentDayRow) {
+                        currentDayRow.querySelector('.availability-display').textContent = result.formattedTime;
+
+                        // Update the button's data attributes
+                        const editBtn = currentDayRow.querySelector('.edit-availability-btn');
+                        editBtn.dataset.start = document.getElementById('startTime').value;
+                        editBtn.dataset.end = document.getElementById('endTime').value;
+                    }
+
+                    modal.classList.add('hidden');
+                    showToast('Availability updated successfully!', true);
+                } else {
+                    showToast(result.message || 'Failed to update availability', false);
+                }
+            } catch (error) {
+                showToast('An error occurred. Please try again.', false);
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        });
+
+        // Notification toggles - save on change
+        document.querySelectorAll('.notification-toggle').forEach(toggle => {
+            toggle.addEventListener('change', async function () {
+                const formData = new FormData();
+                formData.append('notifyAppointments', document.getElementById('notifyAppointments').checked);
+                formData.append('notifyHighRisk', document.getElementById('notifyHighRisk').checked);
+                formData.append('notifyForumReports', document.getElementById('notifyForumReports').checked);
+
+                try {
+                    const response = await fetch('/counselor/settings/notifications', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showToast('Notification preferences saved!', true);
+                    } else {
+                        showToast(result.message || 'Failed to save preferences', false);
+                        // Revert the toggle
+                        this.checked = !this.checked;
+                    }
+                } catch (error) {
+                    showToast('An error occurred. Please try again.', false);
+                    // Revert the toggle
+                    this.checked = !this.checked;
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

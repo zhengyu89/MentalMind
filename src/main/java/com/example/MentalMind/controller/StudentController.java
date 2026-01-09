@@ -4,11 +4,13 @@ import com.example.MentalMind.model.MoodEntry;
 import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.Appointment;
 import com.example.MentalMind.model.User;
+import com.example.MentalMind.model.StudentSettings;
 import com.example.MentalMind.service.MoodService;
 import com.example.MentalMind.service.ResourceService;
 import com.example.MentalMind.service.SelfAssessmentService;
 import com.example.MentalMind.service.FeedbackService;
 import com.example.MentalMind.service.AppointmentService;
+import com.example.MentalMind.service.StudentSettingsService;
 import com.example.MentalMind.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -54,11 +56,22 @@ public class StudentController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private StudentSettingsService studentSettingsService;
+
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId != null) {
+            // Get user and settings
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                model.addAttribute("userFullName", user.get().getFullName());
+                StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+                model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+            }
+
             // Get mood entries as a map keyed by date (yyyy-MM-dd)
             java.util.Map<String, MoodEntry> moodMap = moodService.getWeeklyMoodsMap(userId);
             model.addAttribute("moodMap", moodMap);
@@ -206,8 +219,8 @@ public class StudentController {
     @GetMapping("/api/bookmarks")
     @ResponseBody
     public java.util.List<java.util.Map<String, Object>> getBookmarks(HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             // return session-stored bookmarks for unauthenticated users (if any)
             java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
                     .getAttribute("tempBookmarks");
@@ -216,8 +229,7 @@ public class StudentController {
             return temp;
         }
         // Convert persistent bookmarks to a simple map representation for the client
-        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService
-                .getUserBookmarks(user.getId());
+        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService.getUserBookmarks(userId);
         java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
         for (com.example.MentalMind.model.UserResourceBookmark b : bookmarks) {
             java.util.Map<String, Object> m = new java.util.HashMap<>();
@@ -233,10 +245,10 @@ public class StudentController {
     @PostMapping("/api/bookmarks")
     @ResponseBody
     public Map<String, String> addBookmark(@RequestParam Long resourceId,
-            @RequestParam String bookmarkType,
-            HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
+                                          @RequestParam String bookmarkType,
+                                          HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             // store bookmark in session for unauthenticated users
             java.util.Optional<com.example.MentalMind.model.Resource> maybe = resourceService
                     .getResourceById(resourceId);
@@ -270,7 +282,7 @@ public class StudentController {
         }
 
         try {
-            resourceService.addBookmark(user.getId(), resourceId, bookmarkType);
+            resourceService.addBookmark(userId, resourceId, bookmarkType);
             return Map.of("status", "success", "message", "Bookmark added successfully");
         } catch (Exception e) {
             return Map.of("status", "error", "message", e.getMessage());
@@ -280,12 +292,10 @@ public class StudentController {
     @DeleteMapping("/api/bookmarks")
     @ResponseBody
     public Map<String, String> removeBookmark(@RequestParam Long resourceId, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
-                    .getAttribute("tempBookmarks");
-            if (temp == null)
-                return Map.of("status", "error", "message", "No bookmarks in session");
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session.getAttribute("tempBookmarks");
+            if (temp == null) return Map.of("status", "error", "message", "No bookmarks in session");
             boolean removed = temp.removeIf(m -> ((Number) m.getOrDefault("resourceId", -1)).longValue() == resourceId);
             session.setAttribute("tempBookmarks", temp);
             if (removed)
@@ -295,7 +305,7 @@ public class StudentController {
         }
 
         try {
-            resourceService.removeBookmark(user.getId(), resourceId);
+            resourceService.removeBookmark(userId, resourceId);
             return Map.of("status", "success", "message", "Bookmark removed successfully");
         } catch (Exception e) {
             return Map.of("status", "error", "message", e.getMessage());
@@ -493,6 +503,152 @@ public class StudentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(java.util.Map.of("success", false, "message", "Error fetching feedback"));
+        }
+    }
+
+    // ==================== SETTINGS ENDPOINTS ====================
+
+    @GetMapping("/settings")
+    public String settings(HttpSession session, Model model) {
+        if (session.getAttribute("isAuthenticated") == null || !"student".equals(session.getAttribute("userRole"))) {
+            return "redirect:/login";
+        }
+
+        Long userId = (Long) session.getAttribute("userId");
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
+            return "redirect:/login";
+        }
+
+        User student = userOpt.get();
+        StudentSettings settings = studentSettingsService.getOrCreateSettings(student);
+
+        model.addAttribute("student", student);
+        model.addAttribute("settings", settings);
+
+        return "student/settings";
+    }
+
+    @PostMapping("/settings/profile")
+    @ResponseBody
+    public ResponseEntity<?> updateProfile(
+            @RequestParam(required = false) String fullName,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String bio,
+            @RequestParam(required = false) String faculty,
+            @RequestParam(required = false) String course,
+            @RequestParam(required = false) String yearOfStudy,
+            HttpSession session) {
+
+        if (session.getAttribute("isAuthenticated") == null || !"student".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+            }
+
+            User student = userOpt.get();
+
+            // Update user entity fields
+            if (fullName != null && !fullName.isEmpty()) {
+                student.setFullName(fullName);
+            }
+            if (email != null && !email.isEmpty()) {
+                student.setEmail(email);
+            }
+            if (phone != null) {
+                student.setPhoneNumber(phone);
+            }
+            student.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(student);
+
+            // Update settings entity fields
+            studentSettingsService.updateProfile(student, bio, faculty, course, yearOfStudy, null);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Profile updated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error updating profile: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/settings/photo")
+    @ResponseBody
+    public ResponseEntity<?> uploadPhoto(
+            @RequestParam("photo") org.springframework.web.multipart.MultipartFile file,
+            HttpSession session) {
+
+        if (session.getAttribute("isAuthenticated") == null || !"student".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Unauthorized"));
+        }
+
+        // Validate file
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "No file selected"));
+        }
+
+        // Check file size (max 2MB)
+        if (file.getSize() > 2 * 1024 * 1024) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "File size must be less than 2MB"));
+        }
+
+        // Check file type
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.equals("image/jpeg") && !contentType.equals("image/png")
+                && !contentType.equals("image/gif"))) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", "Only JPG, PNG, and GIF images are allowed"));
+        }
+
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            Optional<User> userOpt = userRepository.findById(userId);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("success", false, "message", "User not found"));
+            }
+
+            User student = userOpt.get();
+
+            // Create uploads directory if it doesn't exist
+            String uploadDir = "src/main/resources/static/uploads/profiles";
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir);
+            if (!java.nio.file.Files.exists(uploadPath)) {
+                java.nio.file.Files.createDirectories(uploadPath);
+            }
+
+            // Generate unique filename
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String filename = "student_" + userId + "_" + System.currentTimeMillis() + extension;
+
+            // Save the file
+            java.nio.file.Path filePath = uploadPath.resolve(filename);
+            java.nio.file.Files.copy(file.getInputStream(), filePath,
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            // Update the profile photo URL in the database
+            String photoUrl = "/uploads/profiles/" + filename;
+            studentSettingsService.updatePhoto(student, photoUrl);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Photo uploaded successfully",
+                    "photoUrl", photoUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error uploading photo: " + e.getMessage()));
         }
     }
 }

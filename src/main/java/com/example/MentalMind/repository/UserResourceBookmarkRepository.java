@@ -13,4 +13,6 @@ public interface UserResourceBookmarkRepository extends JpaRepository<UserResour
     List<UserResourceBookmark> findByUserAndIsActiveTrue(User user);
     Optional<UserResourceBookmark> findByUserAndResourceAndIsActiveTrue(User user, Resource resource);
     boolean existsByUserAndResourceAndBookmarkTypeAndIsActiveTrue(User user, Resource resource, String bookmarkType);
+    List<UserResourceBookmark> findByResourceAndIsActiveTrue(Resource resource);
+    Optional<UserResourceBookmark> findByUserAndResource(User user, Resource resource);
 }
