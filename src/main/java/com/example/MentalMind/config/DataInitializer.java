@@ -7,6 +7,9 @@ import com.example.MentalMind.model.CounselorResponse;
 import com.example.MentalMind.model.Appointment;
 import com.example.MentalMind.model.SelfAssessmentResult;
 import com.example.MentalMind.model.CounselorSettings;
+import com.example.MentalMind.model.LearningModule;
+import com.example.MentalMind.model.LearningMaterial;
+import com.example.MentalMind.model.MaterialType;
 import com.example.MentalMind.repository.MoodEntryRepository;
 import com.example.MentalMind.repository.UserRepository;
 import com.example.MentalMind.repository.FeedbackRepository;
@@ -14,9 +17,12 @@ import com.example.MentalMind.repository.CounselorResponseRepository;
 import com.example.MentalMind.repository.AppointmentRepository;
 import com.example.MentalMind.repository.SelfAssessmentRepository;
 import com.example.MentalMind.repository.CounselorSettingsRepository;
+import com.example.MentalMind.repository.LearningModuleRepository;
+import com.example.MentalMind.repository.LearningMaterialRepository;
 import com.example.MentalMind.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -31,6 +37,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private MoodEntryRepository moodEntryRepository;
@@ -52,6 +61,12 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private CounselorSettingsRepository counselorSettingsRepository;
+
+    @Autowired
+    private LearningModuleRepository learningModuleRepository;
+
+    @Autowired
+    private LearningMaterialRepository learningMaterialRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -96,13 +111,20 @@ public class DataInitializer implements CommandLineRunner {
         initializeCounselorSettings(counselor2);
         initializeCounselorSettings(counselor3);
 
+        // Initialize learning modules and materials
+        if (counselor != null) {
+            initializeLearningModules(counselor);
+        } else {
+            System.out.println(LOG_PREFIX + " Skipping learning modules initialization (counselor is null)");
+        }
+
         System.out.println(LOG_PREFIX + " ========== Data Initialization Complete ==========");
     }
 
     private User initializeStudent() {
         System.out.println(LOG_PREFIX + " Checking for student user...");
         if (userRepository.findByEmail("student@example.com").isEmpty()) {
-            User student = new User("student@example.com", "password123", "student");
+            User student = new User("student@example.com", passwordEncoder.encode("password123"), "student");
             student.setFullName("John Student");
             student = userRepository.save(student);
 
@@ -120,7 +142,7 @@ public class DataInitializer implements CommandLineRunner {
     private User initializeCounselor(String email, String fullName) {
         System.out.println(LOG_PREFIX + " Checking for counselor: " + email + "...");
         if (userRepository.findByEmail(email).isEmpty()) {
-            User counselor = new User(email, "password123", "counselor");
+            User counselor = new User(email, passwordEncoder.encode("password123"), "counselor");
             counselor.setFullName(fullName);
             counselor = userRepository.save(counselor);
             System.out.println(
@@ -384,8 +406,8 @@ public class DataInitializer implements CommandLineRunner {
                 continue;
             }
 
-            // Create new student
-            User student = new User(email, "password123", "student");
+            // Create new student with encoded password
+            User student = new User(email, passwordEncoder.encode("password123"), "student");
             student.setFullName(names[i]);
             student = userRepository.save(student);
             students.add(student);
@@ -494,5 +516,142 @@ public class DataInitializer implements CommandLineRunner {
 
         counselorSettingsRepository.save(settings);
         System.out.println(LOG_PREFIX + " ✓ Created settings for counselor: " + counselor.getEmail());
+    }
+
+    private void initializeLearningModules(User counselor) {
+        System.out.println(LOG_PREFIX + " Initializing learning modules and materials...");
+
+        // Check if modules already exist
+        if (!learningModuleRepository.findByIsActiveTrue().isEmpty()) {
+            System.out.println(LOG_PREFIX + " Learning modules already exist; skipping.");
+            return;
+        }
+
+        // Module 1: Mental Health Basics
+        LearningModule module1 = new LearningModule();
+        module1.setTitle("Mental Health Basics");
+        module1.setDescription(
+                "Understand the fundamentals of mental health, mental illness, and the importance of mental wellness in daily life.");
+        module1.setCreatedBy(counselor.getId());
+        module1.setIsActive(true);
+        learningModuleRepository.save(module1);
+
+        // Add materials to Module 1
+        LearningMaterial material1_1 = new LearningMaterial();
+        material1_1.setModule(module1);
+        material1_1.setTitle("What is Mental Health?");
+        material1_1.setMaterialType(MaterialType.DOCUMENT);
+        material1_1.setContent(
+                "<h3>What is Mental Health?</h3><p>Mental health refers to your psychological, emotional, and social well-being. It affects how you think, feel, and act in your daily life.</p><h4>Key Areas of Mental Health:</h4><ul><li><strong>Emotional Health</strong> - Your ability to feel and express your emotions appropriately</li><li><strong>Psychological Health</strong> - Your ability to think clearly and make good decisions</li><li><strong>Social Health</strong> - Your relationships and interactions with others</li></ul><h4>Why It Matters:</h4><p>Good mental health helps you cope with stress, realize your potential, and contribute meaningfully to your community. Mental health is just as important as physical health.</p>");
+        material1_1.setCreatedBy(counselor.getId());
+        material1_1.setIsActive(true);
+        learningMaterialRepository.save(material1_1);
+
+        LearningMaterial material1_2 = new LearningMaterial();
+        material1_2.setModule(module1);
+        material1_2.setTitle("Mental Health Basics Video");
+        material1_2.setMaterialType(MaterialType.VIDEO);
+        material1_2.setContent("https://www.youtube.com/embed/g-Zj-vkqH8k");
+        material1_2.setCreatedBy(counselor.getId());
+        material1_2.setIsActive(true);
+        learningMaterialRepository.save(material1_2);
+
+        System.out.println(LOG_PREFIX + " ✓ Created module: 'Mental Health Basics' with 2 materials");
+
+        // Module 2: Stress Management
+        LearningModule module2 = new LearningModule();
+        module2.setTitle("Stress Management");
+        module2.setDescription("Learn practical techniques to identify, manage, and reduce stress in your life.");
+        module2.setCreatedBy(counselor.getId());
+        module2.setIsActive(true);
+        learningModuleRepository.save(module2);
+
+        // Add materials to Module 2
+        LearningMaterial material2_1 = new LearningMaterial();
+        material2_1.setModule(module2);
+        material2_1.setTitle("Understanding Stress");
+        material2_1.setMaterialType(MaterialType.DOCUMENT);
+        material2_1.setContent(
+                "<h3>Understanding Stress</h3><p>Stress is your body's natural reaction to any demand or threat. While some stress is normal, excessive stress can impact your health and well-being.</p><h4>Types of Stress:</h4><ul><li><strong>Acute Stress</strong> - Short-term stress from specific events (exams, presentations)</li><li><strong>Chronic Stress</strong> - Long-term stress that persists over weeks or months</li></ul><h4>Physical Symptoms of Stress:</h4><ul><li>Headaches and muscle tension</li><li>Sleep disturbances</li><li>Difficulty concentrating</li><li>Changes in appetite</li><li>Fatigue and low energy</li></ul><h4>Emotional Symptoms:</h4><ul><li>Irritability and mood swings</li><li>Anxiety or panic</li><li>Feeling overwhelmed</li></ul>");
+        material2_1.setCreatedBy(counselor.getId());
+        material2_1.setIsActive(true);
+        learningMaterialRepository.save(material2_1);
+
+        LearningMaterial material2_2 = new LearningMaterial();
+        material2_2.setModule(module2);
+        material2_2.setTitle("Quick Stress Relief Techniques");
+        material2_2.setMaterialType(MaterialType.DOCUMENT);
+        material2_2.setContent(
+                "<h3>5-Minute Stress Relief Techniques</h3><h4>1. Deep Breathing (2-3 minutes)</h4><p>Sit comfortably and breathe in slowly for 4 counts, hold for 4, and exhale for 4. Repeat 5-10 times.</p><h4>2. Progressive Muscle Relaxation (3-5 minutes)</h4><p>Tense and release each muscle group from toes to head. Hold each for 3-5 seconds.</p><h4>3. Mindful Walking (5 minutes)</h4><p>Walk slowly while focusing on each step and your surroundings. Pay attention to sensations.</p><h4>4. The 5-4-3-2-1 Grounding Technique</h4><p>Notice 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste.</p>");
+        material2_2.setCreatedBy(counselor.getId());
+        material2_2.setIsActive(true);
+        learningMaterialRepository.save(material2_2);
+
+        System.out.println(LOG_PREFIX + " ✓ Created module: 'Stress Management' with 2 materials");
+
+        // Module 3: Anxiety and Depression
+        LearningModule module3 = new LearningModule();
+        module3.setTitle("Anxiety and Depression");
+        module3.setDescription(
+                "Understand anxiety and depression, recognize symptoms, and learn evidence-based strategies for managing these conditions.");
+        module3.setCreatedBy(counselor.getId());
+        module3.setIsActive(true);
+        learningModuleRepository.save(module3);
+
+        // Add materials to Module 3
+        LearningMaterial material3_1 = new LearningMaterial();
+        material3_1.setModule(module3);
+        material3_1.setTitle("What is Anxiety?");
+        material3_1.setMaterialType(MaterialType.DOCUMENT);
+        material3_1.setContent(
+                "<h3>Understanding Anxiety Disorders</h3><p>Anxiety is a feeling of unease, worry, or fear. While occasional anxiety is normal, anxiety disorders involve persistent, excessive worry that interferes with daily activities.</p><h4>Common Anxiety Disorders:</h4><ul><li><strong>Generalized Anxiety Disorder (GAD)</strong> - Persistent worry about many aspects of life</li><li><strong>Social Anxiety</strong> - Intense fear in social situations</li><li><strong>Panic Disorder</strong> - Sudden, intense panic attacks</li><li><strong>Phobias</strong> - Extreme fear of specific objects or situations</li></ul><h4>Symptoms of Anxiety:</h4><ul><li>Rapid heartbeat and shortness of breath</li><li>Sweating, trembling, or dizziness</li><li>Difficulty concentrating</li><li>Sleep problems</li><li>Muscle tension</li></ul><h4>Treatment Options:</h4><ol><li>Cognitive Behavioral Therapy (CBT)</li><li>Exposure therapy</li><li>Medication (prescribed by healthcare providers)</li><li>Lifestyle changes (exercise, meditation, sleep)</li></ol>");
+        material3_1.setCreatedBy(counselor.getId());
+        material3_1.setIsActive(true);
+        learningMaterialRepository.save(material3_1);
+
+        LearningMaterial material3_2 = new LearningMaterial();
+        material3_2.setModule(module3);
+        material3_2.setTitle("Managing Depression");
+        material3_2.setMaterialType(MaterialType.DOCUMENT);
+        material3_2.setContent(
+                "<h3>Understanding and Managing Depression</h3><p>Depression is a mood disorder characterized by persistent sadness, loss of interest, and difficulty functioning. It's more than just feeling sad; it's a medical condition that requires attention.</p><h4>Signs of Depression:</h4><ul><li>Persistent sadness or empty mood</li><li>Loss of interest in activities you used to enjoy</li><li>Changes in appetite or weight</li><li>Sleep disturbances (insomnia or oversleeping)</li><li>Fatigue and low energy</li><li>Difficulty concentrating or making decisions</li><li>Feelings of worthlessness or guilt</li><li>Thoughts of death or suicide</li></ul><h4>Steps to Manage Depression:</h4><ol><li><strong>Seek Professional Help</strong> - Talk to a counselor, therapist, or doctor</li><li><strong>Stay Active</strong> - Physical activity can boost mood</li><li><strong>Maintain Routines</strong> - Regular sleep and meal times help</li><li><strong>Social Connection</strong> - Reach out to friends and family</li><li><strong>Self-Care</strong> - Prioritize activities that bring you joy</li><li><strong>Avoid Isolation</strong> - Depression thrives in isolation</li></ol><p><strong>If you're having thoughts of suicide, reach out immediately to a crisis hotline or emergency services.</strong></p>");
+        material3_2.setCreatedBy(counselor.getId());
+        material3_2.setIsActive(true);
+        learningMaterialRepository.save(material3_2);
+
+        System.out.println(LOG_PREFIX + " ✓ Created module: 'Anxiety and Depression' with 2 materials");
+
+        // Module 4: Self-Care and Wellness
+        LearningModule module4 = new LearningModule();
+        module4.setTitle("Self-Care and Wellness");
+        module4.setDescription("Learn about self-care practices and build healthy habits that support your mental and physical wellness.");
+        module4.setCreatedBy(counselor.getId());
+        module4.setIsActive(true);
+        learningModuleRepository.save(module4);
+
+        // Add materials to Module 4
+        LearningMaterial material4_1 = new LearningMaterial();
+        material4_1.setModule(module4);
+        material4_1.setTitle("Self-Care Essentials");
+        material4_1.setMaterialType(MaterialType.DOCUMENT);
+        material4_1.setContent(
+                "<h3>Self-Care Essentials for Mental Health</h3><p>Self-care is any activity you deliberately do to maintain or improve your physical, mental, or emotional health. It's not selfish; it's necessary.</p><h4>Physical Self-Care:</h4><ul><li>Regular exercise (at least 30 minutes, 3-5 times per week)</li><li>Adequate sleep (7-9 hours per night)</li><li>Balanced nutrition and hydration</li><li>Limiting alcohol and avoiding drugs</li></ul><h4>Mental/Emotional Self-Care:</h4><ul><li>Meditation or mindfulness practices</li><li>Journaling your thoughts and feelings</li><li>Creative expression (art, music, writing)</li><li>Setting boundaries and saying no</li></ul><h4>Social Self-Care:</h4><ul><li>Spending time with loved ones</li><li>Engaging in community activities</li><li>Volunteering or helping others</li><li>Maintaining meaningful relationships</li></ul><h4>Spiritual Self-Care:</h4><ul><li>Prayer or spiritual practices if that resonates with you</li><li>Connecting with nature</li><li>Finding purpose and meaning</li></ul>");
+        material4_1.setCreatedBy(counselor.getId());
+        material4_1.setIsActive(true);
+        learningMaterialRepository.save(material4_1);
+
+        LearningMaterial material4_2 = new LearningMaterial();
+        material4_2.setModule(module4);
+        material4_2.setTitle("Sleep Hygiene for Better Rest");
+        material4_2.setMaterialType(MaterialType.DOCUMENT);
+        material4_2.setContent(
+                "<h3>Sleep Hygiene: Your Guide to Better Rest</h3><p>Sleep is crucial for mental health, memory, immune function, and overall well-being. Good sleep hygiene can significantly improve sleep quality.</p><h4>Sleep Hygiene Tips:</h4><ol><li><strong>Maintain a Regular Schedule</strong> - Go to bed and wake up at the same time daily, even weekends</li><li><strong>Create a Restful Environment</strong> - Keep bedroom dark, cool (65-68°F), and quiet</li><li><strong>Limit Screen Time</strong> - Avoid screens 1-2 hours before bed (blue light interferes with melatonin)</li><li><strong>Watch Your Caffeine Intake</strong> - Avoid caffeine after 2 PM</li><li><strong>Exercise Regularly</strong> - But not within 3 hours of bedtime</li><li><strong>Avoid Heavy Meals Before Bed</strong> - Eat dinner 2-3 hours before sleep</li><li><strong>Limit Naps</strong> - Keep daytime naps to 20-30 minutes maximum</li><li><strong>Manage Stress</strong> - Use relaxation techniques or meditation</li><li><strong>Avoid Alcohol and Smoking</strong> - Both interfere with sleep quality</li></ol><h4>If You Still Can't Sleep:</h4><p>If you lie awake for more than 20 minutes, get up and do a quiet, non-stimulating activity until you feel sleepy.</p>");
+        material4_2.setCreatedBy(counselor.getId());
+        material4_2.setIsActive(true);
+        learningMaterialRepository.save(material4_2);
+
+        System.out.println(LOG_PREFIX + " ✓ Created module: 'Self-Care and Wellness' with 2 materials");
+
+        System.out.println(LOG_PREFIX + " ✓ Total: 4 learning modules with 8 materials created.");
     }
 }

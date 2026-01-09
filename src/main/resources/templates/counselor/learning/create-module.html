@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Create Learning Module')}">
+</head>
+
+<body class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('learning')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <h2 class="text-2xl font-bold">Create New Module</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Set up a new topic or subject area for students</p>
+                </div>
+                <a th:href="@{/counselor/learning}" class="inline-flex items-center gap-2 px-4 py-2 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <span>Back</span>
+                </a>
+            </header>
+
+            <div class="p-8">
+                <div class="max-w-2xl mx-auto">
+
+            <!-- Error Message -->
+            <div th:if="${error}" class="mb-6 p-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-red-600 dark:text-red-400">error</span>
+                    <p class="text-sm font-medium text-red-800 dark:text-red-300" th:text="${error}">Error message</p>
+                </div>
+            </div>
+
+            <!-- Module Form -->
+            <form th:action="@{/counselor/learning/create-module}" method="post" class="space-y-6">
+                
+                <!-- Module Title -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 border border-slate-200 dark:border-slate-800">
+                    <div class="mb-6">
+                        <label for="moduleTitle" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                            Module Title <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="moduleTitle" name="moduleTitle" required
+                            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="e.g. Introduction to Mental Health, Stress Management, Anxiety Basics">
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                            Choose a clear, descriptive title that represents the main topic of this module. Students will see this name when browsing available modules.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Module Description -->
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-md p-8 border border-slate-200 dark:border-slate-800">
+                    <div class="mb-6">
+                        <label for="moduleDescription" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                            Module Description <span class="text-slate-400">(Optional)</span>
+                        </label>
+                        <textarea id="moduleDescription" name="moduleDescription" rows="6"
+                            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                            placeholder="Provide a brief overview of what this module covers, learning objectives, or any important context for students..."></textarea>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                            Help students understand what they'll learn in this module. This description will be displayed alongside the module title.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Features Info -->
+                <div class="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+                    <div class="flex items-start gap-4">
+                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-2xl flex-shrink-0">info</span>
+                        <div>
+                            <h3 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">What's Next?</h3>
+                            <p class="text-sm text-blue-800 dark:text-blue-300">
+                                After creating this module, you'll be able to add learning materials such as:
+                            </p>
+                            <ul class="text-sm text-blue-800 dark:text-blue-300 mt-2 space-y-1 list-disc list-inside">
+                                <li>Video links (YouTube or other video platforms)</li>
+                                <li>Reading documents with formatted content</li>
+                                <li>Interactive quizzes (coming soon)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex gap-4">
+                    <a th:href="@{/counselor/learning}"
+                        class="flex-1 inline-flex items-center justify-center px-6 py-3 border-2 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                        class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition">
+                        <span class="material-symbols-outlined">add_circle</span>
+                        <span>Create Module</span>
+                    </button>
+                </div>
+            </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

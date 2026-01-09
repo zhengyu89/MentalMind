@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Learning Modules - MindWell')}">
+</head>
+
+<body class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('learning')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <h2 class="text-2xl font-bold">Learning Modules</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Create and manage learning modules for students</p>
+                </div>
+                <a th:href="@{/counselor/learning/create-module}" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition">
+                    <span class="material-symbols-outlined">add</span>
+                    <span>Create Module</span>
+                </a>
+            </header>
+
+            <div class="p-8">
+                <div class="max-w-6xl mx-auto">
+                    <!-- Modules Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div th:each="module : ${modules}"
+                            class="bg-white dark:bg-slate-900 rounded-xl shadow-md hover:shadow-lg transition p-6 border border-slate-200 dark:border-slate-800">
+                            <div class="flex justify-between items-start mb-4">
+                                <h2 class="text-xl font-bold text-slate-800 dark:text-white flex-1" th:text="${module.title}">Module Title</h2>
+                                <div class="flex gap-1">
+                                    <a th:href="@{/counselor/learning/module/{moduleId}/edit(moduleId=${module.id})}" 
+                                       class="text-blue-500 hover:text-blue-700 p-2">
+                                        <span class="material-symbols-outlined text-lg">edit</span>
+                                    </a>
+                                    <form th:action="@{/counselor/learning/module/{moduleId}/delete(moduleId=${module.id})}" method="post" class="inline">
+                                        <button type="submit" class="text-red-500 hover:text-red-700 p-2"
+                                            onclick="return confirm('Are you sure you want to delete this module?');">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <p class="text-slate-600 dark:text-slate-400 mb-4" th:text="${module.description}">Module description</p>
+                            
+                            <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                <span class="material-symbols-outlined text-sm">schedule</span>
+                                <span th:text="${#temporals.format(module.createdAt, 'MMM dd, yyyy')}">Created date</span>
+                            </div>
+                            
+                            <a th:href="@{/counselor/learning/module/{moduleId}(moduleId=${module.id})}"
+                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-primary/10 text-primary hover:bg-primary/20 font-semibold rounded-lg transition">
+                                <span>View Materials</span>
+                                <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:if="${#lists.isEmpty(modules)}" class="bg-white dark:bg-slate-900 rounded-xl shadow-md p-12 text-center border border-slate-200 dark:border-slate-800">
+                        <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-700 block mb-4">school</span>
+                        <p class="text-slate-600 dark:text-slate-400 text-lg mb-6">No modules yet</p>
+                        <a th:href="@{/counselor/learning/create-module}"
+                            class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition">
+                            <span class="material-symbols-outlined">add</span>
+                            <span>Create First Module</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

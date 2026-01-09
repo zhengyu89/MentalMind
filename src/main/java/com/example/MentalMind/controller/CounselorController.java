@@ -364,6 +364,28 @@ public class CounselorController {
         }
     }
 
+    // API endpoints for resources (used by JavaScript on the resources management page)
+    @GetMapping("/api/resources")
+    @ResponseBody
+    public java.util.List<com.example.MentalMind.model.Resource> getResources(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String search) {
+        if (search != null && !search.trim().isEmpty()) {
+            return resourceService.searchResources(search.trim());
+        } else if (type != null && !type.equals("all")) {
+            return resourceService.getResourcesByType(type);
+        } else {
+            return resourceService.getAllResources();
+        }
+    }
+
+    @GetMapping("/api/resources/{id}")
+    @ResponseBody
+    public java.util.Optional<com.example.MentalMind.model.Resource> getResourceById(
+            @org.springframework.web.bind.annotation.PathVariable Long id) {
+        return resourceService.getResourceById(id);
+    }
+
     @GetMapping("/forum")
     public String forum() {
         return "counselor/forum";
