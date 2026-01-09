@@ -5,8 +5,12 @@
 </head>
 
 <body class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
-    <!-- TinyMCE Editor -->
-    <script th:src="'https://cdn.tiny.cloud/1/' + ${@environment.getProperty('tinymce.api.key')} + '/tinymce/6/tinymce.min.js'" referrerpolicy="origin"></script>
+    <!-- TinyMCE Editor - Only load if API key is configured -->
+    <script th:if="${@environment.getProperty('tinymce.api.key') != 'no-api-key' and @environment.getProperty('tinymce.api.key') != null and @environment.getProperty('tinymce.api.key') != ''}" 
+            th:src="'https://cdn.tiny.cloud/1/' + ${@environment.getProperty('tinymce.api.key')} + '/tinymce/6/tinymce.min.js'" referrerpolicy="origin"></script>
+    <script th:inline="javascript">
+        const TINYMCE_ENABLED = /*[[${@environment.getProperty('tinymce.api.key') != 'no-api-key' and @environment.getProperty('tinymce.api.key') != null and @environment.getProperty('tinymce.api.key') != ''}]]*/ false;
+    </script>
     <div class="flex h-screen">
         <div th:replace="~{fragments/sidebar-counselor :: sidebar('learning')}"></div>
 
@@ -117,11 +121,21 @@
                                 <label for="documentMaterialContent" class="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                     Document Content <span class="text-red-500">*</span>
                                 </label>
+                                <!-- Notice for HTML mode when TinyMCE is not configured -->
+                                <div id="htmlModeNotice" class="hidden mb-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                    <div class="flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-amber-600 dark:text-amber-400 text-lg">info</span>
+                                        <div>
+                                            <p class="text-sm font-medium text-amber-800 dark:text-amber-300">HTML Mode Active</p>
+                                            <p class="text-xs text-amber-700 dark:text-amber-400 mt-1">Rich text editor is not configured. Enter HTML content directly. Example: <code class="bg-amber-100 dark:bg-amber-900/40 px-1 rounded">&lt;p&gt;Your text&lt;/p&gt;</code></p>
+                                        </div>
+                                    </div>
+                                </div>
                                 <textarea id="documentMaterialContent" name="materialContent" rows="10"
                                     class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono text-sm"
-                                    placeholder="Use the editor below to format your content. You can add text, lists, links, and more."
+                                    placeholder="Enter your content here..."
                                     th:text="${material.materialType.toString() == 'DOCUMENT' ? material.content : ''}"></textarea>
-                                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                <p id="editorHelpText" class="text-sm text-slate-500 dark:text-slate-400 mt-2">
                                     Use the toolbar above to format your content. No HTML knowledge needed!
                                 </p>
                             </div>
@@ -149,7 +163,10 @@
         const radioButtons = document.querySelectorAll('input[name="materialType"]');
         const videoContent = document.getElementById('videoContent');
         const documentContent = document.getElementById('documentContent');
+        const htmlModeNotice = document.getElementById('htmlModeNotice');
+        const editorHelpText = document.getElementById('editorHelpText');
         let editorInitialized = false;
+        let tinyMCEAvailable = false;
 
         function updateContentSection() {
             const selectedType = document.querySelector('input[name="materialType"]:checked')?.value;
@@ -161,7 +178,7 @@
             
             // Remove required from all inputs
             videoInput.removeAttribute('required');
-            if (tinymce.get('documentMaterialContent')) {
+            if (tinyMCEAvailable && typeof tinymce !== 'undefined' && tinymce.get('documentMaterialContent')) {
                 tinymce.get('documentMaterialContent').setRequiredLevel(false);
             } else {
                 documentTextarea.removeAttribute('required');
@@ -176,7 +193,7 @@
                     initializeTinyMCE();
                     editorInitialized = true;
                 }
-                if (tinymce.get('documentMaterialContent')) {
+                if (tinyMCEAvailable && typeof tinymce !== 'undefined' && tinymce.get('documentMaterialContent')) {
                     tinymce.get('documentMaterialContent').setRequiredLevel(true);
                 } else {
                     documentTextarea.setAttribute('required', 'required');
@@ -185,6 +202,15 @@
         }
 
         function initializeTinyMCE() {
+            // Check if TinyMCE is enabled and loaded
+            if (!TINYMCE_ENABLED || typeof tinymce === 'undefined') {
+                // Show HTML mode notice and update help text
+                htmlModeNotice.classList.remove('hidden');
+                editorHelpText.textContent = 'Enter HTML content directly. Use tags like <p>, <h1>, <ul>, <li>, <strong>, <em> etc.';
+                console.log('TinyMCE not available. Using plain HTML textarea.');
+                return;
+            }
+            
             tinymce.init({
                 selector: '#documentMaterialContent',
                 plugins: 'lists link image table code',
@@ -194,7 +220,25 @@
                 skin: 'oxide-dark',
                 content_css: 'dark',
                 promotion: false,
-                branding: false
+                branding: false,
+                setup: function(editor) {
+                    editor.on('init', function() {
+                        tinyMCEAvailable = true;
+                        htmlModeNotice.classList.add('hidden');
+                        editorHelpText.textContent = 'Use the toolbar above to format your content. No HTML knowledge needed!';
+                    });
+                    editor.on('Error', function(e) {
+                        console.error('TinyMCE Error:', e);
+                        tinyMCEAvailable = false;
+                        htmlModeNotice.classList.remove('hidden');
+                        editorHelpText.textContent = 'Enter HTML content directly. Use tags like <p>, <h1>, <ul>, <li>, <strong>, <em> etc.';
+                    });
+                }
+            }).catch(function(error) {
+                console.error('TinyMCE initialization failed:', error);
+                tinyMCEAvailable = false;
+                htmlModeNotice.classList.remove('hidden');
+                editorHelpText.textContent = 'Enter HTML content directly. Use tags like <p>, <h1>, <ul>, <li>, <strong>, <em> etc.';
             });
         }
 
