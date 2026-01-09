@@ -7,6 +7,7 @@ import com.example.MentalMind.exception.InvalidPasswordException;
 import com.example.MentalMind.exception.PasswordMismatchException;
 import com.example.MentalMind.exception.EmailAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -16,6 +17,9 @@ public class AuthenticationService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     public User authenticate(String email, String password, String role) {
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
@@ -29,7 +33,8 @@ public class AuthenticationService {
         }
         
         User foundUser = user.get();
-        if (!foundUser.getPassword().equals(password)) {
+        // Use password encoder to check password
+        if (!passwordEncoder.matches(password, foundUser.getPassword())) {
             throw new InvalidPasswordException("Invalid password for user: " + email);
         }
         
@@ -53,7 +58,9 @@ public class AuthenticationService {
             throw new EmailAlreadyExistsException("Email already registered");
         }
         
-        User newUser = new User(email, password, role);
+        // Encode password before storing
+        String encodedPassword = passwordEncoder.encode(password);
+        User newUser = new User(email, encodedPassword, role);
         newUser.setCreatedAt(LocalDateTime.now());
         newUser.setUpdatedAt(LocalDateTime.now());
         

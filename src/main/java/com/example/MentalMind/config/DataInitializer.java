@@ -17,6 +17,7 @@ import com.example.MentalMind.repository.CounselorSettingsRepository;
 import com.example.MentalMind.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -31,6 +32,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private MoodEntryRepository moodEntryRepository;
@@ -102,7 +106,7 @@ public class DataInitializer implements CommandLineRunner {
     private User initializeStudent() {
         System.out.println(LOG_PREFIX + " Checking for student user...");
         if (userRepository.findByEmail("student@example.com").isEmpty()) {
-            User student = new User("student@example.com", "password123", "student");
+            User student = new User("student@example.com", passwordEncoder.encode("password123"), "student");
             student.setFullName("John Student");
             student = userRepository.save(student);
 
@@ -120,7 +124,7 @@ public class DataInitializer implements CommandLineRunner {
     private User initializeCounselor(String email, String fullName) {
         System.out.println(LOG_PREFIX + " Checking for counselor: " + email + "...");
         if (userRepository.findByEmail(email).isEmpty()) {
-            User counselor = new User(email, "password123", "counselor");
+            User counselor = new User(email, passwordEncoder.encode("password123"), "counselor");
             counselor.setFullName(fullName);
             counselor = userRepository.save(counselor);
             System.out.println(
@@ -384,8 +388,8 @@ public class DataInitializer implements CommandLineRunner {
                 continue;
             }
 
-            // Create new student
-            User student = new User(email, "password123", "student");
+            // Create new student with encoded password
+            User student = new User(email, passwordEncoder.encode("password123"), "student");
             student.setFullName(names[i]);
             student = userRepository.save(student);
             students.add(student);
