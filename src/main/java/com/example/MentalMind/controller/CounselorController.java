@@ -1,6 +1,7 @@
 package com.example.MentalMind.controller;
 
 import com.example.MentalMind.service.ResourceService;
+import com.example.MentalMind.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +37,9 @@ public class CounselorController {
     private FeedbackService feedbackService;
 
     @Autowired
+    private AppointmentService appointmentService;
+
+    @Autowired
     private CounselorResponseRepository responseRepository;
 
     @Autowired
@@ -54,6 +58,7 @@ public class CounselorController {
             Optional<User> user = userRepository.findById(userId);
             if (user.isPresent()) {
                 model.addAttribute("userFullName", user.get().getFullName());
+                model.addAttribute("userEmail", user.get().getEmail());
             }
         }
         return "counselor/dashboard";
@@ -188,9 +193,9 @@ public class CounselorController {
         }
     }
 
-    @GetMapping("/api/upcoming-appointments")
+    @GetMapping("/api/dashboard/upcoming-appointments")
     @ResponseBody
-    public ResponseEntity<?> getUpcomingAppointments(HttpSession session) {
+    public ResponseEntity<?> getDashboardUpcomingAppointments(HttpSession session) {
         if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
         }
@@ -217,31 +222,179 @@ public class CounselorController {
     }
 
     @GetMapping("/appointments")
-    public String appointments() {
+    public String appointments(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId != null) {
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                model.addAttribute("userFullName", user.get().getFullName());
+                model.addAttribute("userEmail", user.get().getEmail());
+            }
+        }
         return "counselor/appointments";
     }
 
-    @PostMapping("/appointments/approve")
-    public String approveAppointment(@RequestParam String appointmentId, HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || appointmentId == null || appointmentId.isEmpty()) {
-            return "redirect:/counselor/appointments?error=invalid";
+    @GetMapping("/api/pending-appointments")
+    @ResponseBody
+    public ResponseEntity<?> getPendingAppointments(HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
         }
-        session.setAttribute("lastAction", "approved");
-        session.setAttribute("appointmentId", appointmentId);
-        return "redirect:/counselor/appointments?success=approved";
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            Optional<User> counselor = userRepository.findById(userId);
+            if (counselor.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false));
+            }
+            java.util.List<com.example.MentalMind.model.Appointment> appointments = appointmentService.getCounselorPendingAppointments(counselor.get());
+            java.util.List<Map<String, Object>> data = new java.util.ArrayList<>();
+            for (com.example.MentalMind.model.Appointment appt : appointments) {
+                Map<String, Object> item = new java.util.HashMap<>();
+                item.put("id", appt.getId());
+                item.put("studentName", appt.getStudent().getFullName());
+                item.put("studentEmail", appt.getStudent().getEmail());
+                item.put("profileImageUrl", "https://via.placeholder.com/48");
+                item.put("appointmentDateTime", appt.getAppointmentDateTime());
+                item.put("reason", appt.getReason());
+                item.put("status", appt.getStatus());
+                data.add(item);
+            }
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
+    }
+
+    @GetMapping("/api/todays-schedule")
+    @ResponseBody
+    public ResponseEntity<?> getTodaysSchedule(HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
+        }
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            Optional<User> counselor = userRepository.findById(userId);
+            if (counselor.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false));
+            }
+            java.util.List<com.example.MentalMind.model.Appointment> appointments = appointmentService.getCounselorTodaysAppointments(counselor.get());
+            java.util.List<Map<String, Object>> data = new java.util.ArrayList<>();
+            for (com.example.MentalMind.model.Appointment appt : appointments) {
+                Map<String, Object> item = new java.util.HashMap<>();
+                item.put("id", appt.getId());
+                item.put("time", appt.getFormattedTime());
+                item.put("studentName", appt.getStudent().getFullName());
+                item.put("studentEmail", appt.getStudent().getEmail());
+                item.put("profileImageUrl", "https://via.placeholder.com/32");
+                item.put("status", appt.getStatus());
+                item.put("appointmentDateTime", appt.getAppointmentDateTime());
+                item.put("reason", appt.getReason());
+                data.add(item);
+            }
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
+    }
+
+    @GetMapping("/api/upcoming-appointments")
+    @ResponseBody
+    public ResponseEntity<?> getUpcomingAppointments(HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
+        }
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            Optional<User> counselor = userRepository.findById(userId);
+            if (counselor.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false));
+            }
+            java.util.List<com.example.MentalMind.model.Appointment> appointments = appointmentService.getCounselorUpcomingAppointments(counselor.get());
+            java.util.List<Map<String, Object>> data = new java.util.ArrayList<>();
+            for (com.example.MentalMind.model.Appointment appt : appointments) {
+                Map<String, Object> item = new java.util.HashMap<>();
+                item.put("id", appt.getId());
+                item.put("studentName", appt.getStudent().getFullName());
+                item.put("studentEmail", appt.getStudent().getEmail());
+                item.put("profileImageUrl", "https://via.placeholder.com/48");
+                item.put("appointmentDateTime", appt.getAppointmentDateTime());
+                item.put("reason", appt.getReason());
+                item.put("status", appt.getStatus());
+                data.add(item);
+            }
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
+    }
+
+    @GetMapping("/api/all-appointments")
+    @ResponseBody
+    public ResponseEntity<?> getAllAppointments(HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
+        }
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            Optional<User> counselor = userRepository.findById(userId);
+            if (counselor.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false));
+            }
+            java.util.List<com.example.MentalMind.model.Appointment> appointments = appointmentService.getCounselorAppointments(counselor.get());
+            java.util.List<Map<String, Object>> data = new java.util.ArrayList<>();
+            for (com.example.MentalMind.model.Appointment appt : appointments) {
+                Map<String, Object> item = new java.util.HashMap<>();
+                item.put("id", appt.getId());
+                item.put("studentName", appt.getStudent().getFullName());
+                item.put("studentEmail", appt.getStudent().getEmail());
+                item.put("profileImageUrl", "https://via.placeholder.com/48");
+                item.put("appointmentDateTime", appt.getAppointmentDateTime());
+                item.put("reason", appt.getReason());
+                item.put("status", appt.getStatus());
+                data.add(item);
+            }
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
+    }
+
+    @PostMapping("/appointments/approve")
+    @ResponseBody
+    public ResponseEntity<?> approveAppointment(@RequestParam Long appointmentId, HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null
+                || !"counselor".equals(session.getAttribute("userRole")) || appointmentId == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Unauthorized"));
+        }
+        try {
+            var updated = appointmentService.approveAppointment(appointmentId);
+            if (updated == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", "Appointment not found"));
+            }
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "Error approving appointment"));
+        }
     }
 
     @PostMapping("/appointments/reject")
-    public String rejectAppointment(@RequestParam String appointmentId,
+    @ResponseBody
+    public ResponseEntity<?> rejectAppointment(@RequestParam Long appointmentId,
             @RequestParam(required = false) String reason,
             HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || appointmentId == null || appointmentId.isEmpty()) {
-            return "redirect:/counselor/appointments?error=invalid";
+        if (session.getAttribute("isAuthenticated") == null || session.getAttribute("userRole") == null
+                || !"counselor".equals(session.getAttribute("userRole")) || appointmentId == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Unauthorized"));
         }
-        session.setAttribute("lastAction", "rejected");
-        session.setAttribute("appointmentId", appointmentId);
-        session.setAttribute("rejectionReason", reason != null ? reason : "No reason provided");
-        return "redirect:/counselor/appointments?success=rejected";
+        try {
+            var updated = appointmentService.rejectAppointment(appointmentId, reason);
+            if (updated == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", "Appointment not found"));
+            }
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false, "message", "Error rejecting appointment"));
+        }
     }
 
     @GetMapping("/students")

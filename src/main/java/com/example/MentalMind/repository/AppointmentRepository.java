@@ -14,7 +14,7 @@ import java.util.List;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
     // Find all appointments for a student
-    List<Appointment> findByStudentOrderByAppointmentDateTimeDesc(User student);
+    List<Appointment> findByStudentOrderByAppointmentDateTimeAsc(User student);
 
     // Find upcoming appointments for a student
     @Query("SELECT a FROM Appointment a WHERE a.student = :student AND a.appointmentDateTime > CURRENT_TIMESTAMP ORDER BY a.appointmentDateTime ASC")
@@ -25,7 +25,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findPastAppointments(@Param("student") User student);
 
     // Find all appointments for a counselor
-    List<Appointment> findByCounselorOrderByAppointmentDateTimeDesc(User counselor);
+    List<Appointment> findByCounselorOrderByAppointmentDateTimeAsc(User counselor);
 
     // Find upcoming appointments for a counselor
     @Query("SELECT a FROM Appointment a WHERE a.counselor = :counselor AND a.appointmentDateTime > CURRENT_TIMESTAMP ORDER BY a.appointmentDateTime ASC")
@@ -37,4 +37,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     // Find pending appointments for a counselor
     @Query("SELECT a FROM Appointment a WHERE a.counselor = :counselor AND a.status = 'PENDING' ORDER BY a.createdAt DESC")
     List<Appointment> findPendingAppointments(@Param("counselor") User counselor);
+
+    // Find all pending appointments that are overdue (appointment time in the past)
+    @Query("SELECT a FROM Appointment a WHERE a.status = 'PENDING' AND a.appointmentDateTime < CURRENT_TIMESTAMP")
+    List<Appointment> findOverduePendingAppointments();
+
+    // Check if a student already has an active (pending/approved) appointment at the given time
+    @Query("SELECT COUNT(a) > 0 FROM Appointment a WHERE a.student = :student AND a.appointmentDateTime = :dateTime AND a.status IN ('PENDING','APPROVED')")
+    boolean existsActiveAtDateTime(@Param("student") User student, @Param("dateTime") LocalDateTime dateTime);
+
+    // Same check but excluding a specific appointment (for reschedule flows)
+    @Query("SELECT COUNT(a) > 0 FROM Appointment a WHERE a.student = :student AND a.appointmentDateTime = :dateTime AND a.status IN ('PENDING','APPROVED') AND a.id <> :appointmentId")
+    boolean existsActiveAtDateTimeExcluding(@Param("student") User student, @Param("dateTime") LocalDateTime dateTime, @Param("appointmentId") Long appointmentId);
 }
