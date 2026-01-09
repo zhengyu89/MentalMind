@@ -10,299 +10,73 @@
 
         <main class="flex-1 p-8 overflow-y-auto">
             <header class="mb-8">
-                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
-                    <a th:href="@{/student/learning}" class="hover:text-primary">Modules</a>
-                    <span class="material-symbols-outlined text-base">chevron_right</span>
-                    <span>Understanding Stress</span>
-                </div>
-                <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Understanding Stress</h2>
-                <p class="text-slate-500 dark:text-slate-400 mt-1">Learn to identify stress triggers and develop healthy
-                    coping mechanisms.</p>
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">Learning Modules</h2>
+                <p class="text-slate-500 dark:text-slate-400">Explore and master mental health topics at your own pace</p>
             </header>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Video & Content -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Video Player -->
-                    <div class="relative bg-slate-900 rounded-xl overflow-hidden aspect-video">
-                        <div id="videoPlaceholder"
-                            class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-700">
-                            <button onclick="playVideo()"
-                                class="w-20 h-20 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">
-                                <span class="material-symbols-outlined text-5xl text-white">play_arrow</span>
-                            </button>
-                        </div>
-                        <iframe id="videoFrame" class="hidden w-full h-full" src="" frameborder="0"
-                            allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    </div>
+            <!-- Empty State -->
+            <div th:if="${modules == null or modules.isEmpty()}" class="text-center py-12">
+                <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600 block mb-4">school</span>
+                <h3 class="text-xl font-semibold text-slate-600 dark:text-slate-300 mb-2">No Modules Available</h3>
+                <p class="text-slate-500 dark:text-slate-400">Your counselor hasn't created any learning modules yet. Check back soon!</p>
+            </div>
 
-                    <!-- Lesson Content -->
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">Lesson Content</h3>
-                        <div class="prose dark:prose-invert max-w-none">
-                            <h4>What is Stress?</h4>
-                            <p>Stress is your body's reaction to a challenge or demand. It can be triggered by both good
-                                and bad experiences. When stressed, your body releases chemicals like adrenaline and
-                                cortisol.</p>
-
-                            <h4>Common Stress Triggers for Students</h4>
-                            <ul>
-                                <li>Academic pressure and exams</li>
-                                <li>Financial concerns</li>
-                                <li>Social relationships</li>
-                                <li>Time management challenges</li>
-                                <li>Future career uncertainty</li>
-                            </ul>
-
-                            <h4>Healthy Coping Strategies</h4>
-                            <ol>
-                                <li><strong>Deep breathing exercises</strong> - Try the 4-7-8 technique</li>
-                                <li><strong>Physical activity</strong> - Even a 10-minute walk helps</li>
-                                <li><strong>Adequate sleep</strong> - Aim for 7-9 hours per night</li>
-                                <li><strong>Social support</strong> - Talk to friends, family, or counselors</li>
-                                <li><strong>Time management</strong> - Break tasks into smaller chunks</li>
-                            </ol>
+            <!-- Modules Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" th:if="${modules != null and !modules.isEmpty()}">
+                <div th:each="module : ${modules}" 
+                    class="bg-white dark:bg-slate-900 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer group"
+                    th:data-module-id="${module.id}">
+                    
+                    <!-- Module Header with Icon -->
+                    <div class="h-32 bg-gradient-to-br from-indigo-500 to-purple-600 p-6 flex items-end relative">
+                        <div class="text-4xl">📚</div>
+                        <!-- Completion Badge -->
+                        <div th:if="${progressMap.get(module.id) == 100}" 
+                             class="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">check_circle</span>
+                            Completed
                         </div>
                     </div>
 
-                    <!-- Quiz Section -->
-                    <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800"
-                        id="quizSection">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-xl font-bold text-slate-900 dark:text-white">Module Quiz</h3>
-                            <span id="quizProgress" class="text-sm text-slate-500">Question 1 of 5</span>
+                    <!-- Module Content -->
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors" 
+                            th:text="${module.title}">Module Title</h3>
+                        
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2" 
+                            th:text="${module.description != null ? module.description : 'No description available'}">Description</p>
+
+                        <!-- Module Stats -->
+                        <div class="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 mb-4">
+                            <div class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-base">play_lesson</span>
+                                <span th:text="${module.materials != null ? module.materials.size() : 0} + ' materials'">0 materials</span>
+                            </div>
+                            <span th:if="${progressMap.get(module.id) == 0}" class="text-xs text-slate-400">Not started</span>
+                            <span th:if="${progressMap.get(module.id) > 0 and progressMap.get(module.id) < 100}" class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">In progress</span>
+                            <span th:if="${progressMap.get(module.id) == 100}" class="text-xs text-green-600 dark:text-green-400 font-medium">Complete</span>
                         </div>
 
-                        <div id="quizContainer">
-                            <!-- Question will be rendered here -->
+                        <!-- Progress Bar -->
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                                <div th:class="'h-2 rounded-full transition-all duration-300 ' + (${progressMap.get(module.id) == 100} ? 'bg-green-500' : 'bg-primary')"
+                                     th:style="'width: ' + ${progressMap.get(module.id)} + '%'"></div>
+                            </div>
+                            <span class="text-xs font-medium text-slate-600 dark:text-slate-400" th:text="${progressMap.get(module.id)} + '%'">0%</span>
                         </div>
 
-                        <div id="quizResult" class="hidden text-center py-8">
-                            <div id="resultIcon" class="text-6xl mb-4"></div>
-                            <h4 id="resultTitle" class="text-2xl font-bold mb-2"></h4>
-                            <p id="resultDesc" class="text-slate-500 mb-6"></p>
-                            <button onclick="restartQuiz()"
-                                class="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-indigo-700">Try
-                                Again</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sidebar - Module Progress -->
-                <div class="lg:col-span-1 space-y-6">
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Your Progress</h3>
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-3">
-                                <div id="progressBar" class="bg-primary h-3 rounded-full transition-all"
-                                    style="width: 40%"></div>
-                            </div>
-                            <span id="progressText" class="text-sm font-medium">40%</span>
-                        </div>
-                    </div>
-
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Module Topics</h3>
-                        <div class="space-y-2">
-                            <div
-                                class="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-700 dark:text-green-400">
-                                <span class="material-symbols-outlined">check_circle</span>
-                                <span class="text-sm font-medium">Introduction to Stress</span>
-                            </div>
-                            <div
-                                class="flex items-center gap-3 p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-primary">
-                                <span class="material-symbols-outlined">play_circle</span>
-                                <span class="text-sm font-medium">Understanding Triggers</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 rounded-lg text-slate-500">
-                                <span class="material-symbols-outlined">circle</span>
-                                <span class="text-sm">Coping Strategies</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 rounded-lg text-slate-500">
-                                <span class="material-symbols-outlined">circle</span>
-                                <span class="text-sm">Relaxation Techniques</span>
-                            </div>
-                            <div class="flex items-center gap-3 p-3 rounded-lg text-slate-500">
-                                <span class="material-symbols-outlined">quiz</span>
-                                <span class="text-sm">Module Quiz</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Other Modules -->
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <h3 class="font-semibold text-slate-900 dark:text-white mb-4">Other Modules</h3>
-                        <div class="space-y-3">
-                            <a href="#"
-                                class="block p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                <p class="font-medium text-sm">Managing Anxiety</p>
-                                <p class="text-xs text-slate-500">Not started</p>
-                            </a>
-                            <a href="#"
-                                class="block p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                <p class="font-medium text-sm">Building Resilience</p>
-                                <p class="text-xs text-slate-500">Not started</p>
-                            </a>
-                            <a href="#"
-                                class="block p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                <p class="font-medium text-sm">Mindfulness Basics</p>
-                                <p class="text-xs text-slate-500">Not started</p>
-                            </a>
-                        </div>
+                        <!-- View Button -->
+                        <a th:href="@{/student/learning/module/} + ${module.id}"
+                            th:class="'block w-full px-4 py-2 font-medium rounded-lg transition-colors text-center ' + (${progressMap.get(module.id) == 100} ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-primary text-white hover:bg-indigo-700')"
+                            th:text="${progressMap.get(module.id) == 100} ? 'Review Module' : (${progressMap.get(module.id) > 0} ? 'Continue Learning' : 'Start Module')">
+                            View Module
+                        </a>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-
-    <!-- Success Toast -->
-    <div id="successToast"
-        class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
-        <span class="material-symbols-outlined">check_circle</span>
-        <span id="toastMessage">Great job!</span>
-    </div>
-
-    <script>
-        const questions = [
-            {
-                q: "What is stress?",
-                options: ["A disease that needs medication", "Your body's reaction to a challenge or demand", "Something only adults experience", "A sign of weakness"],
-                correct: 1
-            },
-            {
-                q: "Which of the following is a healthy coping strategy?",
-                options: ["Ignoring the problem", "Deep breathing exercises", "Staying up all night", "Isolating yourself"],
-                correct: 1
-            },
-            {
-                q: "How many hours of sleep should students aim for?",
-                options: ["4-5 hours", "5-6 hours", "7-9 hours", "10-12 hours"],
-                correct: 2
-            },
-            {
-                q: "Which is NOT a common stress trigger for students?",
-                options: ["Academic pressure", "Financial concerns", "Adequate rest", "Future career uncertainty"],
-                correct: 2
-            },
-            {
-                q: "What technique uses 4-7-8 counting?",
-                options: ["Time management", "Deep breathing", "Study technique", "Sleep schedule"],
-                correct: 1
-            }
-        ];
-
-        let currentQuestion = 0;
-        let score = 0;
-
-        function renderQuestion() {
-            const q = questions[currentQuestion];
-            document.getElementById('quizProgress').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
-
-            let html = `
-                <p class="text-lg font-medium mb-4">${q.q}</p>
-                <div class="space-y-3">
-            `;
-
-            q.options.forEach((opt, i) => {
-                html += `
-                    <button onclick="selectAnswer(${i})" class="quiz-opt w-full text-left p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
-                        ${opt}
-                    </button>
-                `;
-            });
-
-            html += '</div>';
-            document.getElementById('quizContainer').innerHTML = html;
-        }
-
-        function selectAnswer(index) {
-            const q = questions[currentQuestion];
-            const buttons = document.querySelectorAll('.quiz-opt');
-
-            buttons.forEach((btn, i) => {
-                btn.disabled = true;
-                if (i === q.correct) {
-                    btn.classList.add('bg-green-100', 'dark:bg-green-900/50', 'border-green-500', 'text-green-700');
-                } else if (i === index && i !== q.correct) {
-                    btn.classList.add('bg-red-100', 'dark:bg-red-900/50', 'border-red-500', 'text-red-700');
-                }
-            });
-
-            if (index === q.correct) {
-                score++;
-            }
-
-            setTimeout(() => {
-                currentQuestion++;
-                if (currentQuestion < questions.length) {
-                    renderQuestion();
-                } else {
-                    showResult();
-                }
-            }, 1500);
-        }
-
-        function showResult() {
-            document.getElementById('quizContainer').classList.add('hidden');
-            document.getElementById('quizResult').classList.remove('hidden');
-            document.getElementById('quizProgress').textContent = 'Completed';
-
-            const percentage = (score / questions.length) * 100;
-
-            if (percentage >= 80) {
-                document.getElementById('resultIcon').textContent = '🎉';
-                document.getElementById('resultTitle').textContent = 'Excellent!';
-                document.getElementById('resultDesc').textContent = `You scored ${score}/${questions.length}. You've mastered this module!`;
-                updateProgress(100);
-            } else if (percentage >= 60) {
-                document.getElementById('resultIcon').textContent = '👍';
-                document.getElementById('resultTitle').textContent = 'Good Job!';
-                document.getElementById('resultDesc').textContent = `You scored ${score}/${questions.length}. Review the material to improve.`;
-                updateProgress(80);
-            } else {
-                document.getElementById('resultIcon').textContent = '📚';
-                document.getElementById('resultTitle').textContent = 'Keep Learning!';
-                document.getElementById('resultDesc').textContent = `You scored ${score}/${questions.length}. Review the lesson and try again.`;
-            }
-
-            showToast(`Quiz completed! Score: ${score}/${questions.length}`);
-        }
-
-        function restartQuiz() {
-            currentQuestion = 0;
-            score = 0;
-            document.getElementById('quizContainer').classList.remove('hidden');
-            document.getElementById('quizResult').classList.add('hidden');
-            renderQuestion();
-        }
-
-        function updateProgress(value) {
-            document.getElementById('progressBar').style.width = value + '%';
-            document.getElementById('progressText').textContent = value + '%';
-        }
-
-        function playVideo() {
-            document.getElementById('videoPlaceholder').classList.add('hidden');
-            const iframe = document.getElementById('videoFrame');
-            iframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1'; // Placeholder video
-            iframe.classList.remove('hidden');
-            updateProgress(60);
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('successToast');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3000);
-        }
-
-        // Initialize
-        renderQuestion();
-    </script>
 </body>
 
 </html>

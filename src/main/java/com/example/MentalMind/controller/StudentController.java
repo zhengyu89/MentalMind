@@ -5,13 +5,18 @@ import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.Appointment;
 import com.example.MentalMind.model.User;
 import com.example.MentalMind.model.StudentSettings;
+import com.example.MentalMind.model.LearningModule;
+import com.example.MentalMind.model.LearningMaterial;
 import com.example.MentalMind.service.MoodService;
 import com.example.MentalMind.service.ResourceService;
 import com.example.MentalMind.service.SelfAssessmentService;
 import com.example.MentalMind.service.FeedbackService;
 import com.example.MentalMind.service.AppointmentService;
 import com.example.MentalMind.service.StudentSettingsService;
+import com.example.MentalMind.service.LearningProgressService;
 import com.example.MentalMind.repository.UserRepository;
+import com.example.MentalMind.repository.LearningModuleRepository;
+import com.example.MentalMind.repository.LearningMaterialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -59,6 +64,15 @@ public class StudentController {
     @Autowired
     private StudentSettingsService studentSettingsService;
 
+    @Autowired
+    private LearningModuleRepository learningModuleRepository;
+
+    @Autowired
+    private LearningMaterialRepository learningMaterialRepository;
+
+    @Autowired
+    private LearningProgressService learningProgressService;
+
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
@@ -99,8 +113,106 @@ public class StudentController {
     }
 
     @GetMapping("/learning")
-    public String learning() {
+    public String learning(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId != null) {
+            // Get user info
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                model.addAttribute("userFullName", user.get().getFullName());
+                StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+                model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+            }
+            
+            // Get all active learning modules
+            List<LearningModule> modules = learningModuleRepository.findByIsActiveTrue();
+            model.addAttribute("modules", modules);
+            
+            // Get progress for all modules
+            Map<Long, Integer> progressMap = learningProgressService.getAllModulesProgress(userId, modules);
+            model.addAttribute("progressMap", progressMap);
+        }
+        
         return "student/learning";
+    }
+
+    @GetMapping("/learning/module/{moduleId}")
+    public String viewModule(@PathVariable Long moduleId, Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId == null) {
+            return "redirect:/login";
+        }
+        
+        // Get user info
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
+        
+        // Get the module
+        Optional<LearningModule> moduleOpt = learningModuleRepository.findById(moduleId);
+        if (moduleOpt.isEmpty() || !moduleOpt.get().getIsActive()) {
+            return "redirect:/student/learning";
+        }
+        
+        LearningModule module = moduleOpt.get();
+        model.addAttribute("module", module);
+        
+        // Filter only active materials
+        List<LearningMaterial> activeMaterials = module.getMaterials().stream()
+            .filter(m -> m.getIsActive())
+            .toList();
+        model.addAttribute("materials", activeMaterials);
+        
+        // Get completed material IDs for this student and module
+        java.util.Set<Long> completedMaterialIds = learningProgressService.getCompletedMaterialIdsForModule(userId, moduleId);
+        model.addAttribute("completedMaterialIds", completedMaterialIds);
+        
+        // Calculate progress percentage
+        int progressPercentage = learningProgressService.getModuleProgressPercentage(userId, module);
+        model.addAttribute("progressPercentage", progressPercentage);
+        model.addAttribute("completedCount", completedMaterialIds.size());
+        model.addAttribute("totalCount", activeMaterials.size());
+        
+        return "student/module-details";
+    }
+
+    @PostMapping("/learning/material/{materialId}/complete")
+    @ResponseBody
+    public ResponseEntity<?> markMaterialComplete(@PathVariable Long materialId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
+        }
+        
+        try {
+            learningProgressService.markAsCompleted(userId, materialId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Material marked as completed"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/learning/material/{materialId}/incomplete")
+    @ResponseBody
+    public ResponseEntity<?> markMaterialIncomplete(@PathVariable Long materialId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
+        }
+        
+        try {
+            learningProgressService.markAsIncomplete(userId, materialId);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Material marked as incomplete"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/mood-tracker")

@@ -256,7 +256,7 @@
 
         async function loadResourcesTable() {
             try {
-                const res = await fetch('/student/api/resources');
+                const res = await fetch('/counselor/api/resources');
                 if (!res.ok) throw new Error('Failed to load resources');
                 const resources = await res.json();
                 // Update counts
@@ -298,7 +298,7 @@
 
         function onEdit(id) {
             // fetch resource and prefill form, then switch form action to update
-            fetch(`/student/api/resources/${id}`)
+            fetch(`/counselor/api/resources/${id}`)
                 .then(r => r.json())
                 .then(data => {
                     const resource = Array.isArray(data) ? data[0] : data; // handle optional
