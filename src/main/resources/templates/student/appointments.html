@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
-<head th:replace="~{fragments/layout :: head('Appointments - MindWell')}">
-</head>
+<head th:replace="~{fragments/layout :: head('Appointments - MindWell')}"></head>
 
 <body class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-slate-300 antialiased">
     <div class="flex h-screen">
@@ -16,168 +15,199 @@
                 </div>
                 <button
                     class="flex items-center gap-2 bg-primary text-white font-semibold px-5 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
-                    onclick="document.getElementById('requestModal').classList.remove('hidden')">
+                    onclick="openRequestModal()">
                     <span class="material-symbols-outlined">add</span>
                     Request Appointment
                 </button>
             </header>
 
-            <!-- Success/Error Messages -->
-            <div th:if="${param.success}" class="mb-4 p-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg">
-                <span class="material-symbols-outlined inline mr-2">check_circle</span>
-                Appointment request submitted successfully!
-            </div>
-            <div th:if="${param.error}" class="mb-4 p-4 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg">
-                <span class="material-symbols-outlined inline mr-2">error</span>
-                Error processing your request. Please try again.
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 gap-8">
                 <!-- Upcoming Appointments -->
-                <div class="lg:col-span-2">
+                <div>
                     <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Upcoming Appointments</h3>
-                    <div class="space-y-4">
-                        <div th:if="${upcomingAppointments != null && !upcomingAppointments.isEmpty()}" th:each="appointment : ${upcomingAppointments}">
-                            <div
-                                class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800">
-                                <div class="flex items-center gap-4">
-                                    <div
-                                        class="flex flex-col items-center justify-center bg-primary/10 text-primary w-16 h-16 rounded-lg">
-                                        <span class="text-xl font-bold" th:text="${#temporals.format(appointment.appointmentDateTime, 'dd')}">15</span>
-                                        <span class="text-xs font-semibold" th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM').toUpperCase()}">DEC</span>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="font-semibold text-slate-800 dark:text-white">
-                                                <span th:text="${appointment.counselor.fullName != null ? appointment.counselor.fullName : 'Counselor'}">Counselor Name</span>
-                                            </h4>
-                                            <span th:if="${appointment.status == 'APPROVED'}"
-                                                class="text-xs font-semibold text-green-600 bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">Confirmed</span>
-                                            <span th:if="${appointment.status == 'PENDING'}"
-                                                class="text-xs font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full">Pending</span>
+                    <div class="space-y-6">
+                        <!-- Today Section -->
+                        <div>
+                            <h4 class="text-base font-semibold text-slate-900 dark:text-white mb-2">Today</h4>
+                            <div class="space-y-4">
+                                  <div th:each="appointment : ${upcomingAppointments}" 
+                                      th:if="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd') == #temporals.format(#temporals.createNow(), 'yyyy-MM-dd') && appointment.status != 'REJECTED'}"
+                                     class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 appointment-card today-appointment-item">
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex flex-col items-center justify-center bg-primary/10 text-primary w-16 h-16 rounded-lg">
+                                            <span class="text-xl font-bold" th:text="${#temporals.format(appointment.appointmentDateTime, 'dd')}">15</span>
+                                            <span class="text-xs font-semibold" th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM').toUpperCase()}">DEC</span>
                                         </div>
-                                        <p class="text-sm text-slate-500 dark:text-slate-400" th:text="${appointment.counselor.email}">email@example.com</p>
-                                        <p class="text-sm text-primary font-medium" th:text="${appointment.getFormattedTime() + ' - ' + #temporals.format(appointment.appointmentDateTime.plusMinutes(45), 'hh:mm a')}">10:00 AM - 10:45 AM</p>
-                                        <p th:if="${appointment.reason}" class="text-sm text-slate-500 dark:text-slate-400 mt-2" th:text="${appointment.reason}">Appointment reason</p>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="font-semibold text-slate-800 dark:text-white">
+                                                    <span th:text="${appointment.counselor.fullName != null ? appointment.counselor.fullName : 'Counselor'}">Counselor Name</span>
+                                                </h4>
+                                                <span th:if="${appointment.status == 'APPROVED'}" class="text-xs font-semibold text-green-600 bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">Confirmed</span>
+                                                <span th:if="${appointment.status != 'APPROVED'}" class="text-xs font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full">Requesting</span>
+                                            </div>
+                                            <p class="text-sm text-slate-500 dark:text-slate-400" th:text="${appointment.counselor.email}">email@example.com</p>
+                                            <p class="text-sm text-primary font-medium" th:text="${appointment.getFormattedTime() + ' - ' + #temporals.format(appointment.appointmentDateTime.plusMinutes(45), 'hh:mm a')}">10:00 AM - 10:45 AM</p>
+                                            <p th:if="${appointment.reason}" class="text-sm text-slate-500 dark:text-slate-400 mt-2" th:text="${appointment.reason}">Appointment reason</p>
+                                            
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button th:if="${appointment.status == 'APPROVED'}"
+                                                class="px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+                                                th:attr="data-email=${appointment.counselor.email}"
+                                                onclick="openWebexForEmail(this.getAttribute('data-email'))">
+                                                Join Session
+                                            </button>
+                                            <button th:if="${appointment.status != 'APPROVED'}"
+                                                class="px-3 py-2 rounded-lg bg-slate-300 text-slate-600 cursor-not-allowed"
+                                                title="Available once confirmed"
+                                                disabled>
+                                                Join Session
+                                            </button>
+                                            <button class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors edit-btn"
+                                                title="View appointment"
+                                                th:data-id="${appointment.id}"
+                                                th:data-counselor-id="${appointment.counselor.id}"
+                                                th:data-date="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd')}"
+                                                th:data-time="${appointment.getFormattedTime()}"
+                                                th:data-reason="${appointment.reason}"
+                                                th:data-counselor-name="${appointment.counselor.fullName}"
+                                                th:data-status="${appointment.status}">
+                                                <span class="material-symbols-outlined text-slate-500">info</span>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div th:if="${appointment.status == 'APPROVED'}" class="flex gap-2">
-                                        <button
-                                            class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                                            title="Video Call">
-                                            <span class="material-symbols-outlined text-slate-500">videocam</span>
-                                        </button>
-                                        <button
-                                            class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                                            title="More options">
-                                            <span class="material-symbols-outlined text-slate-500">more_vert</span>
-                                        </button>
-                                    </div>
+                                </div>
+
+                                <div th:if="${upcomingAppointments == null || upcomingAppointments.isEmpty()}">
+                                    <div class="text-slate-500 dark:text-slate-400">No appointments today.</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div th:if="${upcomingAppointments == null || upcomingAppointments.isEmpty()}" 
-                            class="text-center py-8 text-slate-500 dark:text-slate-400">
-                            <span class="material-symbols-outlined text-4xl block mb-2">calendar_month</span>
-                            <p>No upcoming appointments. <a href="#" onclick="document.getElementById('requestModal').classList.remove('hidden')" class="text-primary hover:underline">Request one now!</a></p>
-                        </div>
-                    </div>
-
-                    <!-- Past Appointments -->
-                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white mt-8 mb-4">Past Appointments</h3>
-                    <div class="space-y-4">
-                        <div th:if="${pastAppointments != null && !pastAppointments.isEmpty()}" th:each="appointment : ${pastAppointments}">
-                            <div
-                                class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 opacity-70">
-                                <div class="flex items-center gap-4">
-                                    <div
-                                        class="flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 w-16 h-16 rounded-lg">
-                                        <span class="text-xl font-bold" th:text="${#temporals.format(appointment.appointmentDateTime, 'dd')}">5</span>
-                                        <span class="text-xs font-semibold" th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM').toUpperCase()}">DEC</span>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="font-semibold text-slate-600 dark:text-slate-400" th:text="${appointment.counselor.fullName != null ? appointment.counselor.fullName : 'Counselor'}">Counselor Name</h4>
-                                            <span th:if="${appointment.status == 'COMPLETED'}"
-                                                class="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">Completed</span>
-                                            <span th:if="${appointment.status == 'CANCELLED'}"
-                                                class="text-xs font-semibold text-red-500 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">Cancelled</span>
-                                            <span th:if="${appointment.status == 'REJECTED'}"
-                                                class="text-xs font-semibold text-red-500 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">Rejected</span>
+                        <!-- Other Upcoming (not today) -->
+                        <div id="upcomingSection">
+                            <h4 class="text-base font-semibold text-slate-900 dark:text-white mb-2">Upcoming</h4>
+                            <div class="space-y-4">
+                                  <div th:each="appointment : ${upcomingAppointments}" 
+                                      th:if="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd') != #temporals.format(#temporals.createNow(), 'yyyy-MM-dd') && appointment.status != 'REJECTED'}"
+                                     class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 appointment-card upcoming-appointment-item">
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex flex-col items-center justify-center bg-primary/10 text-primary w-16 h-16 rounded-lg">
+                                            <span class="text-xl font-bold" th:text="${#temporals.format(appointment.appointmentDateTime, 'dd')}">15</span>
+                                            <span class="text-xs font-semibold" th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM').toUpperCase()}">DEC</span>
                                         </div>
-                                        <p class="text-sm text-slate-400" th:text="${appointment.counselor.email}">email@example.com</p>
-                                        <p class="text-sm text-slate-400" th:text="${appointment.getFormattedTime()}">10:00 AM - 10:45 AM</p>
-                                        <p th:if="${appointment.rejectionReason}" class="text-sm text-red-600 dark:text-red-400 mt-2" th:text="${'Reason: ' + appointment.rejectionReason}">Rejection reason</p>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <h4 class="font-semibold text-slate-800 dark:text-white">
+                                                    <span th:text="${appointment.counselor.fullName != null ? appointment.counselor.fullName : 'Counselor'}">Counselor Name</span>
+                                                </h4>
+                                                <span th:if="${appointment.status == 'APPROVED'}" class="text-xs font-semibold text-green-600 bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">Confirmed</span>
+                                                <span th:if="${appointment.status != 'APPROVED'}" class="text-xs font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full">Requesting</span>
+                                            </div>
+                                            <p class="text-sm text-slate-500 dark:text-slate-400" th:text="${appointment.counselor.email}">email@example.com</p>
+                                            <p class="text-sm text-primary font-medium" th:text="${appointment.getFormattedTime() + ' - ' + #temporals.format(appointment.appointmentDateTime.plusMinutes(45), 'hh:mm a')}">10:00 AM - 10:45 AM</p>
+                                            <p th:if="${appointment.reason}" class="text-sm text-slate-500 dark:text-slate-400 mt-2" th:text="${appointment.reason}">Appointment reason</p>
+                                            
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors edit-btn"
+                                                title="Edit appointment"
+                                                th:data-id="${appointment.id}"
+                                                th:data-counselor-id="${appointment.counselor.id}"
+                                                th:data-date="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd')}"
+                                                th:data-time="${appointment.getFormattedTime()}"
+                                                th:data-reason="${appointment.reason}"
+                                                th:data-counselor-name="${appointment.counselor.fullName}"
+                                                th:data-status="${appointment.status}">
+                                                <span class="material-symbols-outlined text-slate-500">edit</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- View More Button (count only non-rejected appointments) -->
+                        <div th:if="${upcomingAppointments != null && upcomingAppointments.size() > 3}" class="mt-4">
+                            <button id="viewMoreBtn" onclick="toggleMoreAppointments()" 
+                                class="w-full py-2 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                <span id="viewMoreBtnText">View More Appointments</span>
+                                <span id="viewMoreCount" class="ml-1">(<span id="hiddenCount">3</span> hidden)</span>
+                            </button>
+                        </div>
 
-                        <div th:if="${pastAppointments == null || pastAppointments.isEmpty()}" 
-                            class="text-center py-8 text-slate-500 dark:text-slate-400">
-                            <span class="material-symbols-outlined text-4xl block mb-2">history</span>
-                            <p>No past appointments yet.</p>
+                        <!-- Calendar View (moved inline for visibility) -->
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Appointment Calendar</h3>
+                                <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+                                    <!-- Calendar Header -->
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h4 class="text-lg font-semibold text-slate-900 dark:text-white" id="calendarMonth">January 2026</h4>
+                                        <div class="flex gap-2">
+                                            <button onclick="previousMonth()"
+                                                class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                                <span class="material-symbols-outlined">chevron_left</span>
+                                            </button>
+                                            <button onclick="nextMonth()"
+                                                class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                                <span class="material-symbols-outlined">chevron_right</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Weekday Headers -->
+                                    <div class="grid grid-cols-7 gap-1 mb-2">
+                                        <div class="text-center font-semibold text-slate-500 dark:text-slate-400 text-sm py-2">Sun</div>
+                                        <div class="text-center font-semibold text-slate-500 dark:text-slate-400 text-sm py-2">Mon</div>
+                                        <div class="text-center font-semibold text-slate-500 dark:text-slate-400 text-sm py-2">Tue</div>
+                                        <div class="text-center font-semibold text-slate-500 dark:text-slate-400 text-sm py-2">Wed</div>
+                                        <div class="text-center font-semibold text-slate-500 dark:text-slate-400 text-sm py-2">Thu</div>
+                                        <div class="text-center font-semibold text-slate-500 dark:text-slate-400 text-sm py-2">Fri</div>
+                                        <div class="text-center font-semibold text-slate-500 dark:text-slate-400 text-sm py-2">Sat</div>
+                                    </div>
+
+                                    <!-- Debug status for calendar initialization -->
+                                    <div id="calendarDebug" class="mb-2 text-xs text-slate-500 dark:text-slate-400">Calendar init: pending</div>
+
+                                    <!-- Calendar Days -->
+                                    <div class="grid grid-cols-7 gap-1" id="calendarGrid" style="grid-auto-rows: minmax(180px, auto);">
+                                        <!-- Days will be generated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Counselor Info & Available Counselors -->
-                <div class="lg:col-span-1">
-                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Counselors</h3>
-                    <div
-                        class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4">
-                        <!-- Primary Counselor -->
-                        <div class="pb-4 border-b border-slate-200 dark:border-slate-800">
-                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-3">Your Main Counselor</p>
-                            <div class="flex flex-col items-center text-center">
-                                <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                                    <span class="material-symbols-outlined text-primary text-4xl">person</span>
-                                </div>
-                                <h4 class="text-lg font-bold text-slate-800 dark:text-white">Dr. Anya Sharma</h4>
-                                <p class="text-sm text-slate-500 dark:text-slate-400">Licensed Counselor</p>
-                                <div class="flex items-center gap-1 mt-2 text-amber-500 justify-center">
-                                    <span class="material-symbols-outlined filled text-base">star</span>
-                                    <span class="material-symbols-outlined filled text-base">star</span>
-                                    <span class="material-symbols-outlined filled text-base">star</span>
-                                    <span class="material-symbols-outlined filled text-base">star</span>
-                                    <span class="material-symbols-outlined filled text-base">star</span>
-                                </div>
-                            </div>
-                            <div class="mt-4 space-y-2 text-sm">
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-base">verified</span>
-                                    <span class="text-slate-600 dark:text-slate-400">10+ years experience</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-base">psychology</span>
-                                    <span class="text-slate-600 dark:text-slate-400">Anxiety, Stress</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-base">schedule</span>
-                                    <span class="text-slate-600 dark:text-slate-400">Mon-Fri, 9AM-5PM</span>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Hidden section for rejected upcoming appointments (excluded from list but needed for calendar) -->
+                <div style="display: none;">
+                    <div th:each="appointment : ${upcomingAppointments}" th:if="${appointment.status == 'REJECTED'}" class="appointment-card">
+                        <button class="edit-btn" th:data-id="${appointment.id}"
+                            th:data-counselor-id="${appointment.counselor.id}"
+                            th:data-date="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd')}"
+                            th:data-time="${appointment.getFormattedTime()}"
+                            th:data-reason="${appointment.reason}"
+                            th:data-counselor-name="${appointment.counselor.fullName}"
+                            th:data-rejection-reason="${appointment.rejectionReason}"
+                            th:data-status="${appointment.status}"></button>
+                    </div>
+                </div>
 
-                        <!-- Other Available Counselors -->
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-3">Other Counselors</p>
-                            <div class="space-y-3">
-                                <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
-                                    onclick="selectCounselor('2', 'Dr. Mike Johnson')">
-                                    <p class="font-medium text-slate-700 dark:text-slate-300">Dr. Mike Johnson</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Depression, Therapy</p>
-                                </div>
-                                <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
-                                    onclick="selectCounselor('3', 'Dr. Sarah Wilson')">
-                                    <p class="font-medium text-slate-700 dark:text-slate-300">Dr. Sarah Wilson</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Mindfulness, Wellness</p>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Hidden section for past appointments data (for calendar) -->
+                <div id="pastAppointmentsData" style="display: none;">
+                    <div th:if="${pastAppointments != null && !pastAppointments.isEmpty()}" th:each="appointment : ${pastAppointments}" class="past-appointment-card">
+                        <input type="hidden" class="past-appt-id" th:value="${appointment.id}"/>
+                        <input type="hidden" class="past-appt-counselor-id" th:value="${appointment.counselor.id}"/>
+                        <input type="hidden" class="past-appt-date" th:value="${#temporals.format(appointment.appointmentDateTime, 'yyyy-MM-dd')}"/>
+                        <input type="hidden" class="past-appt-time" th:value="${appointment.getFormattedTime()}"/>
+                        <input type="hidden" class="past-appt-reason" th:value="${appointment.reason}"/>
+                        <input type="hidden" class="past-appt-counselor-name" th:value="${appointment.counselor.fullName}"/>
+                        <input type="hidden" class="past-appt-status" th:value="${appointment.status}"/>
                     </div>
                 </div>
             </div>
+
         </main>
     </div>
 
@@ -186,45 +216,29 @@
         <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-lg">
             <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                 <h3 class="text-xl font-bold text-slate-900 dark:text-white">Request Appointment</h3>
-                <button onclick="document.getElementById('requestModal').classList.add('hidden')"
+                <button onclick="closeRequestModal()"
                     class="text-slate-400 hover:text-slate-600">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <form class="p-6" th:action="@{/student/appointments/request}" method="post">
+            <form class="p-6" th:action="@{/student/appointments/request}" method="post" id="requestForm">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Counselor</label>
                     <select id="counselorSelect" name="counselorId"
                         class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary" required>
                         <option value="">Select a counselor</option>
-                        <option value="1">Dr. Anya Sharma</option>
-                        <option value="2">Dr. Mike Johnson</option>
-                        <option value="3">Dr. Sarah Wilson</option>
+                        <option th:each="counselor : ${counselors}" th:value="${counselor.id}" th:text="${counselor.fullName}">Counselor Name</option>
                     </select>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Preferred Date</label>
-                    <input type="date" name="preferredDate"
+                    <input type="date" name="preferredDate" id="preferredDateInput"
                         class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary" required />
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Preferred Time</label>
-                    <select name="preferredTime"
-                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary" required>
-                        <option value="">Select a time</option>
-                        <option value="09:00">9:00 AM</option>
-                        <option value="09:30">9:30 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="10:30">10:30 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="11:30">11:30 AM</option>
-                        <option value="02:00">2:00 PM</option>
-                        <option value="02:30">2:30 PM</option>
-                        <option value="03:00">3:00 PM</option>
-                        <option value="03:30">3:30 PM</option>
-                        <option value="04:00">4:00 PM</option>
-                        <option value="04:30">4:30 PM</option>
-                    </select>
+                    <div id="timeSlotsContainer" class="grid grid-cols-3 gap-2"></div>
+                    <input type="hidden" name="preferredTime" id="preferredTimeHidden" required />
                 </div>
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason for Visit</label>
@@ -237,11 +251,1268 @@
         </div>
     </div>
 
+    <!-- Day Appointments Modal -->
+    <div id="dayAppointmentsModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-lg max-h-96 flex flex-col">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="dayAppointmentsTitle">Appointments</h3>
+                <button onclick="closeDayAppointmentsModal()"
+                    class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="dayAppointmentsList" class="p-6 overflow-y-auto flex-1 space-y-3">
+                <!-- Appointments will be added here -->
+            </div>
+            <div class="p-6 border-t border-slate-200 dark:border-slate-800">
+                <button onclick="closeDayAppointmentsModal()" 
+                    class="w-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-semibold py-2 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Read-Only Appointment Modal (for past appointments) -->
+    <div id="viewOnlyModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-lg">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 id="viewOnlyModalTitle" class="text-xl font-bold text-slate-900 dark:text-white">Appointment Detail</h3>
+                <button onclick="closeViewOnlyModal()"
+                    class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Counselor</label>
+                    <input type="text" id="viewOnlyCounselorName" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Date</label>
+                    <input type="text" id="viewOnlyCurrentDate" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Time</label>
+                    <input type="text" id="viewOnlyCurrentTime" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason</label>
+                    <textarea id="viewOnlyReason" rows="3" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 resize-none"></textarea>
+                </div>
+                <div id="viewOnlyRejectionReasonContainer" class="hidden">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rejection Reason</label>
+                    <textarea id="viewOnlyRejectionReason" rows="3" readonly
+                        class="w-full px-4 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-600 dark:text-red-400 resize-none"></textarea>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-200 dark:border-slate-800 flex gap-3">
+                <button disabled
+                    class="flex-1 bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 font-semibold py-2 rounded-lg cursor-not-allowed opacity-60"
+                    title="This appointment is in the past and cannot be rescheduled">
+                    Reschedule
+                </button>
+                <button disabled
+                    class="flex-1 bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400 font-semibold py-2 rounded-lg cursor-not-allowed opacity-60"
+                    title="This appointment is in the past and cannot be deleted">
+                    Delete
+                </button>
+                <button onclick="closeViewOnlyModal()"
+                    class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-semibold py-2 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Appointment Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-lg">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Appointment Detail</h3>
+                <button onclick="closeEditModal()"
+                    class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Counselor</label>
+                    <input type="text" id="editCounselorName" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Current Date</label>
+                    <input type="text" id="editCurrentDate" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Current Time</label>
+                    <input type="text" id="editCurrentTime" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason</label>
+                    <textarea id="editReason" rows="3" readonly
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 resize-none"></textarea>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-200 dark:border-slate-800 flex gap-3">
+                <button id="rescheduleBtn" onclick="openRescheduleModal()"
+                    class="flex-1 bg-primary text-white font-semibold py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                    title="Can only reschedule if status is Requesting">
+                    Reschedule
+                </button>
+                <button id="deleteBtn" onclick="openDeleteConfirmModal()"
+                    class="flex-1 bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition-colors"
+                    title="Can only delete if status is Requesting">
+                    Delete
+                </button>
+                <button onclick="closeEditModal()"
+                    class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-semibold py-2 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reschedule Appointment Modal -->
+    <div id="rescheduleModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-lg">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Reschedule Appointment</h3>
+                <button onclick="closeRescheduleModal()"
+                    class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form class="p-6" id="rescheduleForm" th:action="@{/student/appointments/reschedule}" method="post">
+                <input type="hidden" id="rescheduleAppointmentId" name="appointmentId" />
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">New Date</label>
+                    <input type="date" name="preferredDate" id="rescheduleDate"
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary" required />
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">New Time</label>
+                    <div id="rescheduleTimeSlotsContainer" class="grid grid-cols-3 gap-2"></div>
+                    <input type="hidden" name="preferredTime" id="reschedulePreferredTimeHidden" required />
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-primary text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition-colors">
+                        Reschedule
+                    </button>
+                    <button type="button" onclick="closeRescheduleModal()" class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-semibold py-3 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-sm">
+            <div class="p-6">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+                    <span class="material-symbols-outlined text-red-600">warning</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white text-center mb-2">Delete Appointment?</h3>
+                <p class="text-slate-600 dark:text-slate-400 text-center mb-6">
+                    Are you sure you want to delete this appointment? This action cannot be undone.
+                </p>
+            </div>
+            <div class="p-6 border-t border-slate-200 dark:border-slate-800 flex gap-3">
+                <button onclick="confirmDelete()"
+                    class="flex-1 bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition-colors">
+                    Delete
+                </button>
+                <button onclick="closeDeleteConfirmModal()"
+                    class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white font-semibold py-2 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conflict Alert Modal -->
+    <div id="conflictModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Scheduling Conflict</h3>
+                <button onclick="closeConflictModal()" class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-6">
+                <p id="conflictMessage" class="text-slate-700 dark:text-slate-200">You already have a pending or approved appointment at that time.</p>
+            </div>
+            <div class="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                <button onclick="closeConflictModal()"
+                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let currentDate = new Date();
+        let appointmentsByDate = {};
+        let allAppointments = [];
+        let appointmentsExpanded = false;
+
+        // Open counselor's WebEx meeting using email username
+        function openWebexForEmail(email) {
+            try {
+                if (!email || typeof email !== 'string' || !email.includes('@')) {
+                    return;
+                }
+                const username = email.split('@')[0];
+                const url = `https://meet.webex.com/${username}`;
+                window.open(url, '_blank', 'noopener');
+            } catch (e) {
+                console.error('Failed to open WebEx session:', e);
+            }
+        }
+
+        function showConflictModal(message) {
+            const modal = document.getElementById('conflictModal');
+            const msgEl = document.getElementById('conflictMessage');
+            if (msgEl && message) {
+                msgEl.textContent = message;
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeConflictModal() {
+            document.getElementById('conflictModal').classList.add('hidden');
+        }
+
+        // Toggle visibility of hidden appointments
+        function toggleMoreAppointments() {
+            const hiddenCards = document.querySelectorAll('.appointment-hidden');
+            const upcomingSection = document.getElementById('upcomingSection');
+            const btn = document.getElementById('viewMoreBtn');
+            const btnText = document.getElementById('viewMoreBtnText');
+            const countSpan = document.getElementById('viewMoreCount');
+            
+            appointmentsExpanded = !appointmentsExpanded;
+            
+            hiddenCards.forEach(card => {
+                card.classList.toggle('hidden');
+            });
+            
+            // Show upcoming section when expanding if it was hidden
+            if (appointmentsExpanded && upcomingSection) {
+                upcomingSection.style.display = 'block';
+            }
+            
+            if (appointmentsExpanded) {
+                btnText.textContent = 'Hide Appointments';
+                countSpan.style.display = 'none';
+            } else {
+                btnText.textContent = 'View More Appointments';
+                countSpan.style.display = 'inline';
+                
+                // Re-hide upcoming section if today items are 3 or more
+                const todayItems = document.querySelectorAll('.today-appointment-item');
+                if (todayItems.length >= 3 && upcomingSection) {
+                    upcomingSection.style.display = 'none';
+                }
+            }
+        }
+
+        // Initialize upcoming appointments display - hide beyond first 3 total
+        function initializeUpcomingAppointmentsDisplay() {
+            const todayItems = document.querySelectorAll('.today-appointment-item');
+            const upcomingItems = document.querySelectorAll('.upcoming-appointment-item');
+            const upcomingSection = document.getElementById('upcomingSection');
+            
+            let todayVisible = 0;
+            
+            // Show only first 3 today items, hide the rest
+            todayItems.forEach((item, index) => {
+                if (index < 3) {
+                    item.classList.remove('appointment-hidden', 'hidden');
+                    todayVisible++;
+                } else {
+                    item.classList.add('appointment-hidden', 'hidden');
+                }
+            });
+            
+            // If today items are 3 or more, hide entire upcoming section
+            if (todayItems.length >= 3) {
+                if (upcomingSection) {
+                    upcomingSection.style.display = 'none';
+                }
+                // Mark all upcoming items as hidden
+                upcomingItems.forEach(item => {
+                    item.classList.add('appointment-hidden', 'hidden');
+                });
+            } else {
+                // Show upcoming section and calculate how many upcoming to show
+                const remainingSlots = 3 - todayVisible;
+                
+                if (upcomingItems.length === 0) {
+                    if (upcomingSection) {
+                        upcomingSection.style.display = 'none';
+                    }
+                } else {
+                    if (upcomingSection) {
+                        upcomingSection.style.display = 'block';
+                    }
+                }
+                
+                upcomingItems.forEach((item, index) => {
+                    if (index < remainingSlots) {
+                        item.classList.remove('appointment-hidden', 'hidden');
+                    } else {
+                        item.classList.add('appointment-hidden', 'hidden');
+                    }
+                });
+            }
+        }
+
+        // Update the hidden appointment count to exclude rejected appointments
+        function updateHiddenAppointmentCount() {
+            // Count all non-rejected appointments (today + upcoming)
+            const todayItems = document.querySelectorAll('.today-appointment-item');
+            const upcomingItems = document.querySelectorAll('.upcoming-appointment-item');
+            let totalNonRejectedCount = 0;
+            
+            todayItems.forEach(item => {
+                const editBtn = item.querySelector('.edit-btn');
+                if (editBtn) {
+                    const status = (editBtn.getAttribute('data-status') || 'PENDING').toUpperCase();
+                    if (status !== 'REJECTED') {
+                        totalNonRejectedCount++;
+                    }
+                }
+            });
+            
+            upcomingItems.forEach(item => {
+                const editBtn = item.querySelector('.edit-btn');
+                if (editBtn) {
+                    const status = (editBtn.getAttribute('data-status') || 'PENDING').toUpperCase();
+                    if (status !== 'REJECTED') {
+                        totalNonRejectedCount++;
+                    }
+                }
+            });
+            
+            // Update hidden count display
+            const hiddenCountEl = document.getElementById('hiddenCount');
+            if (hiddenCountEl) {
+                const hidden = Math.max(0, totalNonRejectedCount - 3);
+                hiddenCountEl.textContent = hidden;
+            }
+            
+            // Show/hide the view more button
+            const viewMoreBtn = document.getElementById('viewMoreBtn');
+            if (viewMoreBtn) {
+                if (totalNonRejectedCount > 3) {
+                    viewMoreBtn.parentElement.style.display = 'block';
+                } else {
+                    viewMoreBtn.parentElement.style.display = 'none';
+                }
+            }
+        }
+
+        // Function to collect all appointments from the DOM
+        function collectAppointments() {
+            appointmentsByDate = {};
+            allAppointments = [];
+            
+            // Find all upcoming appointment cards
+            const appointmentCards = document.querySelectorAll('.appointment-card');
+            console.log('Found upcoming appointment cards:', appointmentCards.length);
+            
+            appointmentCards.forEach(card => {
+                try {
+                    // Get the edit button which has all the data we need
+                    const editBtn = card.querySelector('.edit-btn');
+                    if (!editBtn) return; // Skip if no edit button found
+                    
+                    const id = editBtn.getAttribute('data-id');
+                    const counselorId = editBtn.getAttribute('data-counselor-id');
+                    const dateStr = editBtn.getAttribute('data-date');
+                    const time = editBtn.getAttribute('data-time');
+                    const counselorName = editBtn.getAttribute('data-counselor-name');
+                    const reason = editBtn.getAttribute('data-reason');
+                    const rejectionReason = editBtn.getAttribute('data-rejection-reason');
+                    
+                    if (!dateStr) return; // Skip if no date
+                    
+                    // Parse date (format: YYYY-MM-DD, month is 1-indexed)
+                    const [yearStr, monthStr, dayStr] = dateStr.split('-');
+                    const year = parseInt(yearStr);
+                    const month = parseInt(monthStr) - 1; // Convert to 0-indexed for JS Date
+                    const day = parseInt(dayStr);
+                    
+                    // Get status from data attribute (includes REJECTED)
+                    let status = (editBtn.getAttribute('data-status') || 'PENDING').toUpperCase();
+                    
+                    const appointmentData = {
+                        id: id,
+                        counselorId: counselorId,
+                        date: dateStr,
+                        time: time,
+                        counselorName: counselorName,
+                        reason: reason,
+                        rejectionReason: rejectionReason,
+                        status: status,
+                        day: day,
+                        month: month, // 0-indexed
+                        year: year
+                    };
+                    
+                    // Use 0-indexed month for dateKey
+                    const dateKey = `${year}-${month}-${day}`;
+                    if (!appointmentsByDate[dateKey]) {
+                        appointmentsByDate[dateKey] = [];
+                    }
+                    appointmentsByDate[dateKey].push(appointmentData);
+                    allAppointments.push(appointmentData);
+                } catch (e) {
+                    console.error('Error parsing appointment:', e);
+                }
+            });
+            
+            // Sort appointments by time for each date
+            Object.keys(appointmentsByDate).forEach(dateKey => {
+                appointmentsByDate[dateKey].sort((a, b) => {
+                    // Parse time strings (HH:MM format)
+                    const timeA = a.time.split(':').map(t => parseInt(t));
+                    const timeB = b.time.split(':').map(t => parseInt(t));
+                    // Compare hours first, then minutes
+                    if (timeA[0] !== timeB[0]) {
+                        return timeA[0] - timeB[0];
+                    }
+                    return timeA[1] - timeB[1];
+                });
+            });
+
+            // Also collect past appointments from hidden data
+            const pastAppointmentCards = document.querySelectorAll('.past-appointment-card');
+            console.log('Found past appointment cards:', pastAppointmentCards.length);
+            
+            pastAppointmentCards.forEach(card => {
+                try {
+                    const id = card.querySelector('.past-appt-id').value;
+                    const counselorId = card.querySelector('.past-appt-counselor-id').value;
+                    const dateStr = card.querySelector('.past-appt-date').value;
+                    const time = card.querySelector('.past-appt-time').value;
+                    const counselorName = card.querySelector('.past-appt-counselor-name').value;
+                    const reason = card.querySelector('.past-appt-reason').value;
+                    const status = card.querySelector('.past-appt-status').value;
+                    
+                    if (!dateStr) return;
+                    
+                    // Parse date (format: YYYY-MM-DD, month is 1-indexed)
+                    const [yearStr, monthStr, dayStr] = dateStr.split('-');
+                    const year = parseInt(yearStr);
+                    const month = parseInt(monthStr) - 1;
+                    const day = parseInt(dayStr);
+                    
+                    const appointmentData = {
+                        id: id,
+                        counselorId: counselorId,
+                        date: dateStr,
+                        time: time,
+                        counselorName: counselorName,
+                        reason: reason,
+                        status: status,
+                        day: day,
+                        month: month,
+                        year: year
+                    };
+                    
+                    const dateKey = `${year}-${month}-${day}`;
+                    if (!appointmentsByDate[dateKey]) {
+                        appointmentsByDate[dateKey] = [];
+                    }
+                    appointmentsByDate[dateKey].push(appointmentData);
+                    allAppointments.push(appointmentData);
+                } catch (e) {
+                    console.error('Error parsing past appointment:', e);
+                }
+            });
+            
+            // Sort appointments by time for each date after adding past appointments
+            Object.keys(appointmentsByDate).forEach(dateKey => {
+                appointmentsByDate[dateKey].sort((a, b) => {
+                    // Parse time strings (HH:MM format)
+                    const timeA = a.time.split(':').map(t => parseInt(t));
+                    const timeB = b.time.split(':').map(t => parseInt(t));
+                    // Compare hours first, then minutes
+                    if (timeA[0] !== timeB[0]) {
+                        return timeA[0] - timeB[0];
+                    }
+                    return timeA[1] - timeB[1];
+                });
+            });
+            
+            console.log('Collected all appointments:', appointmentsByDate);
+        }
+
+        function getMonthIndex(monthName) {
+            const months = {
+                'JAN': 0, 'JANUARY': 0,
+                'FEB': 1, 'FEBRUARY': 1,
+                'MAR': 2, 'MARCH': 2,
+                'APR': 3, 'APRIL': 3,
+                'MAY': 4,
+                'JUN': 5, 'JUNE': 5,
+                'JUL': 6, 'JULY': 6,
+                'AUG': 7, 'AUGUST': 7,
+                'SEP': 8, 'SEPTEMBER': 8,
+                'OCT': 9, 'OCTOBER': 9,
+                'NOV': 10, 'NOVEMBER': 10,
+                'DEC': 11, 'DECEMBER': 11
+            };
+            const upper = monthName.toUpperCase();
+            return months[upper] !== undefined ? months[upper] : 0;
+        }
+
+        function updateCalendarDebug(msg) {
+            try {
+                const dbg = document.getElementById('calendarDebug');
+                if (dbg) dbg.textContent = `Calendar: ${msg}`;
+            } catch (_) {}
+        }
+
+        function initializeCalendar() {
+            updateCalendarDebug('initializing');
+            console.log('initializeCalendar called');
+            try {
+                collectAppointments();
+                updateCalendarDebug('appointments collected');
+                console.log('collectAppointments completed');
+                renderCalendar();
+                updateCalendarDebug('rendered');
+                console.log('renderCalendar completed');
+            } catch (e) {
+                updateCalendarDebug('error during init');
+                console.error('Error in initializeCalendar:', e);
+                console.error('Stack:', e.stack);
+            }
+        }
+
+        function renderCalendar() {
+            try {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                
+                // Update month display
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                  'July', 'August', 'September', 'October', 'November', 'December'];
+                document.getElementById('calendarMonth').textContent = monthNames[month] + ' ' + year;
+                
+                // Get first day of month and number of days
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const daysInPrevMonth = new Date(year, month, 0).getDate();
+                
+                const calendarGrid = document.getElementById('calendarGrid');
+                if (!calendarGrid) {
+                    console.error('Calendar grid element not found!');
+                    return;
+                }
+                
+                console.log('Calendar grid element found, style:', window.getComputedStyle(calendarGrid).display);
+                calendarGrid.style.display = 'grid'; // Ensure it's visible
+                calendarGrid.innerHTML = '';
+                console.log('Starting calendar render with appointments:', appointmentsByDate);
+                
+                // Previous month's days
+                const prevMonth = month === 0 ? 11 : month - 1;
+                const prevYear = month === 0 ? year - 1 : year;
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    const day = daysInPrevMonth - i;
+                    const el = createDayElement(day, true, prevYear, prevMonth);
+                    calendarGrid.appendChild(el);
+                }
+                
+                // Current month's days
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const el = createDayElement(day, false, year, month);
+                    calendarGrid.appendChild(el);
+                }
+                
+                // Next month's days
+                const totalCells = calendarGrid.children.length;
+                const remainingCells = 42 - totalCells; // 6 rows × 7 days
+                const nextMonth = month === 11 ? 0 : month + 1;
+                const nextYear = month === 11 ? year + 1 : year;
+                for (let day = 1; day <= remainingCells; day++) {
+                    const el = createDayElement(day, true, nextYear, nextMonth);
+                    calendarGrid.appendChild(el);
+                }
+                
+                console.log('Calendar rendered with', calendarGrid.children.length, 'cells');
+            } catch (e) {
+                console.error('Error in renderCalendar:', e);
+                console.error('Stack:', e.stack);
+            }
+        }
+
+        // Helper function to check if appointment is in the past
+        function isPastAppointment(dateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const appointmentDate = new Date(dateStr);
+            appointmentDate.setHours(0, 0, 0, 0);
+            return appointmentDate < today;
+        }
+
+        function createDayElement(day, isOtherMonth, year, month) {
+            const el = document.createElement('div');
+            el.className = 'border border-slate-200 dark:border-slate-700 rounded-lg p-2 min-h-48 overflow-hidden flex flex-col';
+            
+            if (isOtherMonth) {
+                el.classList.add('bg-slate-50', 'dark:bg-slate-800/30');
+            } else {
+                el.classList.add('bg-white', 'dark:bg-slate-800');
+            }
+            
+            // Day number
+            const dayNumberEl = document.createElement('div');
+            dayNumberEl.className = isOtherMonth ? 'text-slate-400 font-semibold text-sm mb-2' : 'text-slate-900 dark:text-white font-semibold text-sm mb-2';
+            dayNumberEl.textContent = day;
+            el.appendChild(dayNumberEl);
+            
+            // Container for appointments
+            const appointmentsContainer = document.createElement('div');
+            appointmentsContainer.className = 'flex-1 overflow-y-auto space-y-1';
+            
+            // Get appointments for this date - month is 0-indexed in JS
+            const dateKey = `${year}-${month}-${day}`;
+            const appointments = appointmentsByDate[dateKey] || [];
+            
+            // Display first 3 appointments
+            const visibleAppointments = appointments.slice(0, 3);
+            visibleAppointments.forEach(appt => {
+                const apptEl = document.createElement('div');
+                const isPast = isPastAppointment(appt.date);
+                const isRejected = appt.status === 'REJECTED';
+                const isCompleted = appt.status === 'COMPLETED';
+                
+                // Color based on status and whether it's past
+                let bgColor = 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700';
+                let textColor = 'text-amber-700 dark:text-amber-300';
+                
+                if (isCompleted || isPast) {
+                    bgColor = 'bg-gray-100 dark:bg-gray-700/30 border-gray-300 dark:border-gray-600';
+                    textColor = 'text-gray-600 dark:text-gray-400';
+                } else if (appt.status === 'APPROVED') {
+                    bgColor = 'bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700';
+                    textColor = 'text-green-700 dark:text-green-300';
+                } else if (isRejected) {
+                    bgColor = 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700';
+                    textColor = 'text-red-700 dark:text-red-300';
+                }
+                
+                const cursorClass = 'cursor-pointer hover:shadow-md';
+                apptEl.className = `${bgColor} border rounded p-1.5 ${cursorClass} transition-shadow text-xs calendar-appt`;
+                apptEl.innerHTML = `
+                    <div class="${textColor} font-semibold truncate">${appt.time}</div>
+                    <div class="${textColor} truncate">${appt.counselorName}</div>
+                `;
+                
+                // Add click handler - view-only for past, rejected, or completed
+                if (isPast || isRejected || isCompleted) {
+                    apptEl.addEventListener('click', function() {
+                        showViewOnlyAppointment(appt);
+                    });
+                } else {
+                    apptEl.addEventListener('click', function() {
+                        openEditModal(appt.id, appt.counselorId, appt.date, appt.time, appt.reason, appt.counselorName, appt.status);
+                    });
+                }
+                
+                appointmentsContainer.appendChild(apptEl);
+            });
+            
+            el.appendChild(appointmentsContainer);
+            
+            // Add "..." button if there are more than 3 appointments
+            if (appointments.length > 3) {
+                const moreBtn = document.createElement('button');
+                moreBtn.className = 'mt-2 w-full py-1 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors';
+                moreBtn.textContent = `... ${appointments.length - 3} more`;
+                moreBtn.type = 'button';
+                moreBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showDayAppointments(day, month, year, appointments);
+                };
+                el.appendChild(moreBtn);
+            }
+            
+            return el;
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
         function selectCounselor(counselorId, counselorName) {
             document.getElementById('counselorSelect').value = counselorId;
             document.getElementById('requestModal').classList.remove('hidden');
         }
+
+        function showDayAppointments(day, month, year, appointments) {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            const dateStr = `${monthNames[month]} ${day}, ${year}`;
+            
+            // Set modal title
+            document.getElementById('dayAppointmentsTitle').textContent = dateStr;
+            
+            // Clear and populate appointments list
+            const appointmentsList = document.getElementById('dayAppointmentsList');
+            appointmentsList.innerHTML = '';
+            
+            appointments.forEach(appt => {
+                const apptDiv = document.createElement('div');
+                const isPast = isPastAppointment(appt.date);
+                const isRejected = appt.status === 'REJECTED';
+                const isCompleted = appt.status === 'COMPLETED';
+                
+                let statusColor = 'text-amber-600';
+                let statusBg = 'bg-amber-100 dark:bg-amber-900/30';
+                let bgColor = 'bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600';
+                
+                if (isCompleted || isPast) {
+                    statusColor = 'text-gray-600';
+                    statusBg = 'bg-gray-100 dark:bg-gray-700/30';
+                    bgColor = 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600';
+                } else if (appt.status === 'APPROVED') {
+                    statusColor = 'text-green-600';
+                    statusBg = 'bg-green-100 dark:bg-green-900/30';
+                } else if (isRejected) {
+                    statusColor = 'text-red-600';
+                    statusBg = 'bg-red-100 dark:bg-red-900/30';
+                }
+                
+                apptDiv.className = `p-4 ${bgColor} rounded-lg border`;
+                
+                const statusLabel = isRejected ? 'Rejected' : (isCompleted ? 'Completed' : (isPast ? 'Past' : (appt.status === 'APPROVED' ? 'Confirmed' : 'Requesting')));
+                let actionButton = '';
+                
+                if (!isPast && !isRejected && !isCompleted) {
+                    // Edit button for non-rejected, non-past appointments
+                    actionButton = `<button type="button" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Edit appointment" onclick="openEditModalFromDay(${appt.id}, ${appt.counselorId}, '${appt.date}', '${appt.time}', '${appt.reason || ''}', '${appt.counselorName}', '${appt.status}')">
+                        <span class="material-symbols-outlined text-slate-500">edit</span>
+                    </button>`;
+                } else if (isPast || isRejected || isCompleted) {
+                    // View button for past, rejected, and completed appointments
+                    actionButton = `<button type="button" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="View appointment details" onclick="showViewOnlyAppointment({id: ${appt.id}, counselorId: ${appt.counselorId}, date: '${appt.date}', time: '${appt.time}', reason: '${appt.reason || ''}', counselorName: '${appt.counselorName}', status: '${appt.status}', rejectionReason: '${appt.rejectionReason || ''}'})">
+                        <span class="material-symbols-outlined text-slate-500">info</span>
+                    </button>`;
+                }
+                
+                apptDiv.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h5 class="font-semibold text-slate-900 dark:text-white">${appt.counselorName}</h5>
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${statusBg} ${statusColor}">
+                                    ${statusLabel}
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">${appt.time}</p>
+                            ${appt.reason ? `<p class="text-sm text-slate-600 dark:text-slate-400">${appt.reason}</p>` : ''}
+                            ${isPast || isRejected || isCompleted ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">(${isRejected ? 'Rejected appointment' : (isCompleted ? 'Completed appointment' : 'Past appointment')} - read only)</p>` : ''}
+                        </div>
+                        ${actionButton}
+                    </div>
+                `;
+                
+                appointmentsList.appendChild(apptDiv);
+            });
+            
+            document.getElementById('dayAppointmentsModal').classList.remove('hidden');
+        }
+
+        function closeDayAppointmentsModal() {
+            document.getElementById('dayAppointmentsModal').classList.add('hidden');
+        }
+
+        function showViewOnlyAppointment(appt) {
+            // Show a view-only modal for past, rejected, or completed appointments
+            const dateObj = new Date(appt.date);
+            const dateStr = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const isPast = isPastAppointment(appt.date);
+            const isRejected = appt.status === 'REJECTED';
+            const isCompleted = appt.status === 'COMPLETED';
+            
+            const titleEl = document.getElementById('viewOnlyModalTitle');
+            if (titleEl) {
+                let title = 'Appointment Detail';
+                if (isRejected) {
+                    title += ' (Rejected)';
+                } else if (isCompleted) {
+                    title += ' (Completed)';
+                } else if (isPast) {
+                    title += ' (Past)';
+                }
+                titleEl.textContent = title;
+            }
+            
+            document.getElementById('viewOnlyCounselorName').value = appt.counselorName || '';
+            document.getElementById('viewOnlyCurrentDate').value = dateStr;
+            document.getElementById('viewOnlyCurrentTime').value = appt.time;
+            document.getElementById('viewOnlyReason').value = appt.reason || '';
+            
+            // Show rejection reason if appointment is rejected
+            const rejectionContainer = document.getElementById('viewOnlyRejectionReasonContainer');
+            if (isRejected && appt.rejectionReason) {
+                rejectionContainer.classList.remove('hidden');
+                document.getElementById('viewOnlyRejectionReason').value = appt.rejectionReason;
+            } else {
+                rejectionContainer.classList.add('hidden');
+            }
+            
+            document.getElementById('viewOnlyModal').classList.remove('hidden');
+        }
+
+        function closeViewOnlyModal() {
+            document.getElementById('viewOnlyModal').classList.add('hidden');
+        }
+
+        function openEditModalFromDay(appointmentId, counselorId, date, time, reason, counselorName, status) {
+            closeDayAppointmentsModal();
+            openEditModal(appointmentId, counselorId, date, time, reason, counselorName, status);
+        }
+
+        // Edit Modal Functions
+        let currentEditAppointmentId = null;
+        let currentEditCounselorId = null;
+        let currentEditAppointmentStatus = null;
+
+        function openEditModal(appointmentId, counselorId, date, time, reason, counselorName, status) {
+            const normalizedStatus = (status || '').toUpperCase();
+            const apptData = {
+                id: appointmentId,
+                counselorId: counselorId,
+                date: date,
+                time: time,
+                reason: reason,
+                counselorName: counselorName,
+                status: normalizedStatus
+            };
+
+            // Route rejected appointments to view-only modal (takes precedence over past)
+            if (normalizedStatus === 'REJECTED') {
+                showViewOnlyAppointment(apptData);
+                return;
+            }
+
+            currentEditAppointmentId = appointmentId;
+            currentEditCounselorId = counselorId;
+            currentEditAppointmentStatus = normalizedStatus;
+            
+            // Format date to readable format
+            const dateObj = new Date(date);
+            const dateStr = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            document.getElementById('editCounselorName').value = counselorName || '';
+            document.getElementById('editCurrentDate').value = dateStr;
+            document.getElementById('editCurrentTime').value = time;
+            document.getElementById('editReason').value = reason || '';
+            
+            // Disable reschedule and delete buttons if appointment is APPROVED or COMPLETED
+            const rescheduleBtn = document.getElementById('rescheduleBtn');
+            const deleteBtn = document.getElementById('deleteBtn');
+            
+            if (normalizedStatus === 'APPROVED' || normalizedStatus === 'COMPLETED') {
+                rescheduleBtn.disabled = true;
+                rescheduleBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                deleteBtn.disabled = true;
+                deleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                rescheduleBtn.disabled = false;
+                rescheduleBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                deleteBtn.disabled = false;
+                deleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            currentEditAppointmentId = null;
+            currentEditCounselorId = null;
+        }
+
+        function openRescheduleModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('rescheduleAppointmentId').value = currentEditAppointmentId;
+            document.getElementById('rescheduleModal').classList.remove('hidden');
+
+            // Initialize reschedule date min and default
+            setMinimumDateForReschedule();
+            // Attach listener for date changes
+            const rescheduleDateInput = document.getElementById('rescheduleDate');
+            if (rescheduleDateInput) {
+                rescheduleDateInput.onchange = fetchSlotsForReschedule;
+            }
+            // Load initial slots
+            fetchSlotsForReschedule();
+        }
+
+        function closeRescheduleModal() {
+            document.getElementById('rescheduleModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function openDeleteConfirmModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        }
+
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function attachRescheduleFormHandler() {
+            const form = document.getElementById('rescheduleForm');
+            if (!form) return;
+            form.addEventListener('submit', async function(e) {
+                const dateInput = document.getElementById('rescheduleDate');
+                const hiddenTime = document.getElementById('reschedulePreferredTimeHidden');
+                if (!dateInput || !hiddenTime) return;
+                const date = dateInput.value;
+                const time = hiddenTime.value;
+                if (!date || !time) return;
+                e.preventDefault();
+                try {
+                    const result = await checkConflict(date, time, currentEditAppointmentId);
+                    if (result && result.conflict) {
+                        showConflictModal(result.message || 'You already have an appointment at this time.');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Conflict check failed', err);
+                }
+                form.submit();
+            });
+        }
+
+        // --- Reschedule Slots (match Request modal behavior) ---
+        function setMinimumDateForReschedule() {
+            const dateInput = document.getElementById('rescheduleDate');
+            if (dateInput) {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const year = tomorrow.getFullYear();
+                const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+                const day = String(tomorrow.getDate()).padStart(2, '0');
+                const minDate = `${year}-${month}-${day}`;
+                dateInput.min = minDate;
+                if (!dateInput.value) {
+                    dateInput.value = minDate;
+                }
+            }
+        }
+
+        function clearRescheduleSlotSelection() {
+            const container = document.getElementById('rescheduleTimeSlotsContainer');
+            if (!container) return;
+            document.querySelectorAll('#rescheduleTimeSlotsContainer button').forEach(btn => {
+                btn.classList.remove('ring', 'ring-2', 'ring-primary');
+            });
+            const hidden = document.getElementById('reschedulePreferredTimeHidden');
+            if (hidden) hidden.value = '';
+        }
+
+        async function fetchSlotsForReschedule() {
+            const dateInput = document.getElementById('rescheduleDate');
+            const container = document.getElementById('rescheduleTimeSlotsContainer');
+            const hidden = document.getElementById('reschedulePreferredTimeHidden');
+            if (!dateInput || !container) return;
+            clearRescheduleSlotSelection();
+            container.innerHTML = '';
+            if (hidden) hidden.value = '';
+
+            if (!currentEditCounselorId) {
+                container.innerHTML = '<p class="text-sm text-slate-500">Missing counselor information.</p>';
+                return;
+            }
+
+            const date = dateInput.value;
+            if (!date) {
+                container.innerHTML = '<p class="text-sm text-slate-500">Select a date to see available times.</p>';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/student/api/slots?counselorId=${currentEditCounselorId}&date=${date}`);
+                if (!resp.ok) throw new Error('Failed to fetch slots');
+                const slots = await resp.json();
+                renderRescheduleSlots(slots);
+            } catch (e) {
+                console.error('Error fetching reschedule slots:', e);
+                container.innerHTML = '<p class="text-sm text-red-500">Unable to load slots.</p>';
+            }
+        }
+
+        function renderRescheduleSlots(slots) {
+            const container = document.getElementById('rescheduleTimeSlotsContainer');
+            const hidden = document.getElementById('reschedulePreferredTimeHidden');
+            container.innerHTML = '';
+
+            if (!slots || slots.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-500">No slots available for this date.</p>';
+                return;
+            }
+
+            slots.forEach(s => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'py-2 px-3 text-sm rounded-lg border text-slate-700 bg-white hover:bg-slate-100 outline-none';
+                btn.textContent = s.time;
+                if (!s.available) {
+                    btn.disabled = true;
+                    btn.className = 'py-2 px-3 text-sm rounded-lg border text-slate-400 bg-slate-100 cursor-not-allowed outline-none';
+                } else {
+                    btn.addEventListener('click', function(e) {
+                        document.querySelectorAll('#rescheduleTimeSlotsContainer button').forEach(b => b.classList.remove('ring', 'ring-2', 'ring-primary'));
+                        btn.classList.add('ring', 'ring-2', 'ring-primary');
+                        if (hidden) hidden.value = s.time;
+                        e.target.blur();
+                    });
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        function confirmDelete() {
+            if (!currentEditAppointmentId) return;
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/student/appointments/delete';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'appointmentId';
+            input.value = currentEditAppointmentId;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Attach click handlers to edit buttons
+        function attachEditButtonHandlers() {
+            const editButtons = document.querySelectorAll('.edit-btn');
+            editButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const counselorId = this.getAttribute('data-counselor-id');
+                    const date = this.getAttribute('data-date');
+                    const time = this.getAttribute('data-time');
+                    const reason = this.getAttribute('data-reason');
+                    const counselorName = this.getAttribute('data-counselor-name');
+                    const status = this.getAttribute('data-status');
+                    
+                    openEditModal(id, counselorId, date, time, reason, counselorName, status);
+                });
+            });
+        }
+
+        async function checkConflict(date, time, appointmentId) {
+            const params = new URLSearchParams({ date: date, time: time });
+            if (appointmentId) {
+                params.append('appointmentId', appointmentId);
+            }
+            const resp = await fetch(`/student/api/check-conflict?${params.toString()}`);
+            if (!resp.ok) {
+                return { conflict: false };
+            }
+            return resp.json();
+        }
+
+        // Set minimum date for appointment request
+        function setMinimumDateForRequest() {
+            const dateInput = document.getElementById('preferredDateInput');
+            if (dateInput) {
+                // Get tomorrow's date in YYYY-MM-DD format (cannot select today or earlier)
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const year = tomorrow.getFullYear();
+                const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+                const day = String(tomorrow.getDate()).padStart(2, '0');
+                const minDate = `${year}-${month}-${day}`;
+                
+                dateInput.min = minDate;
+                // Optionally set tomorrow as default value
+                dateInput.value = minDate;
+            }
+        }
+
+        function attachRequestFormHandler() {
+            const form = document.getElementById('requestForm');
+            if (!form) return;
+            form.addEventListener('submit', async function(e) {
+                const dateInput = document.getElementById('preferredDateInput');
+                const hiddenTime = document.getElementById('preferredTimeHidden');
+                if (!dateInput || !hiddenTime) return;
+                const date = dateInput.value;
+                const time = hiddenTime.value;
+                if (!date || !time) return;
+                e.preventDefault();
+                try {
+                    const result = await checkConflict(date, time, null);
+                    if (result && result.conflict) {
+                        showConflictModal(result.message || 'You already have an appointment at this time.');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Conflict check failed', err);
+                }
+                form.submit();
+            });
+        }
+
+        // Clear slot selection styling
+        function clearSlotSelection() {
+            const container = document.getElementById('timeSlotsContainer');
+            if (!container) return;
+            document.querySelectorAll('#timeSlotsContainer button').forEach(btn => {
+                btn.classList.remove('ring', 'ring-2', 'ring-primary');
+            });
+            document.getElementById('preferredTimeHidden').value = '';
+        }
+
+        // Close request modal and clear selection
+        function closeRequestModal() {
+            clearSlotSelection();
+            document.getElementById('requestModal').classList.add('hidden');
+        }
+
+        // Fetch available slots for selected counselor and date
+        async function fetchSlotsForSelected() {
+            const counselorSelect = document.getElementById('counselorSelect');
+            const dateInput = document.getElementById('preferredDateInput');
+            const container = document.getElementById('timeSlotsContainer');
+            const hidden = document.getElementById('preferredTimeHidden');
+
+            if (!counselorSelect || !dateInput || !container) return;
+            const counselorId = counselorSelect.value;
+            const date = dateInput.value;
+            clearSlotSelection();
+            container.innerHTML = '';
+            hidden.value = '';
+
+            if (!counselorId || !date) {
+                container.innerHTML = '<p class="text-sm text-slate-500">Select counselor and date to see available times.</p>';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/student/api/slots?counselorId=${counselorId}&date=${date}`);
+                if (!resp.ok) throw new Error('Failed to fetch slots');
+                const slots = await resp.json();
+                renderSlots(slots);
+            } catch (e) {
+                console.error('Error fetching slots:', e);
+                container.innerHTML = '<p class="text-sm text-red-500">Unable to load slots.</p>';
+            }
+        }
+
+        function renderSlots(slots) {
+            const container = document.getElementById('timeSlotsContainer');
+            const hidden = document.getElementById('preferredTimeHidden');
+            container.innerHTML = '';
+
+            if (!slots || slots.length === 0) {
+                container.innerHTML = '<p class="text-sm text-slate-500">No slots available for this date.</p>';
+                return;
+            }
+
+            slots.forEach(s => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'py-2 px-3 text-sm rounded-lg border text-slate-700 bg-white hover:bg-slate-100 outline-none';
+                btn.textContent = s.time;
+                if (!s.available) {
+                    btn.disabled = true;
+                    btn.className = 'py-2 px-3 text-sm rounded-lg border text-slate-400 bg-slate-100 cursor-not-allowed outline-none';
+                } else {
+                    btn.addEventListener('click', function(e) {
+                        // clear previous selection
+                        document.querySelectorAll('#timeSlotsContainer button').forEach(b => b.classList.remove('ring', 'ring-2', 'ring-primary'));
+                        btn.classList.add('ring', 'ring-2', 'ring-primary');
+                        hidden.value = s.time;
+                        // Remove focus outline after selection
+                        e.target.blur();
+                    });
+                }
+                container.appendChild(btn);
+            });
+        }
+
+        function openRequestModal() {
+            setMinimumDateForRequest();
+            clearSlotSelection();
+            // Ensure slots are fetched after min date is set
+            setTimeout(fetchSlotsForSelected, 100);
+            document.getElementById('requestModal').classList.remove('hidden');
+        }
+
+        // Fetch slots when counselor or date change
+        document.addEventListener('DOMContentLoaded', function() {
+            const counselorSelect = document.getElementById('counselorSelect');
+            const dateInput = document.getElementById('preferredDateInput');
+            if (counselorSelect) counselorSelect.addEventListener('change', fetchSlotsForSelected);
+            if (dateInput) dateInput.addEventListener('change', fetchSlotsForSelected);
+        });
+
+        // Initialize calendar on page load and after form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                console.log('DOMContentLoaded fired');
+                const calGrid = document.getElementById('calendarGrid');
+                console.log('Calendar grid element exists:', !!calGrid);
+                
+                // Hide upcoming appointments beyond first 3
+                initializeUpcomingAppointmentsDisplay();
+                
+                initializeCalendar();
+                attachEditButtonHandlers();
+                attachRequestFormHandler();
+                attachRescheduleFormHandler();
+                setMinimumDateForRequest();
+                updateHiddenAppointmentCount();
+                console.log('Calendar initialized successfully');
+            } catch (e) {
+                console.error('Error initializing calendar:', e);
+                console.error('Stack:', e.stack);
+            }
+        });
+        
+        // Re-initialize after page load
+        window.addEventListener('load', function() {
+            try {
+                attachEditButtonHandlers();
+            } catch (e) {
+                console.error('Error attaching handlers:', e);
+            }
+        });
     </script>
 </body>
 

@@ -90,7 +90,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Initialize sample appointments
         if (student != null && counselor != null && counselor2 != null && counselor3 != null) {
-            if (appointmentRepository.findByStudentOrderByAppointmentDateTimeDesc(student).isEmpty()) {
+            if (appointmentRepository.findByStudentOrderByAppointmentDateTimeAsc(student).isEmpty()) {
                 initializeAppointments(student, counselor, counselor2, counselor3);
             } else {
                 System.out.println(LOG_PREFIX + " Sample appointments already exist; skipping.");
