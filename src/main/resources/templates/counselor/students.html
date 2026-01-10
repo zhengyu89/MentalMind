@@ -21,21 +21,23 @@
 
             <div class="p-8">
                 <!-- Search & Filters -->
-                <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <form th:action="@{/counselor/students}" method="get"
+                    class="flex flex-col md:flex-row gap-4 mb-6">
                     <div class="relative flex-1">
                         <span
                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                        <input type="text" placeholder="Search students by name or email..."
-                            class="w-full pl-10 pr-4 py-3 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-primary focus:border-primary" />
+                        <input type="text" name="search" placeholder="Search students by name or email..."
+                            class="w-full pl-10 pr-4 py-3 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg focus:ring-primary focus:border-primary"
+                            th:value="${searchQuery}" />
                     </div>
-                    <select
+                    <select name="filter"
                         class="px-4 py-3 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg">
-                        <option>All Students</option>
-                        <option>High Risk</option>
-                        <option>Active This Week</option>
-                        <option>Pending Follow-up</option>
+                        <option value="" th:selected="${filterOption == ''}">All Students</option>
+                        <option value="high" th:selected="${filterOption == 'high'}">High Risk</option>
+                        <option value="active" th:selected="${filterOption == 'active'}">Active This Week</option>
+                        <option value="followup" th:selected="${filterOption == 'followup'}">Pending Follow-up</option>
                     </select>
-                </div>
+                </form>
 
                 <!-- Students Table -->
                 <div
@@ -55,148 +57,40 @@
                                 <th
                                     class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
                                     Last Active</th>
-                                <th
-                                    class="text-left px-6 py-4 text-sm font-semibold text-text-secondary-light dark:text-text-secondary-dark">
-                                    Actions</th>
+                                
                             </tr>
                         </thead>
                         <tbody>
-                            <tr
+                            <tr th:each="student : ${students}"
                                 class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <img alt="Student" class="w-10 h-10 rounded-full"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqZ6qQjWEuRB0pTQP6JMsaDeRtzgwRT1PS8A-YD5cBDtLtfxMr5wyqh1AYBksBZAG0ObH1WD6t2E3JTBJ8Blzgk4ptVEo4wZkw8tYk1tKM2x-lKz6E_bB-cE441U1LKU8Nrx-onqFcFPiHeQAjquBDqp2V5cDY4lH8yTndnDuRLBF7T-m1hxrimGrdZB7hTIByT0_Bduh1HlMCh5RknXsoqh-cWqpxaSOuwQqT3XxkxMOnOn_PMeUug7YYbSn4R-0aacwXqoNaRw3N" />
-                                        <div>
-                                            <p class="font-semibold">Amir Syafiq bin Razak</p>
-                                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                                                amir.syafiq@student.utm.my</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <p class="font-medium">GAD-7: 18</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Dec 15,
-                                        2024</p>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="text-xs font-semibold bg-red-100 dark:bg-red-900/50 text-red-600 px-2 py-1 rounded-full">High</span>
-                                </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Today</td>
-                                <td class="px-6 py-4">
-                                    <a href="#" class="text-primary font-medium hover:underline">View Profile</a>
-                                </td>
-                            </tr>
-                            <tr
-                                class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <img alt="Student" class="w-10 h-10 rounded-full"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3LHfbcdwLaTLI60k0wic323QVott6STHg6CSNJkKYokVtKZNlh1bgP9WlQ5V-9H-gDX5o56ir1uDKWF8xxAzgpLlPUAYaQ_Hf0c8TWn9qYBckDqq14YGBNPVKQhuIuZ9juqe5tbVvsSZfCJe2HhlR77KfYbpVgK77GAHOi-8JdsgJUz6PTk0S-tWtngMbdp9_mJDLiC7UIT8eYDXhjwmry7BFHFzcgkCKP1hc2_NnjgyKVOrypdfcmFaj8HBK7EpGWW3uoveLPlw3" />
-                                        <div>
-                                            <p class="font-semibold">Ahmad Danial bin Ismail</p>
-                                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                                                ahmad.danial@student.utm.my</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <p class="font-medium">PSS-4: 8</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Dec 17,
-                                        2024</p>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 px-2 py-1 rounded-full">Moderate</span>
-                                </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Today</td>
-                                <td class="px-6 py-4">
-                                    <a href="#" class="text-primary font-medium hover:underline">View Profile</a>
-                                </td>
-                            </tr>
-                            <tr
-                                class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <img alt="Student" class="w-10 h-10 rounded-full"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyeBxRRBy6_m_akwvqwfX3lmPH2tAdOKDy7jhoG2fcWhQ32j3HCIeslVZC2rmXkqWbvw5g27nddH6CHlAbErDt_2cfKtbOmX36cTnq2mN6dwPGRzbmoVwc1YudwcNuuf5V0cjSa_afadFiIZ2hAiq54Gn35uGdD78QasZb1J-ckWB5bxC4hi4noFvkYW-F0Ib40VbIKGYCgxU4Q7q0fzR04fph1UVVRSvPa0D9DlOu65LfGN5RPIXr4PTslGuR8IwivtjUbLqMNBDo" />
-                                        <div>
-                                            <p class="font-semibold">Nurul Izzah binti Hassan</p>
-                                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                                                nurul.izzah@student.utm.my</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <p class="font-medium">GAD-7: 5</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Dec 16,
-                                        2024</p>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-600 px-2 py-1 rounded-full">Low</span>
-                                </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Yesterday
-                                </td>
-                                <td class="px-6 py-4">
-                                    <a href="#" class="text-primary font-medium hover:underline">View Profile</a>
-                                </td>
-                            </tr>
-                            <tr
-                                class="border-b border-border-light dark:border-border-dark hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center gap-3">
-                                        <img alt="Student" class="w-10 h-10 rounded-full"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3LjyXbBy_qVvL_N-8q5fgVu-haNd9fgBBFxvsRfa1tYwaQCqW2ojYGxT_TDLtJgfm207Eitb7HE5nKgu7o5Ac6xsBUXPaX7JUVpeaRnx32DBRC5s72zF8-7dRyd2VABxBzJntBUuZeYcMVK9FhIRFmeDvyw0byRktK4DL6h0Dwfh4-n3ROXGjuh1myFqOowDO7gxb-aAGgZoJuJjYZBYnyA70Ny5KUhBMvvH0ZfTHbUwEs6XF_KGEWzOxwjGZJQpxKVr4cqMvEYAo" />
-                                        <div>
-                                            <p class="font-semibold">Siti Khadijah binti Yusof</p>
-                                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                                                siti.khadijah@student.utm.my</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <p class="font-medium">PHQ-9: 12</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Dec 14,
-                                        2024</p>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 px-2 py-1 rounded-full">Moderate</span>
-                                </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">3 days ago
-                                </td>
-                                <td class="px-6 py-4">
-                                    <a href="#" class="text-primary font-medium hover:underline">View Profile</a>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div
                                             class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-green-500 flex items-center justify-center text-white font-bold">
-                                            MH</div>
+                                            <span th:text="${#strings.substring(student.name,0,1)}">S</span>
+                                        </div>
                                         <div>
-                                            <p class="font-semibold">Muhammad Hafiz bin Abdullah</p>
-                                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">
-                                                m.hafiz@student.utm.my</p>
+                                            <p class="font-semibold" th:text="${student.name}">Student Name</p>
+                                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark"
+                                                th:text="${student.email}">email@example.com</p>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <p class="font-medium">Mood: 🙂</p>
-                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Dec 17,
-                                        2024</p>
+                                    <p class="font-medium" th:text="${student.lastAssessmentLabel}">Self-Assessment: 18</p>
+                                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark"
+                                        th:text="${student.lastAssessmentDate}">Dec 15, 2024</p>
                                 </td>
                                 <td class="px-6 py-4">
                                     <span
-                                        class="text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-600 px-2 py-1 rounded-full">Low</span>
+                                        class="text-xs font-semibold px-2 py-1 rounded-full"
+                                        th:text="${student.riskLabel}"
+                                        th:classappend="${student.riskLevel} == 'HIGH' ? ' bg-red-100 dark:bg-red-900/50 text-red-600' : (${student.riskLevel} == 'MODERATE' ? ' bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600' : ' bg-green-100 dark:bg-green-900/50 text-green-600')">
+                                        High
+                                    </span>
                                 </td>
-                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark">Today</td>
-                                <td class="px-6 py-4">
-                                    <a href="#" class="text-primary font-medium hover:underline">View Profile</a>
-                                </td>
+                                <td class="px-6 py-4 text-text-secondary-light dark:text-text-secondary-dark"
+                                    th:text="${student.lastActive}">Today</td>
                             </tr>
                         </tbody>
                     </table>

@@ -457,14 +457,72 @@ public class StudentController {
                 // Get upcoming and past appointments
                 List<Appointment> upcomingAppointments = appointmentService.getStudentUpcomingAppointments(student);
                 List<Appointment> pastAppointments = appointmentService.getStudentPastAppointments(student);
+                
+                // Get all counselors
+                List<User> counselors = userRepository.findByRole("counselor");
 
                 model.addAttribute("upcomingAppointments", upcomingAppointments);
                 model.addAttribute("pastAppointments", pastAppointments);
+                model.addAttribute("counselors", counselors);
                 model.addAttribute("studentName", student.getFullName() != null ? student.getFullName() : "Student");
             }
         }
 
         return "student/appointments";
+    }
+
+    @GetMapping("/api/slots")
+    @ResponseBody
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getAvailableSlots(@RequestParam Long counselorId,
+                                                                                             @RequestParam String date) {
+        try {
+            Optional<User> counselorOpt = userRepository.findById(counselorId);
+            if (counselorOpt.isEmpty()) {
+                return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.NOT_FOUND);
+            }
+            java.time.LocalDate d = java.time.LocalDate.parse(date);
+            java.util.List<java.util.Map<String, Object>> slots = appointmentService.getAvailableSlots(counselorOpt.get(), d);
+            return new ResponseEntity<>(slots, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/api/check-conflict")
+    @ResponseBody
+    public ResponseEntity<java.util.Map<String, Object>> checkConflict(@RequestParam String date,
+                                                                        @RequestParam String time,
+                                                                        @RequestParam(required = false) Long appointmentId,
+                                                                        HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Not authenticated"), HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            Optional<User> studentOpt = userRepository.findById(userId);
+            if (studentOpt.isEmpty()) {
+                return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Student not found"), HttpStatus.NOT_FOUND);
+            }
+
+            LocalDate d = LocalDate.parse(date);
+            LocalDateTime dateTime = d.atTime(
+                    Integer.parseInt(time.split(":" )[0]),
+                    Integer.parseInt(time.split(":" )[1]));
+
+            boolean conflict = appointmentService.hasStudentConflict(studentOpt.get(), dateTime, appointmentId);
+            if (conflict) {
+                return new ResponseEntity<>(java.util.Map.of(
+                        "conflict", true,
+                        "message", "You already have a pending or approved appointment at this time."), HttpStatus.OK);
+            }
+
+            return new ResponseEntity<>(java.util.Map.of("conflict", false), HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Error checking conflict"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/appointments/request")
@@ -496,6 +554,11 @@ public class StudentController {
                         Integer.parseInt(preferredTime.split(":")[0]),
                         Integer.parseInt(preferredTime.split(":")[1]));
 
+                // Prevent double-booking across counselors at the same time
+                if (appointmentService.hasStudentConflict(student, appointmentDateTime, null)) {
+                    return "redirect:/student/appointments?error=conflict";
+                }
+
                 // Create appointment
                 Appointment appointment = appointmentService.createAppointment(
                         student, counselor, appointmentDateTime, reason != null ? reason : "");
@@ -507,6 +570,90 @@ public class StudentController {
             }
 
             return "redirect:/student/appointments?error=invalid";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/student/appointments?error=failed";
+        }
+    }
+
+    @PostMapping("/appointments/reschedule")
+    public String rescheduleAppointment(@RequestParam Long appointmentId,
+            @RequestParam String preferredDate,
+            @RequestParam String preferredTime,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null || appointmentId == null || preferredDate == null || preferredDate.isEmpty() 
+                || preferredTime == null || preferredTime.isEmpty()) {
+            return "redirect:/student/appointments?error=invalid";
+        }
+
+        try {
+            Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(appointmentId);
+            
+            if (appointmentOpt.isPresent()) {
+                Appointment appointment = appointmentOpt.get();
+                
+                // Verify the appointment belongs to the current student
+                if (!appointment.getStudent().getId().equals(userId)) {
+                    return "redirect:/student/appointments?error=unauthorized";
+                }
+                
+                // Parse new date and time
+                LocalDate date = LocalDate.parse(preferredDate);
+                LocalDateTime newAppointmentDateTime = date.atTime(
+                        Integer.parseInt(preferredTime.split(":")[0]),
+                        Integer.parseInt(preferredTime.split(":")[1]));
+
+                // Prevent double-booking across counselors at the same time (exclude this appointment id)
+                if (appointmentService.hasStudentConflict(appointment.getStudent(), newAppointmentDateTime, appointment.getId())) {
+                    return "redirect:/student/appointments?error=conflict";
+                }
+                
+                // Update appointment
+                appointment.setAppointmentDateTime(newAppointmentDateTime);
+                appointment.setUpdatedAt(LocalDateTime.now());
+                appointmentService.updateAppointment(appointment);
+                
+                return "redirect:/student/appointments?success=rescheduled";
+            }
+            
+            return "redirect:/student/appointments?error=notfound";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/student/appointments?error=failed";
+        }
+    }
+
+    @PostMapping("/appointments/delete")
+    public String deleteAppointment(@RequestParam Long appointmentId,
+            HttpSession session) {
+
+        Long userId = (Long) session.getAttribute("userId");
+
+        if (userId == null || appointmentId == null) {
+            return "redirect:/student/appointments?error=invalid";
+        }
+
+        try {
+            Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(appointmentId);
+            
+            if (appointmentOpt.isPresent()) {
+                Appointment appointment = appointmentOpt.get();
+                
+                // Verify the appointment belongs to the current student
+                if (!appointment.getStudent().getId().equals(userId)) {
+                    return "redirect:/student/appointments?error=unauthorized";
+                }
+                
+                // Delete appointment
+                appointmentService.deleteAppointment(appointmentId);
+                
+                return "redirect:/student/appointments?success=deleted";
+            }
+            
+            return "redirect:/student/appointments?error=notfound";
         } catch (Exception e) {
             e.printStackTrace();
             return "redirect:/student/appointments?error=failed";
