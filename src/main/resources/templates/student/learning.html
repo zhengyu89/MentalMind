@@ -24,7 +24,7 @@
             <!-- Modules Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" th:if="${modules != null and !modules.isEmpty()}">
                 <div th:each="module : ${modules}" 
-                    class="bg-white dark:bg-slate-900 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer group"
+                    class="bg-white dark:bg-slate-900 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer group flex flex-col"
                     th:data-module-id="${module.id}">
                     
                     <!-- Module Header with Icon -->
@@ -39,7 +39,7 @@
                     </div>
 
                     <!-- Module Content -->
-                    <div class="p-6">
+                    <div class="p-6 flex flex-col flex-1">
                         <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors" 
                             th:text="${module.title}">Module Title</h3>
                         
@@ -56,6 +56,9 @@
                             <span th:if="${progressMap.get(module.id) > 0 and progressMap.get(module.id) < 100}" class="text-xs text-indigo-600 dark:text-indigo-400 font-medium">In progress</span>
                             <span th:if="${progressMap.get(module.id) == 100}" class="text-xs text-green-600 dark:text-green-400 font-medium">Complete</span>
                         </div>
+
+                        <!-- Spacer to push button to bottom -->
+                        <div class="flex-1"></div>
 
                         <!-- Progress Bar -->
                         <div class="flex items-center gap-2 mb-4">
