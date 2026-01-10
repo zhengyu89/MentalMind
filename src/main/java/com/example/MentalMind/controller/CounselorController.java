@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +18,16 @@ import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.CounselorResponse;
 import com.example.MentalMind.model.CounselorSettings;
 import com.example.MentalMind.model.User;
+import com.example.MentalMind.model.ForumPost;
 import com.example.MentalMind.service.FeedbackService;
 import com.example.MentalMind.service.DashboardService;
 import com.example.MentalMind.service.CounselorSettingsService;
 import com.example.MentalMind.service.StudentOverviewService;
+import com.example.MentalMind.service.ForumService;
 import com.example.MentalMind.repository.CounselorResponseRepository;
 import com.example.MentalMind.repository.UserRepository;
 import org.springframework.ui.Model;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,6 +58,9 @@ public class CounselorController {
 
     @Autowired
     private StudentOverviewService studentOverviewService;
+
+    @Autowired
+    private ForumService forumService;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
@@ -540,23 +547,186 @@ public class CounselorController {
     }
 
     @GetMapping("/forum")
-    public String forum() {
+    public String forum(Model model, HttpSession session,
+                       @RequestParam(required = false) String category,
+                       @RequestParam(required = false) String sort) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/login";
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            model.addAttribute("userEmail", user.get().getEmail());
+            model.addAttribute("currentUser", user.get());
+        }
+
+        // Get approved posts (like student view)
+        List<ForumPost> posts = forumService.getApprovedPosts();
+        
+        // Filter by category if specified
+        if (category != null && !category.equals("all")) {
+            posts = posts.stream()
+                .filter(p -> p.getCategory().equalsIgnoreCase(category))
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        // Sort posts
+        if ("likes".equals(sort)) {
+            posts = posts.stream()
+                .sorted((a, b) -> Integer.compare(b.getLikeCount(), a.getLikeCount()))
+                .collect(java.util.stream.Collectors.toList());
+        } else {
+            posts = posts.stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
+        }
+        
+        // Check which posts the user has already flagged
+        if (user.isPresent()) {
+            java.util.Map<Long, Boolean> userFlaggedPosts = new java.util.HashMap<>();
+            for (ForumPost post : posts) {
+                boolean alreadyFlagged = forumService.hasUserFlaggedPost(post, user.get());
+                userFlaggedPosts.put(post.getId(), alreadyFlagged);
+            }
+            model.addAttribute("userFlaggedPosts", userFlaggedPosts);
+        }
+        
+        model.addAttribute("posts", posts);
+        model.addAttribute("selectedCategory", category != null ? category : "all");
+        model.addAttribute("sortBy", sort);
+
+        // Get moderation statistics for badge
+        model.addAttribute("pendingCount", forumService.countPendingPosts());
+        model.addAttribute("flaggedCount", forumService.countFlaggedPosts());
+        model.addAttribute("moderationCount", forumService.countPendingPosts() + forumService.countFlaggedPosts());
+
         return "counselor/forum";
     }
 
-    @PostMapping("/forum/moderate")
-    public String moderatePost(@RequestParam String postId,
-            @RequestParam String action,
-            @RequestParam(required = false) String moderationNote,
-            HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || postId == null || postId.isEmpty() ||
-                action == null || (!action.equals("approve") && !action.equals("reject") && !action.equals("flag"))) {
-            return "redirect:/counselor/forum?error=invalid";
+    @GetMapping("/forum/moderation")
+    public String forumModeration(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/login";
         }
-        session.setAttribute("lastModerationAction", action);
-        session.setAttribute("moderatedPostId", postId);
-        session.setAttribute("moderationNote", moderationNote != null ? moderationNote : "");
-        return "redirect:/counselor/forum?success=moderated";
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            model.addAttribute("userEmail", user.get().getEmail());
+        }
+
+        // Combine flagged and pending posts for moderation view
+        List<ForumPost> flaggedPosts = forumService.getFlaggedPosts();
+        List<ForumPost> pendingPosts = forumService.getPostsForModeration();
+        List<ForumPost> allModerationPosts = new java.util.ArrayList<>();
+        allModerationPosts.addAll(flaggedPosts);
+        allModerationPosts.addAll(pendingPosts);
+        
+        model.addAttribute("moderationPosts", allModerationPosts);
+
+        // Get statistics
+        model.addAttribute("pendingCount", forumService.countPendingPosts());
+        model.addAttribute("flaggedCount", forumService.countFlaggedPosts());
+
+        return "counselor/forum-moderation";
+    }
+
+    @GetMapping("/forum/{postId}")
+    public String forumDetail(@PathVariable Long postId, Model model, HttpSession session) {
+        Optional<ForumPost> post = forumService.getPostById(postId);
+        if (post.isEmpty()) {
+            return "redirect:/counselor/forum";
+        }
+
+        model.addAttribute("post", post.get());
+        
+        // Add flag information if post is flagged
+        if (post.get().getFlagCount() > 0) {
+            model.addAttribute("postFlags", forumService.getPostFlags(postId));
+        }
+        
+        // Check if current user already flagged this post
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId != null) {
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                boolean alreadyFlagged = forumService.hasUserFlaggedPost(post.get(), user.get());
+                model.addAttribute("alreadyFlagged", alreadyFlagged);
+            }
+        }
+        
+        return "counselor/forum-detail";
+    }
+
+    @PostMapping("/forum/moderate")
+    @ResponseBody
+    public Map<String, Object> moderatePost(@RequestParam Long postId,
+                                            @RequestParam String action,
+                                            @RequestParam(required = false) String moderationNote,
+                                            HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        try {
+            ForumPost post;
+            switch (action.toLowerCase()) {
+                case "approve":
+                    post = forumService.approvePost(postId, moderationNote);
+                    return Map.of("status", "success", "message", "Post approved successfully");
+                case "reject":
+                    post = forumService.rejectPost(postId, moderationNote);
+                    return Map.of("status", "success", "message", "Post rejected successfully");
+                case "flag":
+                    User counselor = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("Counselor not found"));
+                    post = forumService.flagPost(postId, counselor, moderationNote);
+                    return Map.of("status", "success", "message", "Post flagged successfully");
+                case "pending":
+                    post = forumService.setPendingPost(postId, moderationNote);
+                    return Map.of("status", "success", "message", "Post set to pending review");
+                default:
+                    return Map.of("status", "error", "message", "Invalid action");
+            }
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @PostMapping("/forum/delete")
+    @ResponseBody
+    public Map<String, Object> deletePost(@RequestParam Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        try {
+            forumService.deletePost(postId);
+            return Map.of("status", "success", "message", "Post deleted successfully");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @PostMapping("/forum/remove-flags")
+    @ResponseBody
+    public Map<String, Object> removeFlags(@RequestParam Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        try {
+            forumService.clearFlags(postId);
+            return Map.of("status", "success", "message", "Flags removed successfully");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
     }
 
     @GetMapping("/reports")

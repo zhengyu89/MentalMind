@@ -49,6 +49,18 @@
         .material-symbols-outlined.filled {
             font-variation-settings: 'FILL' 1;
         }
+
+        /* Small like pop animation */
+        @keyframes like-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+
+        .like-pop {
+            animation: like-pop 250ms ease-in-out;
+            transform-origin: center;
+        }
     </style>
 </head>
 

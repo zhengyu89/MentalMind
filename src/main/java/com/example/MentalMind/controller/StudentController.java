@@ -7,6 +7,8 @@ import com.example.MentalMind.model.User;
 import com.example.MentalMind.model.StudentSettings;
 import com.example.MentalMind.model.LearningModule;
 import com.example.MentalMind.model.LearningMaterial;
+import com.example.MentalMind.model.ForumPost;
+import com.example.MentalMind.model.ForumComment;
 import com.example.MentalMind.service.MoodService;
 import com.example.MentalMind.service.ResourceService;
 import com.example.MentalMind.service.SelfAssessmentService;
@@ -14,9 +16,12 @@ import com.example.MentalMind.service.FeedbackService;
 import com.example.MentalMind.service.AppointmentService;
 import com.example.MentalMind.service.StudentSettingsService;
 import com.example.MentalMind.service.LearningProgressService;
+import com.example.MentalMind.service.ForumService;
 import com.example.MentalMind.repository.UserRepository;
 import com.example.MentalMind.repository.LearningModuleRepository;
 import com.example.MentalMind.repository.LearningMaterialRepository;
+import com.example.MentalMind.repository.ForumPostRepository;
+import com.example.MentalMind.repository.ForumPostLikeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -72,6 +77,15 @@ public class StudentController {
 
     @Autowired
     private LearningProgressService learningProgressService;
+
+    @Autowired
+    private ForumService forumService;
+
+    @Autowired
+    private ForumPostRepository forumPostRepository;
+
+    @Autowired
+    private ForumPostLikeRepository forumPostLikeRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
@@ -425,24 +439,279 @@ public class StudentController {
     }
 
     @GetMapping("/forum")
-    public String forum() {
+    public String forum(Model model, HttpSession session,
+                       @RequestParam(required = false) String category,
+                       @RequestParam(defaultValue = "time") String sort) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/login";
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
+
+        // Get posts by category, user's own posts, or all approved posts
+        List<ForumPost> posts;
+        if ("myposts".equalsIgnoreCase(category) && user.isPresent()) {
+            // Show only user's own approved posts (pending posts are shown separately above)
+            posts = forumPostRepository.findByUserAndStatus(user.get(), "APPROVED");
+        } else if (category != null && !category.equalsIgnoreCase("all")) {
+            posts = forumService.getPostsByCategory(category);
+        } else {
+            posts = forumService.getApprovedPosts();
+        }
+
+        // Sort posts based on sort parameter
+        if ("likes".equalsIgnoreCase(sort)) {
+            posts.sort((p1, p2) -> Integer.compare(p2.getLikeCount(), p1.getLikeCount()));
+        } else {
+            // Default: sort by time (newest first)
+            posts.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
+        }
+
+        // Build a set of liked post IDs for current user
+        if (user.isPresent()) {
+            var likes = forumPostLikeRepository.findByUser(user.get());
+            java.util.Set<Long> likedPostIds = likes.stream()
+                .map(like -> like.getPost().getId())
+                .collect(java.util.stream.Collectors.toSet());
+            model.addAttribute("likedPostIds", likedPostIds);
+
+            // Build a map of user's flagged posts
+            java.util.Map<Long, Boolean> userFlaggedPosts = new java.util.HashMap<>();
+            for (ForumPost post : posts) {
+                userFlaggedPosts.put(post.getId(), forumService.hasUserFlaggedPost(post, user.get()));
+            }
+            model.addAttribute("userFlaggedPosts", userFlaggedPosts);
+
+            // Add current user ID and owned posts for post actions
+            model.addAttribute("currentUserId", userId);
+            java.util.Set<Long> userOwnedPostIds = new java.util.HashSet<>();
+            for (ForumPost post : posts) {
+                if (post.getUser() != null && post.getUser().getId() != null && 
+                    post.getUser().getId().equals(user.get().getId())) {
+                    userOwnedPostIds.add(post.getId());
+                }
+            }
+            model.addAttribute("userOwnedPostIds", userOwnedPostIds);
+
+            // Get user's own pending posts
+            List<ForumPost> pendingPosts = forumPostRepository.findByUserAndStatus(user.get(), "PENDING");
+            pendingPosts.sort((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()));
+            model.addAttribute("pendingPosts", pendingPosts);
+        }
+
+        model.addAttribute("posts", posts);
+        model.addAttribute("selectedCategory", category != null ? category : "all");
+        model.addAttribute("sortBy", sort);
+
         return "student/forum";
+    }
+
+    @GetMapping("/forum/{postId}")
+    public String forumPostDetail(Model model, HttpSession session, @PathVariable Long postId) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/login";
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
+
+        // Get the specific post
+        Optional<ForumPost> post = forumPostRepository.findById(postId);
+        if (post.isEmpty() || !"APPROVED".equals(post.get().getStatus())) {
+            return "redirect:/student/forum?error=post_not_found";
+        }
+
+        // Sort comments by newest first
+        post.get().getComments().sort((c1, c2) -> c2.getCreatedAt().compareTo(c1.getCreatedAt()));
+
+        model.addAttribute("post", post.get());
+
+        // Liked flag for current user on detail page
+        if (user.isPresent()) {
+            boolean liked = forumPostLikeRepository.existsByPostAndUser(post.get(), user.get());
+            model.addAttribute("likedByCurrentUser", liked);
+
+            // Check if user has already flagged this post
+            boolean alreadyFlagged = forumService.hasUserFlaggedPost(post.get(), user.get());
+            model.addAttribute("alreadyFlagged", alreadyFlagged);
+
+            // Check if this is user's own post
+            boolean isOwnPost = post.get().getUser() != null && 
+                                post.get().getUser().getId() != null &&
+                                post.get().getUser().getId().equals(user.get().getId());
+            model.addAttribute("isOwnPost", isOwnPost);
+            model.addAttribute("currentUserId", userId);
+        }
+        return "student/forum-detail";
     }
 
     @PostMapping("/forum/post")
     public String createForumPost(@RequestParam String title,
             @RequestParam String content,
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "false") String anonymous,
+            @RequestParam(defaultValue = "false") boolean anonymous,
             HttpSession session) {
-        if (session.getAttribute("isAuthenticated") == null || title == null || title.isEmpty() ||
-                content == null || content.isEmpty()) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null || title == null || title.trim().isEmpty() ||
+                content == null || content.trim().isEmpty()) {
             return "redirect:/student/forum?error=invalid";
         }
-        session.setAttribute("lastPost", title);
-        session.setAttribute("postCategory", category != null ? category : "General");
-        session.setAttribute("postAnonymous", anonymous);
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return "redirect:/student/forum?error=user_not_found";
+        }
+
+        // Default category to "general" if not provided
+        String postCategory = (category != null && !category.trim().isEmpty()) ? category.toLowerCase() : "general";
+
+        forumService.createPost(user.get(), title.trim(), content.trim(), postCategory, anonymous);
         return "redirect:/student/forum?success=posted";
+    }
+
+    @PostMapping("/forum/like/{postId}")
+    @ResponseBody
+    public Map<String, Object> likePost(@PathVariable Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        try {
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isEmpty()) {
+                return Map.of("status", "error", "message", "User not found");
+            }
+            var result = forumService.toggleLike(postId, user.get());
+            return Map.of(
+                "status", "success",
+                "likeCount", result.getLikeCount(),
+                "liked", result.isLiked()
+            );
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @PostMapping("/forum/comment/{postId}")
+    @ResponseBody
+    public Map<String, Object> addComment(@PathVariable Long postId,
+                                          @RequestParam String content,
+                                          @RequestParam(defaultValue = "true") boolean anonymous,
+                                          HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return Map.of("status", "error", "message", "User not found");
+        }
+
+        try {
+            ForumComment comment = forumService.addComment(postId, user.get(), content.trim(), anonymous);
+            return Map.of(
+                    "status", "success",
+                    "comment", Map.of(
+                            "id", comment.getId(),
+                            "content", comment.getContent(),
+                            "authorName", comment.getAuthorDisplayName(),
+                            "timeAgo", comment.getTimeAgo()
+                    )
+            );
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @PostMapping("/forum/flag/{postId}")
+    @ResponseBody
+    public Map<String, Object> flagPost(@PathVariable Long postId,
+                                        @RequestParam String reason,
+                                        HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        try {
+            User student = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            forumService.flagPost(postId, student, reason);
+            return Map.of("status", "success", "message", "Post flagged for moderation");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @PostMapping("/forum/moderate")
+    @ResponseBody
+    public Map<String, Object> moderatePost(@RequestParam Long postId,
+                                            @RequestParam String action,
+                                            @RequestParam(required = false) String moderationNote,
+                                            HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        try {
+            switch (action.toLowerCase()) {
+                case "flag":
+                    User student = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("Student not found"));
+                    forumService.flagPost(postId, student, moderationNote);
+                    return Map.of("status", "success", "message", "Post flagged for moderation");
+                default:
+                    return Map.of("status", "error", "message", "Invalid action");
+            }
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", e.getMessage());
+        }
+    }
+
+    @PostMapping("/forum/delete")
+    @ResponseBody
+    public Map<String, Object> deletePost(@RequestParam Long postId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return Map.of("status", "error", "message", "Not authenticated");
+        }
+
+        try {
+            Optional<User> user = userRepository.findById(userId);
+            Optional<ForumPost> post = forumPostRepository.findById(postId);
+            
+            if (user.isEmpty()) {
+                return Map.of("status", "error", "message", "User not found");
+            }
+            
+            if (post.isEmpty()) {
+                return Map.of("status", "error", "message", "Post not found");
+            }
+            
+            // Check if user is the owner of the post
+            if (!post.get().getUser().getId().equals(user.get().getId())) {
+                return Map.of("status", "error", "message", "You can only delete your own posts");
+            }
+            
+            forumPostRepository.delete(post.get());
+            return Map.of("status", "success", "message", "Post deleted successfully");
+        } catch (Exception e) {
+            return Map.of("status", "error", "message", "Failed to delete post: " + e.getMessage());
+        }
     }
 
     @GetMapping("/appointments")

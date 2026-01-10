@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Forum Moderation - MindWell Counselor')}">
+</head>
+
+<body
+    class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('forum')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header
+                class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <a th:href="@{/counselor/forum}" 
+                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                        </a>
+                        <div>
+                            <h2 class="text-2xl font-bold">Forum Moderation</h2>
+                            <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Review flagged and pending posts</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-8">
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-surface-light dark:bg-surface-dark rounded-xl p-4 border border-border-light dark:border-border-dark">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Flagged Posts</p>
+                                <p class="text-3xl font-bold text-red-500" th:text="${flaggedCount}">0</p>
+                            </div>
+                            <span class="material-symbols-outlined text-5xl text-red-200">flag</span>
+                        </div>
+                    </div>
+                    <div class="bg-surface-light dark:bg-surface-dark rounded-xl p-4 border border-border-light dark:border-border-dark">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Pending Review</p>
+                                <p class="text-3xl font-bold text-amber-500" th:text="${pendingCount}">0</p>
+                            </div>
+                            <span class="material-symbols-outlined text-5xl text-amber-200">pending_actions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="flex gap-2 mb-6">
+                    <button id="flaggedTab" class="px-4 py-2 bg-red-500 text-white rounded-lg font-medium flex items-center gap-2 transition-colors"
+                        onclick="switchTab('flagged')">
+                        <span class="material-symbols-outlined text-lg">flag</span>
+                        Flagged Posts <span class="bg-white/20 px-2 py-0.5 rounded-full text-sm" th:text="${flaggedCount}">0</span>
+                    </button>
+                    <button id="pendingTab" class="px-4 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+                        onclick="switchTab('pending')">
+                        <span class="material-symbols-outlined text-lg">pending_actions</span>
+                        Pending <span class="px-2 py-0.5 rounded-full text-sm" th:text="${pendingCount}">0</span>
+                    </button>
+                </div>
+
+                <!-- Moderation Posts -->
+                <div id="flaggedPosts" class="space-y-4">
+                    <!-- Sort Controls for Flagged Posts -->
+                    <div class="flex gap-2 mb-4">
+                        <button class="px-3 py-1.5 text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors flex items-center gap-1"
+                            id="sortCountBtn"
+                            onclick="sortFlaggedPosts('count')">
+                            <span class="material-symbols-outlined text-sm">trending_up</span>
+                            <span>Sort by Flags</span>
+                            <span class="material-symbols-outlined text-sm" id="countSortIcon" style="display: none;">arrow_upward</span>
+                        </button>
+                        <button class="px-3 py-1.5 text-sm bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors flex items-center gap-1"
+                            id="sortTimeBtn"
+                            onclick="sortFlaggedPosts('time')">
+                            <span class="material-symbols-outlined text-sm">schedule</span>
+                            <span>Sort by Time</span>
+                            <span class="material-symbols-outlined text-sm" id="timeSortIcon" style="display: none;">arrow_upward</span>
+                        </button>
+                    </div>
+                    
+                    <div th:if="${moderationPosts.isEmpty()}" class="text-center py-12">
+                        <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">check_circle</span>
+                        <p class="text-slate-500 text-lg">No flagged posts to review</p>
+                    </div>
+
+                    <div th:each="post : ${moderationPosts}" 
+                        th:if="${post.flagCount > 0}"
+                        th:attr="data-post-id=${post.id},data-flag-count=${post.flagCount},data-time=${post.createdAt}"
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border-2 border-red-200 dark:border-red-900">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-red-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                <span th:text="${post.authorDisplayName.charAt(0)}">A</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="font-semibold" th:text="${post.authorDisplayName}">User</span>
+                                    <span class="text-xs text-slate-400" th:text="'• ' + ${post.timeAgo}">• 2h ago</span>
+                                </div>
+                                <h4 class="font-semibold mb-2" th:text="${post.title}">Post Title</h4>
+                                <p class="text-text-secondary-light dark:text-text-secondary-dark mb-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg line-clamp-3"
+                                    th:text="${post.content}">Post content</p>
+                                <a th:if="${#strings.length(post.content) > 200}"
+                                   th:href="@{'/counselor/forum/' + ${post.id}}"
+                                   class="inline-flex items-center text-primary hover:text-indigo-700 text-sm font-medium mb-4">
+                                    Show more
+                                    <span class="material-symbols-outlined text-sm ml-1">chevron_right</span>
+                                </a>
+                                <div class="mb-4 text-sm text-red-700 dark:text-red-200 bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
+                                    <strong><span class="material-symbols-outlined text-sm align-text-bottom">flag</span> Flagged</strong> by <span class="font-semibold" th:text="${post.flagCount}">0</span> user(s)
+                                </div>
+                                <div class="flex gap-3">
+                                    <button class="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                                        th:onclick="|viewFullPost(${post.id})|">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Posts -->
+                <div id="pendingPosts" class="space-y-4 hidden">
+                    <div th:if="${moderationPosts.isEmpty()}" class="text-center py-12">
+                        <span class="material-symbols-outlined text-6xl text-slate-300 mb-4">done_all</span>
+                        <p class="text-slate-500 text-lg">All posts are reviewed</p>
+                    </div>
+
+                    <div th:each="post : ${moderationPosts}" 
+                        th:if="${post.status == 'PENDING'}"
+                        th:attr="data-post-id=${post.id}"
+                        class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border-2 border-amber-200 dark:border-amber-900">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                <span th:text="${post.authorDisplayName.charAt(0)}">A</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="font-semibold" th:text="${post.authorDisplayName}">User</span>
+                                    <span class="text-xs text-slate-400" th:text="'• ' + ${post.timeAgo}">• 2h ago</span>
+                                </div>
+                                <h4 class="font-semibold mb-2" th:text="${post.title}">Post Title</h4>
+                                <p class="text-text-secondary-light dark:text-text-secondary-dark mb-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg line-clamp-3"
+                                    th:text="${post.content}">Post content</p>
+                                <a th:if="${#strings.length(post.content) > 200}"
+                                   th:href="@{'/counselor/forum/' + ${post.id}}"
+                                   class="inline-flex items-center text-primary hover:text-indigo-700 text-sm font-medium mb-4">
+                                    Show more
+                                    <span class="material-symbols-outlined text-sm ml-1">chevron_right</span>
+                                </a>
+                                <div class="flex gap-3">
+                                    <button class="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                                        th:onclick="|viewFullPost(${post.id})|">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Remove Flags Confirmation Modal -->
+    <div id="removeFlagsModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-500">flag</span>
+                    Remove Flags
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Are you sure you want to remove all flags from this post? The post will return to the forum.
+                </p>
+                <input type="hidden" id="removeFlagsPostId" />
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitRemoveFlags()">
+                        Remove Flags
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeRemoveFlagsModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">warning</span>
+                    Confirm Delete
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Are you sure you want to permanently delete this post? This action cannot be undone.
+                </p>
+                <input type="hidden" id="deletePostId" />
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitDelete()">
+                        Delete Post
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeDeleteModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span id="toastMessage">Action completed!</span>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // Hide all tabs
+            document.getElementById('flaggedPosts').classList.add('hidden');
+            document.getElementById('pendingPosts').classList.add('hidden');
+
+            // Remove active styling from buttons and restore hover classes
+            document.getElementById('flaggedTab').classList.remove('bg-red-500', 'text-white');
+            document.getElementById('pendingTab').classList.remove('bg-amber-500', 'text-white');
+            document.getElementById('pendingTab').classList.add('hover:bg-slate-50', 'dark:hover:bg-slate-800', 'border', 'border-border-light', 'dark:border-border-dark', 'bg-surface-light', 'dark:bg-surface-dark');
+
+            // Show selected tab and highlight button
+            switch(tab) {
+                case 'flagged':
+                    document.getElementById('flaggedPosts').classList.remove('hidden');
+                    document.getElementById('flaggedTab').classList.add('bg-red-500', 'text-white');
+                    break;
+                case 'pending':
+                    document.getElementById('pendingPosts').classList.remove('hidden');
+                    document.getElementById('pendingTab').classList.remove('hover:bg-slate-50', 'dark:hover:bg-slate-800', 'border', 'border-border-light', 'dark:border-border-dark', 'bg-surface-light', 'dark:bg-surface-dark');
+                    document.getElementById('pendingTab').classList.add('bg-amber-500', 'text-white');
+                    break;
+            }
+        }
+
+        function moderatePost(postId, action) {
+            const note = action === 'reject' ? prompt('Reason for removal (optional):') : null;
+            
+            fetch(`/counselor/forum/moderate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}&action=${action}${note ? '&moderationNote=' + encodeURIComponent(note) : ''}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove the post element from view
+                    const postEl = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postEl) {
+                        postEl.style.opacity = '0.5';
+                        setTimeout(() => {
+                            postEl.style.display = 'none';
+                        }, 300);
+                    }
+                    showToast(data.message);
+                    // Refresh page after 1.5s to update counts
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    alert(data.message || 'Error processing request');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to process request');
+            });
+        }
+
+        function viewFullPost(postId) {
+            window.location.href = `/counselor/forum/${postId}`;
+        }
+
+        function removeFlags(postId) {
+            document.getElementById('removeFlagsPostId').value = postId;
+            document.getElementById('removeFlagsModal').classList.remove('hidden');
+        }
+
+        function closeRemoveFlagsModal() {
+            document.getElementById('removeFlagsModal').classList.add('hidden');
+        }
+
+        function submitRemoveFlags() {
+            const postId = document.getElementById('removeFlagsPostId').value;
+            closeRemoveFlagsModal();
+
+            fetch(`/counselor/forum/remove-flags`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message);
+                    // Remove the post element from view
+                    const postEl = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postEl) {
+                        postEl.style.opacity = '0.5';
+                        setTimeout(() => {
+                            postEl.style.display = 'none';
+                        }, 300);
+                    }
+                    // Refresh after 1s to update counts
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert(data.message || 'Error removing flags');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to remove flags');
+            });
+        }
+
+        function confirmDelete(postId) {
+            document.getElementById('deletePostId').value = postId;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        function submitDelete() {
+            const postId = document.getElementById('deletePostId').value;
+            closeDeleteModal();
+
+            fetch(`/counselor/forum/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message);
+                    // Remove the post element from view
+                    const postEl = document.querySelector(`[data-post-id="${postId}"]`);
+                    if (postEl) {
+                        postEl.style.opacity = '0.5';
+                        setTimeout(() => {
+                            postEl.style.display = 'none';
+                        }, 300);
+                    }
+                    // Refresh after 1s to update counts
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert(data.message || 'Error deleting post');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to delete post');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('successToast');
+            const msg = document.getElementById('toastMessage');
+            msg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function sortFlaggedPosts(sortBy) {
+            const container = document.getElementById('flaggedPosts');
+            const posts = Array.from(container.querySelectorAll('[data-post-id]'));
+            
+            // Toggle sort direction
+            let isAscending = true;
+            const currentBtn = sortBy === 'count' ? document.getElementById('sortCountBtn') : document.getElementById('sortTimeBtn');
+            const icon = sortBy === 'count' ? document.getElementById('countSortIcon') : document.getElementById('timeSortIcon');
+            
+            // Check if we're already sorting by this field
+            if (currentBtn.dataset.sortActive === 'true') {
+                isAscending = currentBtn.dataset.ascending === 'true' ? false : true;
+            }
+            
+            // Update all button states
+            document.getElementById('sortCountBtn').dataset.sortActive = 'false';
+            document.getElementById('sortCountBtn').dataset.ascending = 'true';
+            document.getElementById('sortCountBtn').querySelector('[id="countSortIcon"]').style.display = 'none';
+            
+            document.getElementById('sortTimeBtn').dataset.sortActive = 'false';
+            document.getElementById('sortTimeBtn').dataset.ascending = 'true';
+            document.getElementById('sortTimeBtn').querySelector('[id="timeSortIcon"]').style.display = 'none';
+            
+            // Set active button state
+            currentBtn.dataset.sortActive = 'true';
+            currentBtn.dataset.ascending = isAscending.toString();
+            icon.style.display = 'inline';
+            icon.textContent = isAscending ? 'arrow_downward' : 'arrow_upward';
+            
+            if (sortBy === 'count') {
+                // Sort by flag count
+                posts.sort((a, b) => {
+                    const countA = parseInt(a.getAttribute('data-flag-count') || 0);
+                    const countB = parseInt(b.getAttribute('data-flag-count') || 0);
+                    return isAscending ? countA - countB : countB - countA;
+                });
+            } else if (sortBy === 'time') {
+                // Sort by time
+                posts.sort((a, b) => {
+                    const timeA = new Date(a.getAttribute('data-time') || 0);
+                    const timeB = new Date(b.getAttribute('data-time') || 0);
+                    return isAscending ? timeA - timeB : timeB - timeA;
+                });
+            }
+            
+            // Re-order the posts in the DOM
+            posts.forEach(post => {
+                container.appendChild(post);
+            });
+        }
+    </script>
+</body>
+
+</html>
