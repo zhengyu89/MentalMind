@@ -36,7 +36,9 @@
                     <button
                         class="filter-btn px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
                         onclick="setFilter('guide', this)">Guides</button>
-                    <button id="bookmarksBtn" class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800" onclick="showBookmarksModal()">My Bookmarks</button>
+                    <button id="bookmarksBtn"
+                        class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
+                        onclick="showBookmarksModal()">My Bookmarks</button>
                 </div>
             </div>
 
@@ -72,7 +74,8 @@
     <!-- Bookmarks Modal -->
     <div id="bookmarksModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-900">
+            <div
+                class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-900">
                 <h3 class="text-xl font-bold text-slate-900 dark:text-white">My Bookmarks</h3>
                 <button onclick="closeBookmarksModal()" class="text-slate-400 hover:text-slate-600">
                     <span class="material-symbols-outlined">close</span>
@@ -98,8 +101,15 @@
         let currentOpenResourceId = null;
 
         // Load resources on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadResources();
+        document.addEventListener('DOMContentLoaded', function () {
+            loadResources().then(() => {
+                // Check if we should auto-open a specific resource
+                const urlParams = new URLSearchParams(window.location.search);
+                const resourceId = urlParams.get('resourceId');
+                if (resourceId) {
+                    openResource(parseInt(resourceId));
+                }
+            });
             loadBookmarks();
         });
 
@@ -274,7 +284,7 @@
             const coverClass = coverImageUrl
                 ? 'h-40 flex items-center justify-center relative'
                 : `h-40 bg-gradient-to-br from-${resource.gradientFrom} to-${resource.gradientTo} flex items-center justify-center`;
-            
+
             const playButtonOverlay = resource.type === 'video' && coverImageUrl
                 ? '<div class="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition"><span class="material-symbols-outlined text-white text-6xl">play_circle</span></div>'
                 : '';
@@ -324,9 +334,9 @@
 
                 currentOpenResourceId = resourceId;
                 document.getElementById('modalTitle').textContent = resource.title;
-                
+
                 let modalContent = '';
-                
+
                 // For videos, extract YouTube ID and embed the player
                 if (resource.type === 'video') {
                     const youtubeId = extractYouTubeId(resource.content);
@@ -351,7 +361,7 @@
                 } else {
                     modalContent = resource.content;
                 }
-                
+
                 document.getElementById('modalContent').innerHTML = modalContent + createBookmarkButton(resource);
                 document.getElementById('resourceModal').classList.remove('hidden');
             } catch (error) {

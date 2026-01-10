@@ -115,7 +115,7 @@ public class StudentController {
     @GetMapping("/learning")
     public String learning(Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-        
+
         if (userId != null) {
             // Get user info
             Optional<User> user = userRepository.findById(userId);
@@ -124,27 +124,27 @@ public class StudentController {
                 StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
                 model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
             }
-            
+
             // Get all active learning modules
             List<LearningModule> modules = learningModuleRepository.findByIsActiveTrue();
             model.addAttribute("modules", modules);
-            
+
             // Get progress for all modules
             Map<Long, Integer> progressMap = learningProgressService.getAllModulesProgress(userId, modules);
             model.addAttribute("progressMap", progressMap);
         }
-        
+
         return "student/learning";
     }
 
     @GetMapping("/learning/module/{moduleId}")
     public String viewModule(@PathVariable Long moduleId, Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-        
+
         if (userId == null) {
             return "redirect:/login";
         }
-        
+
         // Get user info
         Optional<User> user = userRepository.findById(userId);
         if (user.isPresent()) {
@@ -152,32 +152,33 @@ public class StudentController {
             StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
             model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
         }
-        
+
         // Get the module
         Optional<LearningModule> moduleOpt = learningModuleRepository.findById(moduleId);
         if (moduleOpt.isEmpty() || !moduleOpt.get().getIsActive()) {
             return "redirect:/student/learning";
         }
-        
+
         LearningModule module = moduleOpt.get();
         model.addAttribute("module", module);
-        
+
         // Filter only active materials
         List<LearningMaterial> activeMaterials = module.getMaterials().stream()
-            .filter(m -> m.getIsActive())
-            .toList();
+                .filter(m -> m.getIsActive())
+                .toList();
         model.addAttribute("materials", activeMaterials);
-        
+
         // Get completed material IDs for this student and module
-        java.util.Set<Long> completedMaterialIds = learningProgressService.getCompletedMaterialIdsForModule(userId, moduleId);
+        java.util.Set<Long> completedMaterialIds = learningProgressService.getCompletedMaterialIdsForModule(userId,
+                moduleId);
         model.addAttribute("completedMaterialIds", completedMaterialIds);
-        
+
         // Calculate progress percentage
         int progressPercentage = learningProgressService.getModuleProgressPercentage(userId, module);
         model.addAttribute("progressPercentage", progressPercentage);
         model.addAttribute("completedCount", completedMaterialIds.size());
         model.addAttribute("totalCount", activeMaterials.size());
-        
+
         return "student/module-details";
     }
 
@@ -185,11 +186,11 @@ public class StudentController {
     @ResponseBody
     public ResponseEntity<?> markMaterialComplete(@PathVariable Long materialId, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-        
+
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
-        
+
         try {
             learningProgressService.markAsCompleted(userId, materialId);
             return ResponseEntity.ok(Map.of("success", true, "message", "Material marked as completed"));
@@ -202,11 +203,11 @@ public class StudentController {
     @ResponseBody
     public ResponseEntity<?> markMaterialIncomplete(@PathVariable Long materialId, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-        
+
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Not authenticated"));
         }
-        
+
         try {
             learningProgressService.markAsIncomplete(userId, materialId);
             return ResponseEntity.ok(Map.of("success", true, "message", "Material marked as incomplete"));
@@ -341,7 +342,8 @@ public class StudentController {
             return temp;
         }
         // Convert persistent bookmarks to a simple map representation for the client
-        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService.getUserBookmarks(userId);
+        java.util.List<com.example.MentalMind.model.UserResourceBookmark> bookmarks = resourceService
+                .getUserBookmarks(userId);
         java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
         for (com.example.MentalMind.model.UserResourceBookmark b : bookmarks) {
             java.util.Map<String, Object> m = new java.util.HashMap<>();
@@ -357,8 +359,8 @@ public class StudentController {
     @PostMapping("/api/bookmarks")
     @ResponseBody
     public Map<String, String> addBookmark(@RequestParam Long resourceId,
-                                          @RequestParam String bookmarkType,
-                                          HttpSession session) {
+            @RequestParam String bookmarkType,
+            HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
             // store bookmark in session for unauthenticated users
@@ -406,8 +408,10 @@ public class StudentController {
     public Map<String, String> removeBookmark(@RequestParam Long resourceId, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session.getAttribute("tempBookmarks");
-            if (temp == null) return Map.of("status", "error", "message", "No bookmarks in session");
+            java.util.List<java.util.Map<String, Object>> temp = (java.util.List<java.util.Map<String, Object>>) session
+                    .getAttribute("tempBookmarks");
+            if (temp == null)
+                return Map.of("status", "error", "message", "No bookmarks in session");
             boolean removed = temp.removeIf(m -> ((Number) m.getOrDefault("resourceId", -1)).longValue() == resourceId);
             session.setAttribute("tempBookmarks", temp);
             if (removed)
@@ -457,7 +461,7 @@ public class StudentController {
                 // Get upcoming and past appointments
                 List<Appointment> upcomingAppointments = appointmentService.getStudentUpcomingAppointments(student);
                 List<Appointment> pastAppointments = appointmentService.getStudentPastAppointments(student);
-                
+
                 // Get all counselors
                 List<User> counselors = userRepository.findByRole("counselor");
 
@@ -473,15 +477,17 @@ public class StudentController {
 
     @GetMapping("/api/slots")
     @ResponseBody
-    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getAvailableSlots(@RequestParam Long counselorId,
-                                                                                             @RequestParam String date) {
+    public ResponseEntity<java.util.List<java.util.Map<String, Object>>> getAvailableSlots(
+            @RequestParam Long counselorId,
+            @RequestParam String date) {
         try {
             Optional<User> counselorOpt = userRepository.findById(counselorId);
             if (counselorOpt.isEmpty()) {
                 return new ResponseEntity<>(java.util.Collections.emptyList(), HttpStatus.NOT_FOUND);
             }
             java.time.LocalDate d = java.time.LocalDate.parse(date);
-            java.util.List<java.util.Map<String, Object>> slots = appointmentService.getAvailableSlots(counselorOpt.get(), d);
+            java.util.List<java.util.Map<String, Object>> slots = appointmentService
+                    .getAvailableSlots(counselorOpt.get(), d);
             return new ResponseEntity<>(slots, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -492,24 +498,26 @@ public class StudentController {
     @GetMapping("/api/check-conflict")
     @ResponseBody
     public ResponseEntity<java.util.Map<String, Object>> checkConflict(@RequestParam String date,
-                                                                        @RequestParam String time,
-                                                                        @RequestParam(required = false) Long appointmentId,
-                                                                        HttpSession session) {
+            @RequestParam String time,
+            @RequestParam(required = false) Long appointmentId,
+            HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
-            return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Not authenticated"), HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Not authenticated"),
+                    HttpStatus.UNAUTHORIZED);
         }
 
         try {
             Optional<User> studentOpt = userRepository.findById(userId);
             if (studentOpt.isEmpty()) {
-                return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Student not found"), HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Student not found"),
+                        HttpStatus.NOT_FOUND);
             }
 
             LocalDate d = LocalDate.parse(date);
             LocalDateTime dateTime = d.atTime(
-                    Integer.parseInt(time.split(":" )[0]),
-                    Integer.parseInt(time.split(":" )[1]));
+                    Integer.parseInt(time.split(":")[0]),
+                    Integer.parseInt(time.split(":")[1]));
 
             boolean conflict = appointmentService.hasStudentConflict(studentOpt.get(), dateTime, appointmentId);
             if (conflict) {
@@ -521,7 +529,8 @@ public class StudentController {
             return new ResponseEntity<>(java.util.Map.of("conflict", false), HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Error checking conflict"), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(java.util.Map.of("conflict", false, "message", "Error checking conflict"),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -584,41 +593,43 @@ public class StudentController {
 
         Long userId = (Long) session.getAttribute("userId");
 
-        if (userId == null || appointmentId == null || preferredDate == null || preferredDate.isEmpty() 
+        if (userId == null || appointmentId == null || preferredDate == null || preferredDate.isEmpty()
                 || preferredTime == null || preferredTime.isEmpty()) {
             return "redirect:/student/appointments?error=invalid";
         }
 
         try {
             Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(appointmentId);
-            
+
             if (appointmentOpt.isPresent()) {
                 Appointment appointment = appointmentOpt.get();
-                
+
                 // Verify the appointment belongs to the current student
                 if (!appointment.getStudent().getId().equals(userId)) {
                     return "redirect:/student/appointments?error=unauthorized";
                 }
-                
+
                 // Parse new date and time
                 LocalDate date = LocalDate.parse(preferredDate);
                 LocalDateTime newAppointmentDateTime = date.atTime(
                         Integer.parseInt(preferredTime.split(":")[0]),
                         Integer.parseInt(preferredTime.split(":")[1]));
 
-                // Prevent double-booking across counselors at the same time (exclude this appointment id)
-                if (appointmentService.hasStudentConflict(appointment.getStudent(), newAppointmentDateTime, appointment.getId())) {
+                // Prevent double-booking across counselors at the same time (exclude this
+                // appointment id)
+                if (appointmentService.hasStudentConflict(appointment.getStudent(), newAppointmentDateTime,
+                        appointment.getId())) {
                     return "redirect:/student/appointments?error=conflict";
                 }
-                
+
                 // Update appointment
                 appointment.setAppointmentDateTime(newAppointmentDateTime);
                 appointment.setUpdatedAt(LocalDateTime.now());
                 appointmentService.updateAppointment(appointment);
-                
+
                 return "redirect:/student/appointments?success=rescheduled";
             }
-            
+
             return "redirect:/student/appointments?error=notfound";
         } catch (Exception e) {
             e.printStackTrace();
@@ -638,21 +649,21 @@ public class StudentController {
 
         try {
             Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(appointmentId);
-            
+
             if (appointmentOpt.isPresent()) {
                 Appointment appointment = appointmentOpt.get();
-                
+
                 // Verify the appointment belongs to the current student
                 if (!appointment.getStudent().getId().equals(userId)) {
                     return "redirect:/student/appointments?error=unauthorized";
                 }
-                
+
                 // Delete appointment
                 appointmentService.deleteAppointment(appointmentId);
-                
+
                 return "redirect:/student/appointments?success=deleted";
             }
-            
+
             return "redirect:/student/appointments?error=notfound";
         } catch (Exception e) {
             e.printStackTrace();
@@ -666,7 +677,58 @@ public class StudentController {
     }
 
     @GetMapping("/recommendations")
-    public String recommendations() {
+    public String recommendations(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+
+        String stressLevel = "MODERATE"; // Default
+        String focusArea = "Building Healthy Habits"; // Default
+
+        if (userId != null) {
+            // Get user info
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                model.addAttribute("userFullName", user.get().getFullName());
+                StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+                model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+            }
+
+            // Get latest self-assessment result
+            var latestAssessment = selfAssessmentService.getLatestResult(userId);
+            if (latestAssessment.isPresent()) {
+                stressLevel = latestAssessment.get().getStressLevel();
+                model.addAttribute("latestAssessment", latestAssessment.get());
+                model.addAttribute("hasAssessment", true);
+            } else {
+                model.addAttribute("hasAssessment", false);
+            }
+        } else {
+            model.addAttribute("hasAssessment", false);
+        }
+
+        // Determine focus area based on stress level
+        switch (stressLevel) {
+            case "HIGH":
+                focusArea = "Managing Anxiety & Stress Relief";
+                break;
+            case "MODERATE":
+                focusArea = "Building Healthy Habits";
+                break;
+            case "LOW":
+                focusArea = "Maintaining Your Wellness";
+                break;
+        }
+
+        model.addAttribute("stressLevel", stressLevel);
+        model.addAttribute("focusArea", focusArea);
+
+        // Get recommended resources (6 resources)
+        var recommendedResources = resourceService.getRecommendedResources(stressLevel, 6);
+        model.addAttribute("recommendedResources", recommendedResources);
+
+        // Get random daily wellness suggestions (3 suggestions)
+        var wellnessSuggestions = resourceService.getRandomWellnessSuggestions(3);
+        model.addAttribute("wellnessSuggestions", wellnessSuggestions);
+
         return "student/recommendations";
     }
 

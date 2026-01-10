@@ -19,119 +19,126 @@
             </header>
 
             <!-- Assessment Summary Banner -->
-            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 mb-8 text-white">
+            <div th:class="'rounded-2xl p-6 mb-8 text-white ' + 
+                (${stressLevel} == 'HIGH' ? 'bg-gradient-to-r from-red-500 to-orange-600' : 
+                (${stressLevel} == 'MODERATE' ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 
+                'bg-gradient-to-r from-green-500 to-teal-500'))">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <p class="text-indigo-100 text-sm font-medium">Based on your recent assessment</p>
-                        <p class="text-2xl font-bold mt-1">Focus Area: Managing Anxiety</p>
+                        <p th:if="${hasAssessment}" class="text-white/80 text-sm font-medium">Based on your recent
+                            assessment</p>
+                        <p th:unless="${hasAssessment}" class="text-white/80 text-sm font-medium">Complete an assessment
+                            to get personalized recommendations</p>
+                        <p class="text-2xl font-bold mt-1">Focus Area: <span th:text="${focusArea}">Building Healthy
+                                Habits</span></p>
+                        <p th:if="${hasAssessment}" class="text-white/70 text-sm mt-2">
+                            Stress Level:
+                            <span th:text="${stressLevel}" th:class="'font-semibold px-2 py-0.5 rounded ' + 
+                                  (${stressLevel} == 'HIGH' ? 'bg-red-600/50' : 
+                                  (${stressLevel} == 'MODERATE' ? 'bg-amber-600/50' : 'bg-green-600/50'))">
+                            </span>
+                        </p>
                     </div>
                     <a th:href="@{/student/mood-tracker}"
                         class="px-5 py-2.5 bg-white/20 hover:bg-white/30 rounded-lg font-medium transition-colors">
-                        Update Assessment →
+                        <span th:text="${hasAssessment} ? 'Update Assessment →' : 'Take Assessment →'">Update Assessment
+                            →</span>
                     </a>
                 </div>
             </div>
 
             <!-- Recommended Resources -->
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Recommended Resources</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(recommendedResources)}"
+                class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center mb-8">
+                <span class="material-symbols-outlined text-5xl text-slate-400 mb-3">library_books</span>
+                <p class="text-slate-500 dark:text-slate-400">No resources available at the moment.</p>
+            </div>
+
+            <!-- Resources Grid -->
+            <div th:unless="${#lists.isEmpty(recommendedResources)}" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div th:each="resource, iterStat : ${recommendedResources}"
                     class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex">
-                    <div class="w-2 bg-red-500"></div>
+                    <!-- Priority indicator bar -->
+                    <div th:class="'w-2 ' + 
+                        (${iterStat.index} < 2 ? 'bg-red-500' : 
+                        (${iterStat.index} < 4 ? 'bg-amber-500' : 'bg-green-500'))"></div>
                     <div class="p-5 flex-1">
                         <div class="flex items-center gap-2 mb-2">
-                            <span
+                            <!-- Priority Badge -->
+                            <span th:if="${iterStat.index} < 2"
                                 class="text-xs font-semibold text-red-600 bg-red-100 dark:bg-red-900/50 px-2 py-0.5 rounded-full">High
                                 Priority</span>
-                            <span
-                                class="text-xs font-semibold text-purple-600 bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 rounded-full">Video</span>
-                        </div>
-                        <h4 class="font-semibold text-slate-800 dark:text-white mb-2">Calming Techniques for Anxiety
-                        </h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">Learn 5 effective techniques you can
-                            use anywhere to calm anxiety quickly.</p>
-                        <a href="#" class="text-primary font-medium text-sm hover:underline flex items-center gap-1">
-                            Watch Now <span class="material-symbols-outlined text-base">play_arrow</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div
-                    class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex">
-                    <div class="w-2 bg-amber-500"></div>
-                    <div class="p-5 flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span
+                            <span th:if="${iterStat.index} >= 2 and ${iterStat.index} < 4"
                                 class="text-xs font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded-full">Recommended</span>
-                            <span
-                                class="text-xs font-semibold text-teal-600 bg-teal-100 dark:bg-teal-900/50 px-2 py-0.5 rounded-full">Article</span>
+                            <span th:if="${iterStat.index} >= 4"
+                                class="text-xs font-semibold text-green-600 bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">Suggested</span>
+                            <!-- Type Badge -->
+                            <span th:class="'text-xs font-semibold px-2 py-0.5 rounded-full ' + 
+                                (${resource.type} == 'video' ? 'text-purple-600 bg-purple-100 dark:bg-purple-900/50' : 
+                                (${resource.type} == 'article' ? 'text-teal-600 bg-teal-100 dark:bg-teal-900/50' : 
+                                'text-blue-600 bg-blue-100 dark:bg-blue-900/50'))"
+                                th:text="${#strings.capitalize(resource.type)}">Type</span>
                         </div>
-                        <h4 class="font-semibold text-slate-800 dark:text-white mb-2">Understanding Your Anxiety
-                            Triggers</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">Identify what causes your anxiety and
-                            develop strategies to manage triggers.</p>
-                        <a href="#" class="text-primary font-medium text-sm hover:underline flex items-center gap-1">
-                            Read Article <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div
-                    class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex">
-                    <div class="w-2 bg-green-500"></div>
-                    <div class="p-5 flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span
-                                class="text-xs font-semibold text-green-600 bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">New</span>
-                            <span
-                                class="text-xs font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900/50 px-2 py-0.5 rounded-full">Guide</span>
-                        </div>
-                        <h4 class="font-semibold text-slate-800 dark:text-white mb-2">Progressive Muscle Relaxation</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">A step-by-step guide to release
-                            physical tension and calm your mind.</p>
-                        <a href="#" class="text-primary font-medium text-sm hover:underline flex items-center gap-1">
-                            Start Guide <span class="material-symbols-outlined text-base">arrow_forward</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div
-                    class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex">
-                    <div class="w-2 bg-blue-500"></div>
-                    <div class="p-5 flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span
-                                class="text-xs font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900/50 px-2 py-0.5 rounded-full">Interactive</span>
-                        </div>
-                        <h4 class="font-semibold text-slate-800 dark:text-white mb-2">Anxiety Management Quiz</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">Test your knowledge and learn new
-                            coping strategies through this quiz.</p>
-                        <a th:href="@{/student/learning}"
+                        <h4 class="font-semibold text-slate-800 dark:text-white mb-2" th:text="${resource.title}">
+                            Resource Title
+                        </h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2"
+                            th:text="${resource.description}">
+                            Resource description goes here.
+                        </p>
+                        <a th:href="@{/student/resources(resourceId=${resource.id})}"
                             class="text-primary font-medium text-sm hover:underline flex items-center gap-1">
-                            Take Quiz <span class="material-symbols-outlined text-base">quiz</span>
+                            <span th:if="${resource.type} == 'video'">
+                                Watch Now <span class="material-symbols-outlined text-base">play_arrow</span>
+                            </span>
+                            <span th:if="${resource.type} == 'article'">
+                                Read Article <span class="material-symbols-outlined text-base">arrow_forward</span>
+                            </span>
+                            <span th:if="${resource.type} == 'guide'">
+                                Start Guide <span class="material-symbols-outlined text-base">arrow_forward</span>
+                            </span>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Daily Suggestions -->
+            <!-- Daily Wellness Suggestions -->
             <h3 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Daily Wellness Suggestions</h3>
             <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center p-4 bg-teal-50 dark:bg-teal-900/30 rounded-xl">
-                        <span class="material-symbols-outlined text-4xl text-teal-500 mb-3">self_improvement</span>
-                        <h4 class="font-semibold text-slate-800 dark:text-white mb-1">5-Min Meditation</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Start your day mindfully</p>
-                    </div>
-                    <div class="text-center p-4 bg-amber-50 dark:bg-amber-900/30 rounded-xl">
-                        <span class="material-symbols-outlined text-4xl text-amber-500 mb-3">edit_note</span>
-                        <h4 class="font-semibold text-slate-800 dark:text-white mb-1">Gratitude Journal</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Write 3 things you're thankful for</p>
-                    </div>
-                    <div class="text-center p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl">
-                        <span class="material-symbols-outlined text-4xl text-purple-500 mb-3">directions_walk</span>
-                        <h4 class="font-semibold text-slate-800 dark:text-white mb-1">10-Min Walk</h4>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Get some fresh air and movement</p>
+                    <div th:each="suggestion : ${wellnessSuggestions}" th:class="'text-center p-4 rounded-xl ' + 
+                            (${suggestion.bgColor} == 'teal' ? 'bg-teal-50 dark:bg-teal-900/30' : 
+                            (${suggestion.bgColor} == 'amber' ? 'bg-amber-50 dark:bg-amber-900/30' : 
+                            (${suggestion.bgColor} == 'purple' ? 'bg-purple-50 dark:bg-purple-900/30' : 
+                            (${suggestion.bgColor} == 'blue' ? 'bg-blue-50 dark:bg-blue-900/30' : 
+                            (${suggestion.bgColor} == 'indigo' ? 'bg-indigo-50 dark:bg-indigo-900/30' : 
+                            (${suggestion.bgColor} == 'green' ? 'bg-green-50 dark:bg-green-900/30' : 
+                            (${suggestion.bgColor} == 'pink' ? 'bg-pink-50 dark:bg-pink-900/30' : 
+                            (${suggestion.bgColor} == 'rose' ? 'bg-rose-50 dark:bg-rose-900/30' : 
+                            (${suggestion.bgColor} == 'orange' ? 'bg-orange-50 dark:bg-orange-900/30' : 
+                            (${suggestion.bgColor} == 'cyan' ? 'bg-cyan-50 dark:bg-cyan-900/30' : 
+                            (${suggestion.bgColor} == 'lime' ? 'bg-lime-50 dark:bg-lime-900/30' : 
+                            'bg-slate-50 dark:bg-slate-900/30')))))))))))">
+                        <span th:class="'material-symbols-outlined text-4xl mb-3 ' + 
+                            (${suggestion.bgColor} == 'teal' ? 'text-teal-500' : 
+                            (${suggestion.bgColor} == 'amber' ? 'text-amber-500' : 
+                            (${suggestion.bgColor} == 'purple' ? 'text-purple-500' : 
+                            (${suggestion.bgColor} == 'blue' ? 'text-blue-500' : 
+                            (${suggestion.bgColor} == 'indigo' ? 'text-indigo-500' : 
+                            (${suggestion.bgColor} == 'green' ? 'text-green-500' : 
+                            (${suggestion.bgColor} == 'pink' ? 'text-pink-500' : 
+                            (${suggestion.bgColor} == 'rose' ? 'text-rose-500' : 
+                            (${suggestion.bgColor} == 'orange' ? 'text-orange-500' : 
+                            (${suggestion.bgColor} == 'cyan' ? 'text-cyan-500' : 
+                            (${suggestion.bgColor} == 'lime' ? 'text-lime-500' : 
+                            'text-slate-500')))))))))))" th:text="${suggestion.icon}">self_improvement</span>
+                        <h4 class="font-semibold text-slate-800 dark:text-white mb-1" th:text="${suggestion.title}">
+                            Wellness Tip</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400" th:text="${suggestion.description}">
+                            Description</p>
                     </div>
                 </div>
             </div>

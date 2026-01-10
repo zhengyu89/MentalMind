@@ -364,7 +364,217 @@ public class DataInitializer implements CommandLineRunner {
                 "/assets/download.jpeg");
         System.out.println(LOG_PREFIX + " ✓ Created resource: 'Sleep and Mental Health'");
 
-        System.out.println(LOG_PREFIX + " ✓ Total: 5 resources created.");
+        // 6. Mindfulness Meditation Guide
+        resourceService.createResource(
+                "Mindfulness Meditation Guide",
+                "guide",
+                "A beginner's guide to mindfulness meditation for stress relief and mental clarity.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Mindfulness?</h4><p>Mindfulness is the practice of being fully present and engaged in the current moment, without judgment. It helps reduce stress and improve mental clarity.</p><h4>Getting Started</h4><ol><li><strong>Find a Quiet Space</strong> - Choose a calm environment free from distractions</li><li><strong>Set a Timer</strong> - Start with 5-10 minutes and gradually increase</li><li><strong>Focus on Breathing</strong> - Pay attention to each inhale and exhale</li><li><strong>Notice Thoughts</strong> - When your mind wanders, gently bring focus back</li><li><strong>Be Patient</strong> - Mindfulness is a skill that improves with practice</li></ol><h4>Benefits of Regular Practice</h4><ul><li>Reduced anxiety and stress</li><li>Improved focus and concentration</li><li>Better emotional regulation</li><li>Enhanced self-awareness</li><li>Lower blood pressure</li></ul></div>",
+                "sparkles",
+                "teal-400",
+                "cyan-500",
+                "teal",
+                "mindfulness",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Mindfulness Meditation Guide'");
+
+        // 7. Understanding Depression
+        resourceService.createResource(
+                "Understanding Depression",
+                "article",
+                "Learn about depression symptoms, causes, and treatment options.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Depression?</h4><p>Depression is more than just feeling sad. It's a serious mental health condition that affects how you feel, think, and handle daily activities.</p><h4>Common Signs</h4><ul><li>Persistent sad, anxious, or empty mood</li><li>Loss of interest in activities once enjoyed</li><li>Fatigue and decreased energy</li><li>Difficulty concentrating or making decisions</li><li>Changes in sleep patterns</li><li>Appetite or weight changes</li><li>Feelings of hopelessness or worthlessness</li></ul><h4>Treatment Options</h4><ol><li><strong>Psychotherapy</strong> - Talk therapy with a mental health professional</li><li><strong>Medication</strong> - Antidepressants prescribed by a doctor</li><li><strong>Lifestyle Changes</strong> - Exercise, healthy diet, regular sleep</li><li><strong>Support Groups</strong> - Connecting with others who understand</li></ol><h4>When to Seek Help</h4><p>If symptoms persist for more than two weeks, reach out to a healthcare provider.</p></div>",
+                "cloud",
+                "gray-400",
+                "slate-500",
+                "gray",
+                "depression",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Understanding Depression'");
+
+        // 8. Academic Stress Management
+        resourceService.createResource(
+                "Academic Stress Management",
+                "guide",
+                "Strategies for students to manage academic pressure effectively.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>Understanding Academic Stress</h4><p>Academic stress is common among students and can stem from exams, assignments, and performance expectations. Learning to manage it is crucial for success.</p><h4>Key Strategies</h4><ol><li><strong>Break Tasks into Chunks</strong> - Large projects feel less overwhelming when divided</li><li><strong>Create a Study Schedule</strong> - Plan your study time and stick to it</li><li><strong>Use Active Learning</strong> - Engage with material through practice and discussion</li><li><strong>Take Regular Breaks</strong> - Use techniques like the Pomodoro method</li><li><strong>Prioritize Tasks</strong> - Focus on high-impact assignments first</li></ol><h4>Self-Care During Exams</h4><ul><li>Get adequate sleep before exams</li><li>Eat nutritious meals</li><li>Exercise to reduce tension</li><li>Practice relaxation techniques</li><li>Avoid cramming at the last minute</li></ul><h4>Seeking Support</h4><p>Don't hesitate to reach out to professors, tutors, or counselors when you need help.</p></div>",
+                "academic-cap",
+                "amber-400",
+                "yellow-500",
+                "amber",
+                "stress",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Academic Stress Management'");
+
+        // 9. Building Self-Esteem
+        resourceService.createResource(
+                "Building Self-Esteem",
+                "article",
+                "Learn how to develop a healthy sense of self-worth and confidence.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Self-Esteem?</h4><p>Self-esteem is how you perceive and value yourself. Healthy self-esteem means having a balanced, realistic view of your worth and abilities.</p><h4>Signs of Low Self-Esteem</h4><ul><li>Negative self-talk and self-criticism</li><li>Difficulty accepting compliments</li><li>Fear of failure or trying new things</li><li>Comparing yourself unfavorably to others</li><li>Seeking constant validation from others</li></ul><h4>Building Healthy Self-Esteem</h4><ol><li><strong>Practice Self-Compassion</strong> - Treat yourself with the kindness you'd show a friend</li><li><strong>Challenge Negative Thoughts</strong> - Question and reframe critical self-talk</li><li><strong>Set Achievable Goals</strong> - Celebrate small victories</li><li><strong>Focus on Strengths</strong> - Acknowledge what you do well</li><li><strong>Surround Yourself with Positivity</strong> - Choose supportive relationships</li></ol><h4>Daily Affirmations</h4><p>Start each day with positive statements about yourself. Examples: 'I am capable,' 'I deserve respect,' 'I am worthy of love.'</p></div>",
+                "star",
+                "yellow-400",
+                "orange-500",
+                "yellow",
+                "mindfulness",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Building Self-Esteem'");
+
+        // 10. The Power of Gratitude
+        resourceService.createResource(
+                "The Power of Gratitude",
+                "article",
+                "Discover how practicing gratitude can improve your mental health.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>Why Gratitude Matters</h4><p>Research shows that practicing gratitude can significantly improve mental health by shifting focus from what's lacking to what's present in your life.</p><h4>Benefits of Gratitude</h4><ul><li>Increased happiness and life satisfaction</li><li>Better sleep quality</li><li>Reduced symptoms of depression</li><li>Improved relationships</li><li>Enhanced resilience during difficult times</li></ul><h4>How to Practice Gratitude</h4><ol><li><strong>Keep a Gratitude Journal</strong> - Write 3 things you're grateful for daily</li><li><strong>Express Thanks</strong> - Tell people you appreciate them</li><li><strong>Mindful Appreciation</strong> - Notice and savor positive moments</li><li><strong>Gratitude Letters</strong> - Write to someone who impacted your life</li><li><strong>Reframe Challenges</strong> - Find lessons in difficult situations</li></ol><h4>Start Today</h4><p>Take a moment right now to think of three things you're grateful for.</p></div>",
+                "gift",
+                "rose-400",
+                "pink-500",
+                "rose",
+                "mindfulness",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'The Power of Gratitude'");
+
+        // 11. Time Management for Students
+        resourceService.createResource(
+                "Time Management for Students",
+                "guide",
+                "Master time management skills to balance academics and personal life.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>Why Time Management Matters</h4><p>Effective time management reduces stress, improves academic performance, and creates space for personal activities and self-care.</p><h4>Core Principles</h4><ol><li><strong>Set Clear Goals</strong> - Define what you want to achieve daily, weekly, monthly</li><li><strong>Prioritize Tasks</strong> - Use the Eisenhower Matrix (urgent vs. important)</li><li><strong>Plan Ahead</strong> - Schedule your week in advance</li><li><strong>Avoid Procrastination</strong> - Break tasks into smaller, manageable steps</li><li><strong>Learn to Say No</strong> - Protect your time from unnecessary commitments</li></ol><h4>Useful Techniques</h4><ul><li><strong>Pomodoro Technique</strong> - 25 minutes focus, 5 minutes break</li><li><strong>Time Blocking</strong> - Assign specific time slots to tasks</li><li><strong>Two-Minute Rule</strong> - If it takes less than 2 minutes, do it now</li><li><strong>Weekly Review</strong> - Reflect on what worked and what didn't</li></ul><h4>Balance is Key</h4><p>Schedule time for rest and recreation—they boost productivity in the long run.</p></div>",
+                "clock",
+                "sky-400",
+                "blue-500",
+                "sky",
+                "stress",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Time Management for Students'");
+
+        // 12. Overcoming Social Anxiety
+        resourceService.createResource(
+                "Overcoming Social Anxiety",
+                "article",
+                "Understand social anxiety and learn strategies to overcome it.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Social Anxiety?</h4><p>Social anxiety is an intense fear of social situations due to worries about being judged, embarrassed, or rejected by others.</p><h4>Common Symptoms</h4><ul><li>Fear of meeting new people or public speaking</li><li>Avoiding social situations</li><li>Physical symptoms (blushing, sweating, trembling)</li><li>Excessive worry before social events</li><li>Difficulty making eye contact</li></ul><h4>Coping Strategies</h4><ol><li><strong>Challenge Negative Thoughts</strong> - Question assumptions about how others perceive you</li><li><strong>Gradual Exposure</strong> - Start with low-stakes social situations</li><li><strong>Focus Outward</strong> - Shift attention from yourself to others</li><li><strong>Practice Social Skills</strong> - Role-play conversations to build confidence</li><li><strong>Deep Breathing</strong> - Use breathing exercises to calm physical symptoms</li></ol><h4>Professional Help</h4><p>Cognitive Behavioral Therapy (CBT) is highly effective for social anxiety. Consider seeking professional support.</p></div>",
+                "users",
+                "violet-400",
+                "purple-500",
+                "violet",
+                "anxiety",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Overcoming Social Anxiety'");
+
+        // 13. Understanding Panic Attacks
+        resourceService.createResource(
+                "Understanding Panic Attacks",
+                "article",
+                "Learn what panic attacks are and how to manage them effectively.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is a Panic Attack?</h4><p>A panic attack is a sudden episode of intense fear that triggers severe physical reactions. They can be frightening but are not dangerous.</p><h4>Common Symptoms</h4><ul><li>Rapid heartbeat or palpitations</li><li>Shortness of breath</li><li>Chest pain or discomfort</li><li>Dizziness or lightheadedness</li><li>Feeling of unreality or detachment</li><li>Fear of losing control or dying</li><li>Sweating and trembling</li></ul><h4>What To Do During a Panic Attack</h4><ol><li><strong>Remember It Will Pass</strong> - Panic attacks typically peak within 10 minutes</li><li><strong>Focus on Breathing</strong> - Slow, deep breaths (in for 4, hold for 4, out for 4)</li><li><strong>Ground Yourself</strong> - Use the 5-4-3-2-1 technique</li><li><strong>Stay Where You Are</strong> - If safe, stay put until it passes</li><li><strong>Challenge Thoughts</strong> - Remind yourself you are safe</li></ol><h4>Preventing Future Attacks</h4><p>Regular exercise, adequate sleep, limiting caffeine, and managing stress can help reduce the frequency of panic attacks.</p></div>",
+                "bolt",
+                "orange-400",
+                "red-500",
+                "orange",
+                "anxiety",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Understanding Panic Attacks'");
+
+        // 14. Recognizing and Preventing Burnout
+        resourceService.createResource(
+                "Recognizing and Preventing Burnout",
+                "guide",
+                "Identify the signs of burnout and learn how to prevent and recover from it.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Burnout?</h4><p>Burnout is a state of chronic stress leading to physical and emotional exhaustion, cynicism, and feelings of ineffectiveness.</p><h4>Warning Signs</h4><ul><li>Constant fatigue and low energy</li><li>Feeling detached or cynical about work/studies</li><li>Decreased productivity and performance</li><li>Difficulty concentrating</li><li>Physical symptoms (headaches, sleep problems)</li><li>Neglecting personal needs</li></ul><h4>Prevention Strategies</h4><ol><li><strong>Set Boundaries</strong> - Learn to say no to excessive demands</li><li><strong>Take Regular Breaks</strong> - Step away from work regularly</li><li><strong>Prioritize Self-Care</strong> - Exercise, sleep, and nutrition matter</li><li><strong>Seek Support</strong> - Talk to friends, family, or professionals</li><li><strong>Reconnect with Purpose</strong> - Remember why you started</li></ol><h4>Recovery</h4><p>If you're already burned out, consider taking time off, reducing workload, and focusing on activities that restore your energy.</p></div>",
+                "fire",
+                "red-400",
+                "orange-500",
+                "red",
+                "stress",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Recognizing and Preventing Burnout'");
+
+        // 15. Developing Emotional Intelligence
+        resourceService.createResource(
+                "Developing Emotional Intelligence",
+                "article",
+                "Enhance your emotional intelligence for better relationships and well-being.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Emotional Intelligence?</h4><p>Emotional Intelligence (EQ) is the ability to recognize, understand, manage, and effectively use emotions in yourself and others.</p><h4>The Five Components</h4><ol><li><strong>Self-Awareness</strong> - Recognizing your own emotions and their impact</li><li><strong>Self-Regulation</strong> - Managing emotions in healthy ways</li><li><strong>Motivation</strong> - Using emotions to stay focused on goals</li><li><strong>Empathy</strong> - Understanding and sharing others' feelings</li><li><strong>Social Skills</strong> - Building and maintaining relationships</li></ol><h4>Benefits of High EQ</h4><ul><li>Better relationships and communication</li><li>Improved mental health</li><li>Enhanced leadership abilities</li><li>Greater resilience in facing challenges</li><li>Better decision-making</li></ul><h4>How to Improve EQ</h4><ul><li>Practice mindfulness to increase self-awareness</li><li>Pause before reacting to strong emotions</li><li>Listen actively and empathetically</li><li>Seek feedback from others</li><li>Reflect on your emotional responses</li></ul></div>",
+                "light-bulb",
+                "amber-400",
+                "yellow-500",
+                "amber",
+                "relationships",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Developing Emotional Intelligence'");
+
+        // 16. Effective Communication Skills
+        resourceService.createResource(
+                "Effective Communication Skills",
+                "guide",
+                "Learn essential communication skills for healthier interactions.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>Why Communication Matters</h4><p>Effective communication is the foundation of healthy relationships and reduces misunderstandings, conflicts, and stress.</p><h4>Key Communication Skills</h4><ol><li><strong>Active Listening</strong> - Give full attention without planning your response</li><li><strong>Clear Expression</strong> - State your thoughts directly and respectfully</li><li><strong>Non-Verbal Awareness</strong> - Be mindful of body language and tone</li><li><strong>Empathy</strong> - Try to understand others' perspectives</li><li><strong>Assertiveness</strong> - Express needs without being aggressive</li></ol><h4>I-Statements</h4><p>Use 'I' statements instead of 'You' statements to express feelings without blame. For example: 'I feel overwhelmed when deadlines pile up' instead of 'You always give too much work.'</p><h4>Conflict Resolution</h4><ul><li>Stay calm and take a break if needed</li><li>Focus on the issue, not the person</li><li>Seek to understand before being understood</li><li>Look for win-win solutions</li><li>Know when to agree to disagree</li></ul></div>",
+                "chat-bubble-left-right",
+                "cyan-400",
+                "teal-500",
+                "cyan",
+                "relationships",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Effective Communication Skills'");
+
+        // 17. Practicing Self-Compassion
+        resourceService.createResource(
+                "Practicing Self-Compassion",
+                "article",
+                "Learn how to be kinder to yourself and cultivate self-compassion.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>What is Self-Compassion?</h4><p>Self-compassion means treating yourself with the same kindness, understanding, and support you would offer a good friend during difficult times.</p><h4>Three Elements of Self-Compassion</h4><ol><li><strong>Self-Kindness</strong> - Being gentle with yourself rather than harshly critical</li><li><strong>Common Humanity</strong> - Recognizing that suffering and imperfection are part of the human experience</li><li><strong>Mindfulness</strong> - Holding painful feelings in balanced awareness</li></ol><h4>Why It Matters</h4><ul><li>Reduces anxiety and depression</li><li>Increases emotional resilience</li><li>Improves motivation and well-being</li><li>Leads to healthier habits and self-care</li></ul><h4>How to Practice</h4><ul><li>Notice self-critical thoughts and reframe them kindly</li><li>Write a compassionate letter to yourself</li><li>Place your hand on your heart during difficult moments</li><li>Ask: 'What would I say to a friend in this situation?'</li><li>Practice loving-kindness meditation</li></ul></div>",
+                "heart",
+                "pink-400",
+                "rose-500",
+                "pink",
+                "mindfulness",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Practicing Self-Compassion'");
+
+        // 18. Exercise and Mental Health
+        resourceService.createResource(
+                "Exercise and Mental Health",
+                "article",
+                "Discover how physical activity positively impacts your mental well-being.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>The Mind-Body Connection</h4><p>Regular physical activity is one of the most effective ways to improve mental health. Exercise releases endorphins and reduces stress hormones.</p><h4>Mental Health Benefits</h4><ul><li>Reduces symptoms of anxiety and depression</li><li>Improves mood and energy levels</li><li>Enhances sleep quality</li><li>Boosts self-esteem and confidence</li><li>Improves cognitive function and memory</li><li>Provides healthy coping mechanism for stress</li></ul><h4>Getting Started</h4><ol><li><strong>Start Small</strong> - Even 10 minutes of walking helps</li><li><strong>Find Enjoyable Activities</strong> - Dance, swim, hike, or play sports</li><li><strong>Set Realistic Goals</strong> - Aim for 150 minutes per week</li><li><strong>Make It Social</strong> - Exercise with friends for added motivation</li><li><strong>Be Consistent</strong> - Regular activity is more beneficial than intense but sporadic workouts</li></ol><h4>Types of Exercise</h4><ul><li>Aerobic: Walking, running, cycling, swimming</li><li>Strength: Weight training, bodyweight exercises</li><li>Mind-Body: Yoga, tai chi, stretching</li></ul></div>",
+                "running",
+                "lime-400",
+                "green-500",
+                "lime",
+                "mindfulness",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Exercise and Mental Health'");
+
+        // 19. Digital Wellness and Screen Time
+        resourceService.createResource(
+                "Digital Wellness and Screen Time",
+                "guide",
+                "Learn how to maintain a healthy relationship with technology.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>The Impact of Technology</h4><p>While technology offers many benefits, excessive screen time can negatively affect mental health, sleep, and relationships.</p><h4>Signs of Unhealthy Tech Use</h4><ul><li>Difficulty disconnecting from devices</li><li>Feeling anxious without your phone</li><li>Neglecting in-person relationships</li><li>Comparing yourself to others on social media</li><li>Sleep disruption from late-night scrolling</li></ul><h4>Digital Wellness Tips</h4><ol><li><strong>Set Screen Time Limits</strong> - Use built-in tools to monitor usage</li><li><strong>Create Tech-Free Zones</strong> - Keep devices out of bedrooms</li><li><strong>Schedule Digital Detox</strong> - Take regular breaks from screens</li><li><strong>Curate Your Feed</strong> - Follow accounts that inspire, not drain</li><li><strong>Turn Off Notifications</strong> - Reduce constant interruptions</li></ol><h4>Mindful Technology Use</h4><ul><li>Be intentional about when and why you use devices</li><li>Prioritize face-to-face interactions</li><li>Practice being present without documenting everything</li></ul></div>",
+                "device-phone-mobile",
+                "fuchsia-400",
+                "violet-500",
+                "fuchsia",
+                "mindfulness",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Digital Wellness and Screen Time'");
+
+        // 20. Crisis Support and Helplines
+        resourceService.createResource(
+                "Crisis Support and Helplines",
+                "article",
+                "Important mental health crisis resources and how to get immediate help.",
+                "<div class=\"prose dark:prose-invert max-w-none\"><h4>When to Seek Immediate Help</h4><p>If you or someone you know is in crisis, experiencing suicidal thoughts, or feeling unsafe, reach out immediately.</p><h4>Warning Signs of Crisis</h4><ul><li>Talking about wanting to die or harm oneself</li><li>Feeling hopeless or having no reason to live</li><li>Feeling trapped or in unbearable pain</li><li>Giving away prized possessions</li><li>Extreme mood swings or agitation</li><li>Withdrawing from friends and activities</li></ul><h4>Crisis Resources (Malaysia)</h4><ul><li><strong>Befrienders KL</strong>: 03-7956 8145 (24 hours)</li><li><strong>Talian Kasih</strong>: 15999 (24 hours)</li><li><strong>Malaysian Mental Health Association</strong>: 03-2780 6803</li></ul><h4>How to Help Someone in Crisis</h4><ol><li><strong>Stay Calm</strong> - Listen without judgment</li><li><strong>Take It Seriously</strong> - Never dismiss their feelings</li><li><strong>Don't Leave Them Alone</strong> - Stay with them or connect them with help</li><li><strong>Remove Dangerous Items</strong> - If possible, remove access to means of harm</li><li><strong>Seek Professional Help</strong> - Encourage them to call a helpline or go to emergency services</li></ol><h4>You Are Not Alone</h4><p>Help is available 24/7. Reaching out is a sign of strength, not weakness.</p></div>",
+                "phone",
+                "red-400",
+                "rose-500",
+                "red",
+                "depression",
+                null);
+        System.out.println(LOG_PREFIX + " ✓ Created resource: 'Crisis Support and Helplines'");
+
+        System.out.println(LOG_PREFIX + " ✓ Total: 20 resources created.");
     }
 
     private List<User> initializeStudents() {
@@ -624,7 +834,8 @@ public class DataInitializer implements CommandLineRunner {
         // Module 4: Self-Care and Wellness
         LearningModule module4 = new LearningModule();
         module4.setTitle("Self-Care and Wellness");
-        module4.setDescription("Learn about self-care practices and build healthy habits that support your mental and physical wellness.");
+        module4.setDescription(
+                "Learn about self-care practices and build healthy habits that support your mental and physical wellness.");
         module4.setCreatedBy(counselor.getId());
         module4.setIsActive(true);
         learningModuleRepository.save(module4);
