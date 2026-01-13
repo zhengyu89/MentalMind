@@ -99,7 +99,8 @@ public class CounselorController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
         }
         try {
-            Map<String, Object> stats = dashboardService.getTodayAppointmentsStats();
+            Long userId = (Long) session.getAttribute("userId");
+            Map<String, Object> stats = dashboardService.getTodayAppointmentsStats(userId);
             return ResponseEntity.ok(Map.of("success", true, "data", stats));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
@@ -211,8 +212,51 @@ public class CounselorController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
         }
         try {
-            java.util.List<Map<String, Object>> appointments = dashboardService.getUpcomingAppointments();
+            Long userId = (Long) session.getAttribute("userId");
+            java.util.List<Map<String, Object>> appointments = dashboardService.getUpcomingAppointments(userId);
             return ResponseEntity.ok(Map.of("success", true, "data", appointments));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
+    }
+
+    @GetMapping("/api/total-students")
+    @ResponseBody
+    public ResponseEntity<?> getTotalStudents(HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
+        }
+        try {
+            Map<String, Object> data = dashboardService.getTotalStudents();
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
+    }
+
+    @GetMapping("/api/assessments-taken")
+    @ResponseBody
+    public ResponseEntity<?> getAssessmentsTaken(HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
+        }
+        try {
+            Map<String, Object> data = dashboardService.getAssessmentsTaken();
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
+        }
+    }
+
+    @GetMapping("/api/assessment-distribution")
+    @ResponseBody
+    public ResponseEntity<?> getAssessmentDistribution(HttpSession session) {
+        if (session.getAttribute("isAuthenticated") == null || !"counselor".equals(session.getAttribute("userRole"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false));
+        }
+        try {
+            Map<String, Object> data = dashboardService.getAssessmentDistribution();
+            return ResponseEntity.ok(Map.of("success", true, "data", data));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("success", false));
         }
