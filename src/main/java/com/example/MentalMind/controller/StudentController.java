@@ -964,7 +964,14 @@ public class StudentController {
     }
 
     @GetMapping("/emergency")
-    public String emergency() {
+    public String emergency(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
         return "student/emergency";
     }
 
