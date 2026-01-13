@@ -5,10 +5,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import com.example.MentalMind.model.Appointment;
 import com.example.MentalMind.model.Feedback;
 import com.example.MentalMind.model.SelfAssessmentResult;
 import com.example.MentalMind.model.MoodEntry;
 import com.example.MentalMind.model.User;
+import com.example.MentalMind.repository.AppointmentRepository;
 import com.example.MentalMind.repository.FeedbackRepository;
 import com.example.MentalMind.repository.SelfAssessmentRepository;
 import com.example.MentalMind.repository.MoodEntryRepository;
@@ -39,20 +41,47 @@ public class DashboardService {
     @Autowired
     private CounselorResponseRepository responseRepository;
 
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
     // Feature 1: Today's Appointments Count & Details
-    public Map<String, Object> getTodayAppointmentsStats() {
+    public Map<String, Object> getTodayAppointmentsStats(Long counselorId) {
         Map<String, Object> stats = new HashMap<>();
-        
-        // Since appointments are not stored in DB yet, we'll use feedback as proxy
-        long pendingFeedback = feedbackRepository.findByTypeAndStatus("feedback", "pending").size();
-        long totalToday = feedbackRepository.findAll().stream()
-            .filter(f -> f.getCreatedAt().toLocalDate().equals(LocalDate.now()))
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = today.atTime(LocalTime.MAX);
+
+        List<Appointment> appointments;
+        if (counselorId != null) {
+            Optional<User> counselor = userRepository.findById(counselorId);
+            if (counselor.isEmpty()) {
+                stats.put("todayAppointments", 0);
+                stats.put("pendingAppointments", 0);
+                stats.put("completedAppointments", 0);
+                return stats;
+            }
+            appointments = appointmentRepository.findByCounselorOrderByAppointmentDateTimeAsc(counselor.get());
+        } else {
+            appointments = appointmentRepository.findAll();
+        }
+
+        List<Appointment> todayApts = appointments.stream()
+            .filter(a -> !a.getAppointmentDateTime().isBefore(start) && !a.getAppointmentDateTime().isAfter(end))
+            .collect(Collectors.toList());
+
+        long todayAppointments = todayApts.size();
+        long pendingAppointments = todayApts.stream()
+            .filter(a -> "PENDING".equalsIgnoreCase(a.getStatus()))
             .count();
-        
-        stats.put("todayAppointments", 5); // Placeholder - will be replaced with real data
-        stats.put("pendingAppointments", 2);
-        stats.put("completedAppointments", 3);
-        
+        long completedAppointments = todayApts.stream()
+            .filter(a -> "COMPLETED".equalsIgnoreCase(a.getStatus()))
+            .count();
+
+        stats.put("todayAppointments", todayAppointments);
+        stats.put("pendingAppointments", pendingAppointments);
+        stats.put("completedAppointments", completedAppointments);
+
         return stats;
     }
 
@@ -76,37 +105,41 @@ public class DashboardService {
 
     // Feature 3: Flagged Students (High-Risk) - Get top 5
     public List<Map<String, Object>> getFlaggedStudents() {
-        List<Map<String, Object>> flaggedStudents = new ArrayList<>();
-        
-        // Get assessments with HIGH stress level
-        List<SelfAssessmentResult> highRiskAssessments = assessmentRepository.findAll().stream()
+        Map<Long, SelfAssessmentResult> latestHighRiskByUser = new HashMap<>();
+
+        assessmentRepository.findAll().stream()
             .filter(a -> "HIGH".equalsIgnoreCase(a.getStressLevel()))
+            .filter(a -> a.getUser() != null && "student".equalsIgnoreCase(a.getUser().getRole()))
+            .forEach(a -> {
+                Long userId = a.getUser().getId();
+                SelfAssessmentResult current = latestHighRiskByUser.get(userId);
+                if (current == null || a.getCompletedAt().isAfter(current.getCompletedAt())) {
+                    latestHighRiskByUser.put(userId, a);
+                }
+            });
+
+        return latestHighRiskByUser.values().stream()
             .sorted((a, b) -> b.getScore().compareTo(a.getScore()))
-            .limit(5)
+            .map(assessment -> {
+                Map<String, Object> student = new HashMap<>();
+                User user = assessment.getUser();
+
+                student.put("id", user.getId());
+                student.put("name", user.getFullName());
+                student.put("email", user.getEmail());
+                student.put("riskLevel", assessment.getStressLevel());
+                student.put("score", assessment.getScore());
+                student.put("assessmentDate", assessment.getCompletedAt());
+
+                List<MoodEntry> moods = moodEntryRepository.findByUserId(user.getId());
+                if (!moods.isEmpty()) {
+                    student.put("latestMoodScore", moods.get(0).getMoodScore());
+                    student.put("moodDate", moods.get(0).getCreatedAt());
+                }
+
+                return student;
+            })
             .collect(Collectors.toList());
-        
-        for (SelfAssessmentResult assessment : highRiskAssessments) {
-            Map<String, Object> student = new HashMap<>();
-            User user = assessment.getUser();
-            
-            student.put("id", user.getId());
-            student.put("name", user.getFullName());
-            student.put("email", user.getEmail());
-            student.put("riskLevel", assessment.getStressLevel());
-            student.put("score", assessment.getScore());
-            student.put("assessmentDate", assessment.getCompletedAt());
-            
-            // Get latest mood entry for this student
-            List<MoodEntry> moods = moodEntryRepository.findByUserId(user.getId());
-            if (!moods.isEmpty()) {
-                student.put("latestMoodScore", moods.get(0).getMoodScore());
-                student.put("moodDate", moods.get(0).getCreatedAt());
-            }
-            
-            flaggedStudents.add(student);
-        }
-        
-        return flaggedStudents;
     }
 
     // Feature 4: Active Students Count & Breakdown
@@ -153,7 +186,7 @@ public class DashboardService {
                 data.put("studentName", user.getFullName());
                 data.put("studentEmail", user.getEmail());
                 data.put("assessmentType", "Self-Assessment");
-                data.put("score", assessment.getScore() + "/40");
+                data.put("score", assessment.getScore());
                 data.put("stressLevel", assessment.getStressLevel());
                 data.put("completedAt", assessment.getCompletedAt());
                 data.put("riskColor", getRiskColor(assessment.getStressLevel()));
@@ -276,34 +309,62 @@ public class DashboardService {
     }
 
     // Feature 9: Appointments This Week (using feedback as placeholder)
-    public List<Map<String, Object>> getUpcomingAppointments() {
-        List<Map<String, Object>> appointments = new ArrayList<>();
-        
-        LocalDateTime weekFromNow = LocalDateTime.now().plusDays(7);
-        
-        // Use feedback created this week as proxy for appointments
-        List<Feedback> thisWeekFeedback = feedbackRepository.findAll().stream()
-            .filter(f -> f.getCreatedAt().isAfter(LocalDateTime.now()) && 
-                         f.getCreatedAt().isBefore(weekFromNow))
-            .sorted((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()))
-            .limit(10)
-            .collect(Collectors.toList());
-        
-        for (Feedback feedback : thisWeekFeedback) {
-            Map<String, Object> apt = new HashMap<>();
-            apt.put("id", feedback.getId());
-            apt.put("studentName", feedback.getUser().getFullName());
-            apt.put("studentEmail", feedback.getUser().getEmail());
-            apt.put("subject", feedback.getSubject());
-            apt.put("type", feedback.getType());
-            apt.put("status", feedback.getStatus());
-            apt.put("scheduledTime", feedback.getCreatedAt());
-            apt.put("duration", "1 hour");
-            
-            appointments.add(apt);
+    public List<Map<String, Object>> getUpcomingAppointments(Long counselorId) {
+        if (counselorId == null) {
+            return List.of();
         }
-        
-        return appointments;
+
+        Optional<User> counselor = userRepository.findById(counselorId);
+        if (counselor.isEmpty()) {
+            return List.of();
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime windowStart = today.atStartOfDay();
+        LocalDateTime windowEnd = today.plusDays(7).atTime(LocalTime.MAX);
+
+        return appointmentRepository.findByCounselorOrderByAppointmentDateTimeAsc(counselor.get()).stream()
+            .filter(a -> !a.getAppointmentDateTime().isBefore(windowStart) && !a.getAppointmentDateTime().isAfter(windowEnd))
+            .filter(a -> "APPROVED".equalsIgnoreCase(a.getStatus()) || "PENDING".equalsIgnoreCase(a.getStatus()))
+            .map(apt -> {
+                Map<String, Object> data = new HashMap<>();
+                data.put("id", apt.getId());
+                data.put("studentName", apt.getStudent().getFullName());
+                data.put("studentEmail", apt.getStudent().getEmail());
+                data.put("subject", apt.getReason());
+                data.put("type", "Counseling");
+                data.put("status", apt.getStatus());
+                data.put("scheduledTime", apt.getAppointmentDateTime());
+                return data;
+            })
+            .collect(Collectors.toList());
+    }
+
+    public Map<String, Object> getTotalStudents() {
+        long total = userRepository.findByRole("student").size();
+        return Map.of("totalStudents", total);
+    }
+
+    public Map<String, Object> getAssessmentsTaken() {
+        long total = assessmentRepository.count();
+        return Map.of("totalAssessments", total);
+    }
+
+    public Map<String, Object> getAssessmentDistribution() {
+        List<SelfAssessmentResult> results = assessmentRepository.findAll();
+        long low = results.stream().filter(r -> r.getScore() <= 5).count();
+        long moderate = results.stream().filter(r -> r.getScore() >= 6 && r.getScore() <= 10).count();
+        long high = results.stream().filter(r -> r.getScore() >= 11 && r.getScore() <= 15).count();
+        long severe = results.stream().filter(r -> r.getScore() >= 16).count();
+        long total = results.size();
+
+        Map<String, Object> distribution = new HashMap<>();
+        distribution.put("lowRisk", low);
+        distribution.put("moderateRisk", moderate);
+        distribution.put("highRisk", high);
+        distribution.put("severeRisk", severe);
+        distribution.put("totalAssessments", total);
+        return distribution;
     }
 
     // Feature 10: Performance Metrics
@@ -365,7 +426,7 @@ public class DashboardService {
     public Map<String, Object> getCompleteDashboardData() {
         Map<String, Object> dashboardData = new HashMap<>();
         
-        dashboardData.put("appointments", getTodayAppointmentsStats());
+        dashboardData.put("appointments", getTodayAppointmentsStats(null));
         dashboardData.put("pendingRequests", getPendingRequestsStats());
         dashboardData.put("flaggedStudents", getFlaggedStudents());
         dashboardData.put("activeStudents", getActiveStudentsStats());
@@ -373,7 +434,7 @@ public class DashboardService {
         dashboardData.put("counselorStats", getCounselorStats());
         dashboardData.put("quickStats", getQuickStats());
         dashboardData.put("moodTrends", getMoodTrends());
-        dashboardData.put("upcomingAppointments", getUpcomingAppointments());
+        dashboardData.put("upcomingAppointments", getUpcomingAppointments(null));
         dashboardData.put("performanceMetrics", getPerformanceMetrics());
         
         return dashboardData;
