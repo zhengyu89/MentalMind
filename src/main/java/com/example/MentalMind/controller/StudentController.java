@@ -98,6 +98,12 @@ public class StudentController {
                 model.addAttribute("userFullName", user.get().getFullName());
                 StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
                 model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+                
+                // Get next upcoming appointment
+                List<Appointment> upcomingAppointments = appointmentService.getStudentUpcomingAppointments(user.get());
+                if (!upcomingAppointments.isEmpty()) {
+                    model.addAttribute("upcomingAppointment", upcomingAppointments.get(0));
+                }
             }
 
             // Get mood entries as a map keyed by date (yyyy-MM-dd)
@@ -234,7 +240,12 @@ public class StudentController {
     public String moodTracker(@RequestParam(required = false, defaultValue = "week") String view,
             Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }        
         // Pass view mode to template
         model.addAttribute("viewMode", view);
 
@@ -314,7 +325,14 @@ public class StudentController {
     }
 
     @GetMapping("/resources")
-    public String resources() {
+    public String resources(Model model, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
         return "student/resources";
     }
 
@@ -721,7 +739,12 @@ public class StudentController {
     @GetMapping("/appointments")
     public String appointments(Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
         if (userId != null) {
             Optional<User> userOpt = userRepository.findById(userId);
             if (userOpt.isPresent()) {
@@ -1004,7 +1027,12 @@ public class StudentController {
     @GetMapping("/feedback")
     public String feedback(Model model, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
-
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
         if (userId != null) {
             java.util.List<Feedback> recentFeedback = feedbackService.getRecentUserFeedback(userId);
             model.addAttribute("recentFeedback", recentFeedback);
@@ -1105,6 +1133,12 @@ public class StudentController {
         }
 
         Long userId = (Long) session.getAttribute("userId");
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            model.addAttribute("userFullName", user.get().getFullName());
+            StudentSettings settings = studentSettingsService.getOrCreateSettings(user.get());
+            model.addAttribute("userPhotoUrl", settings.getProfilePhotoUrl());
+        }
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isEmpty()) {
             return "redirect:/login";
