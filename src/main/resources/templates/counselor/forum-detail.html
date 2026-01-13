@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Forum Post Review - Counselor')}">
+</head>
+
+<body
+    class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark transition-colors duration-300">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-counselor :: sidebar('forum')}"></div>
+
+        <main class="flex-1 overflow-y-auto">
+            <header
+                class="h-16 flex items-center justify-between px-8 border-b border-border-light dark:border-border-dark sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm">
+                <div>
+                    <h2 class="text-2xl font-bold">Forum Post Review</h2>
+                    <p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Review and moderate forum content</p>
+                </div>
+                <button onclick="goBack()" class="text-primary hover:text-indigo-700 transition-colors flex items-center gap-2">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Back
+                </button>
+            </header>
+
+            <div class="p-8">
+                <!-- Post Content -->
+                <div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark p-8 mb-6">
+                    <!-- Author Info -->
+                    <div class="flex items-start gap-4 mb-6 pb-6 border-b border-border-light dark:border-border-dark">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            <span th:text="${post.authorDisplayName.charAt(0)}">A</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="font-semibold text-lg" th:text="${post.authorDisplayName}">Author</span>
+                                <span class="text-xs text-slate-400" th:text="'• ' + ${post.timeAgo}">• 2h ago</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="text-xs font-semibold text-blue-600 bg-blue-100 dark:bg-blue-900/50 px-2 py-0.5 rounded-full" th:text="${post.category}">Category</span>
+                                <span th:if="${post.status != 'APPROVED'}" th:classappend="${post.status == 'FLAGGED'} ? 'bg-red-100 dark:bg-red-900/50 text-red-600' : 'bg-amber-100 dark:bg-amber-900/50 text-amber-600'" 
+                                    class="text-xs font-semibold px-2 py-0.5 rounded-full" th:text="${post.status}">Status</span>
+                            </div>
+                        </div>
+                        <button th:if="${post.status != 'PENDING'}" th:disabled="${alreadyFlagged}" th:onclick="|flagPost(${post.id})|" th:classappend="${alreadyFlagged} ? 'opacity-50 cursor-not-allowed' : ''" class="flex items-center gap-1 text-slate-500 hover:text-red-500 transition-colors h-fit disabled:hover:text-slate-500">
+                            <span class="material-symbols-outlined text-xl">flag</span>
+                            <span class="text-sm" th:text="${alreadyFlagged} ? 'Already Reported' : 'Report'">Report</span>
+                        </button>
+                    </div>
+
+                    <!-- Post Title -->
+                    <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-4" th:text="${post.title}">Post Title</h1>
+
+                    <!-- Post Content -->
+                    <div class="prose dark:prose-invert max-w-none mb-6">
+                        <p class="text-lg text-slate-700 dark:text-slate-300 whitespace-pre-wrap" th:text="${post.content}">Post content</p>
+                    </div>
+
+                    <!-- Moderation Status -->
+                    <div th:if="${post.flagCount > 0}" class="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p class="text-sm text-red-700 dark:text-red-200">
+                            <strong>⚠ This post has been flagged by <span th:text="${post.flagCount}">0</span> user(s)</strong>
+                        </p>
+                        <div th:if="${postFlags != null && !postFlags.isEmpty()}" class="mt-3 space-y-2">
+                            <p class="font-semibold text-xs uppercase">Flag Reasons:</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li th:each="flag : ${postFlags}" class="text-sm" th:text="${flag.reason}">
+                                    Reason
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div th:if="${post.status == 'PENDING'}" class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <p class="text-sm text-amber-700 dark:text-amber-200">
+                            <strong>⏳ This post is pending approval</strong>
+                        </p>
+                    </div>
+
+                    <!-- Moderation Actions -->
+                    <div th:if="${post.flagCount > 0}" class="flex gap-3">
+                        <button class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+                            th:onclick="|removeFlags(${post.id})|">
+                            <span class="material-symbols-outlined">check</span>
+                            Remove Flags
+                        </button>
+                        <button class="px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+                            th:onclick="|openDeleteModal(${post.id})|">
+                            <span class="material-symbols-outlined">delete</span>
+                            Delete Post
+                        </button>
+                    </div>
+                    
+                    <div th:if="${post.status == 'PENDING'}" class="flex gap-3">
+                        <button class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+                            th:onclick="|openApproveModal(${post.id})|">
+                            <span class="material-symbols-outlined">check</span>
+                            Approve Post
+                        </button>
+                        <button class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+                            th:onclick="|openRejectModal(${post.id})|">
+                            <span class="material-symbols-outlined">close</span>
+                            Reject Post
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark p-8">
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Comments (<span th:text="${post.commentCount}">0</span>)</h3>
+
+                    <div th:if="${post.comments.isEmpty()}" class="text-center py-8">
+                        <span class="material-symbols-outlined text-5xl text-slate-300 mb-4">chat_bubble_outline</span>
+                        <p class="text-slate-500">No comments yet</p>
+                    </div>
+
+                    <div th:unless="${post.comments.isEmpty()}" class="space-y-4">
+                        <div th:each="comment : ${post.comments}" class="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+                            <div class="flex items-start gap-3 mb-3">
+                                <div class="w-9 h-9 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                    <span th:text="${comment.authorDisplayName.charAt(0)}">C</span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-slate-900 dark:text-white" th:text="${comment.authorDisplayName}">Commenter</span>
+                                        <span class="text-xs text-slate-400" th:text="'• ' + ${comment.timeAgo}">• 30m ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-slate-700 dark:text-slate-300" th:text="${comment.content}">Comment text</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Flag Modal -->
+    <div id="flagModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Report Post</h3>
+                <button onclick="closeFlagModal()"
+                    class="text-slate-400 hover:text-slate-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="flagPostId" />
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason for reporting</label>
+                    <select id="flagReason"
+                        class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary">
+                        <option value="">-- Select a reason --</option>
+                        <option value="Inappropriate Content">Inappropriate Content</option>
+                        <option value="Spam or Advertising">Spam or Advertising</option>
+                        <option value="Harassment or Bullying">Harassment or Bullying</option>
+                        <option value="Misinformation">Misinformation</option>
+                        <option value="Off-Topic">Off-Topic</option>
+                        <option value="Violates Community Guidelines">Violates Community Guidelines</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitFlag()">
+                        Report Post
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeFlagModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">warning</span>
+                    Confirm Delete
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Are you sure you want to permanently delete this post? This action cannot be undone.
+                </p>
+                <input type="hidden" id="deletePostId" />
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitDelete()">
+                        Delete Post
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeDeleteModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remove Flags Confirmation Modal -->
+    <div id="removeFlagsModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-green-500">flag</span>
+                    Remove Flags
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Are you sure you want to remove all flags from this post?
+                </p>
+                <input type="hidden" id="removeFlagsPostId" />
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitRemoveFlags()">
+                        Remove Flags
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeRemoveFlagsModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve Post Confirmation Modal -->
+    <div id="approveModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-green-500">check_circle</span>
+                    Approve Post
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Are you sure you want to approve this post? It will be published to the forum.
+                </p>
+                <input type="hidden" id="approvePostId" />
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitApprove()">
+                        Approve Post
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeApproveModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Post Confirmation Modal -->
+    <div id="rejectModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">cancel</span>
+                    Reject Post
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-4">
+                    Are you sure you want to reject this post? It will not be published.
+                </p>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason for rejection (optional)</label>
+                    <input type="text" id="rejectReason" placeholder="Enter reason..." 
+                        class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary" />
+                </div>
+                <input type="hidden" id="rejectPostId" />
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitReject()">
+                        Reject Post
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeRejectModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span id="toastMessage">Action completed!</span>
+    </div>
+
+    <script>
+        function flagPost(postId) {
+            document.getElementById('flagPostId').value = postId;
+            document.getElementById('flagReason').value = '';
+            document.getElementById('flagModal').classList.remove('hidden');
+        }
+
+        function closeFlagModal() {
+            document.getElementById('flagModal').classList.add('hidden');
+        }
+
+        function submitFlag() {
+            const postId = document.getElementById('flagPostId').value;
+            const reason = document.getElementById('flagReason').value;
+            
+            if (!reason) {
+                alert('Please select a reason for flagging this post');
+                return;
+            }
+
+            fetch(`/counselor/forum/moderate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}&action=flag&moderationNote=${encodeURIComponent(reason)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    closeFlagModal();
+                    showToast('Post reported successfully');
+                    setTimeout(() => location.reload(), 1500);
+                } else if (data.message && data.message.includes('already')) {
+                    alert('You have already reported this post');
+                    closeFlagModal();
+                } else {
+                    alert(data.message || 'Error reporting post');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to report post');
+            });
+        }
+
+        function openDeleteModal(postId) {
+            document.getElementById('deletePostId').value = postId;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        function submitDelete() {
+            const postId = document.getElementById('deletePostId').value;
+            closeDeleteModal();
+
+            fetch(`/counselor/forum/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message);
+                    setTimeout(() => {
+                        window.location.href = '/counselor/forum/moderation';
+                    }, 1500);
+                } else {
+                    alert(data.message || 'Error deleting post');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to delete post');
+            });
+        }
+
+        function moderatePost(postId, action, reason = null) {
+            const note = reason || (action === 'reject' ? prompt('Reason for rejection (optional):') : null);
+            
+            fetch(`/counselor/forum/moderate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}&action=${action}${note ? '&moderationNote=' + encodeURIComponent(note) : ''}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message);
+                    setTimeout(() => {
+                        window.location.href = '/counselor/forum/moderation';
+                    }, 1500);
+                } else {
+                    alert(data.message || 'Error processing request');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to process request');
+            });
+        }
+
+        function removeFlags(postId) {
+            document.getElementById('removeFlagsPostId').value = postId;
+            document.getElementById('removeFlagsModal').classList.remove('hidden');
+        }
+
+        function closeRemoveFlagsModal() {
+            document.getElementById('removeFlagsModal').classList.add('hidden');
+        }
+
+        function submitRemoveFlags() {
+            const postId = document.getElementById('removeFlagsPostId').value;
+            closeRemoveFlagsModal();
+
+            fetch(`/counselor/forum/remove-flags`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message);
+                    setTimeout(() => {
+                        goBack();
+                    }, 1500);
+                } else {
+                    alert(data.message || 'Error removing flags');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to remove flags');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('successToast');
+            const msg = document.getElementById('toastMessage');
+            msg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function goBack() {
+            // Use browser history to go back to the previous page
+            window.history.back();
+        }
+
+        function openApproveModal(postId) {
+            document.getElementById('approvePostId').value = postId;
+            document.getElementById('approveModal').classList.remove('hidden');
+        }
+
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.add('hidden');
+        }
+
+        function submitApprove() {
+            const postId = document.getElementById('approvePostId').value;
+            closeApproveModal();
+            moderatePost(postId, 'approve');
+        }
+
+        function openRejectModal(postId) {
+            document.getElementById('rejectPostId').value = postId;
+            document.getElementById('rejectReason').value = '';
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+        }
+
+        function submitReject() {
+            const postId = document.getElementById('rejectPostId').value;
+            const reason = document.getElementById('rejectReason').value;
+            closeRejectModal();
+            moderatePost(postId, 'reject', reason);
+        }
+    </script>
+</body>
+
+</html>

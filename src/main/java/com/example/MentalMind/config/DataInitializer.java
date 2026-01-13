@@ -10,6 +10,10 @@ import com.example.MentalMind.model.CounselorSettings;
 import com.example.MentalMind.model.LearningModule;
 import com.example.MentalMind.model.LearningMaterial;
 import com.example.MentalMind.model.MaterialType;
+import com.example.MentalMind.model.ForumPost;
+import com.example.MentalMind.model.ForumComment;
+import com.example.MentalMind.model.ForumPostLike;
+import com.example.MentalMind.model.ForumPostFlag;
 import com.example.MentalMind.repository.MoodEntryRepository;
 import com.example.MentalMind.repository.UserRepository;
 import com.example.MentalMind.repository.FeedbackRepository;
@@ -19,6 +23,10 @@ import com.example.MentalMind.repository.SelfAssessmentRepository;
 import com.example.MentalMind.repository.CounselorSettingsRepository;
 import com.example.MentalMind.repository.LearningModuleRepository;
 import com.example.MentalMind.repository.LearningMaterialRepository;
+import com.example.MentalMind.repository.ForumPostRepository;
+import com.example.MentalMind.repository.ForumCommentRepository;
+import com.example.MentalMind.repository.ForumPostLikeRepository;
+import com.example.MentalMind.repository.ForumPostFlagRepository;
 import com.example.MentalMind.service.ResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -68,6 +76,18 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private LearningMaterialRepository learningMaterialRepository;
 
+    @Autowired
+    private ForumPostRepository forumPostRepository;
+
+    @Autowired
+    private ForumCommentRepository forumCommentRepository;
+
+    @Autowired
+    private ForumPostLikeRepository forumPostLikeRepository;
+
+    @Autowired
+    private ForumPostFlagRepository forumPostFlagRepository;
+
     @Override
     public void run(String... args) throws Exception {
         System.out.println(LOG_PREFIX + " ========== Starting Data Initialization ==========");
@@ -116,6 +136,17 @@ public class DataInitializer implements CommandLineRunner {
             initializeLearningModules(counselor);
         } else {
             System.out.println(LOG_PREFIX + " Skipping learning modules initialization (counselor is null)");
+        }
+
+        // Initialize forum posts if empty
+        if (students != null && !students.isEmpty()) {
+            initializeForumPosts(students);
+            // Seed some sample likes after posts are created
+            initializeForumLikes(students);
+            // Seed some sample flags on posts
+            initializeForumFlags(students, counselor, counselor2);
+        } else {
+            System.out.println(LOG_PREFIX + " Skipping forum posts initialization (no students available)");
         }
 
         System.out.println(LOG_PREFIX + " ========== Data Initialization Complete ==========");
@@ -864,5 +895,219 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println(LOG_PREFIX + " ✓ Created module: 'Self-Care and Wellness' with 2 materials");
 
         System.out.println(LOG_PREFIX + " ✓ Total: 4 learning modules with 8 materials created.");
+    }
+
+    private void initializeForumPosts(List<User> students) {
+        System.out.println(LOG_PREFIX + " Checking for forum posts...");
+        
+        if (forumPostRepository.count() > 0) {
+            System.out.println(LOG_PREFIX + " Forum posts already exist; skipping.");
+            return;
+        }
+
+        String[] categories = {"anxiety", "stress", "depression", "academic", "general"};
+        String[][] posts = {
+            {
+                "Struggling with exam anxiety",
+                "I have a major exam coming up next week and the anxiety is overwhelming. My mind goes blank when I try to study. Does anyone have tips for managing test anxiety? I'd really appreciate some support.",
+                "anxiety"
+            },
+            {
+                "How to deal with work-life balance",
+                "Between classes, assignments, and part-time work, I'm constantly stressed. I feel like I'm always behind on something. Any advice on managing multiple responsibilities without burning out?",
+                "stress"
+            },
+            {
+                "Feeling lost and unmotivated",
+                "I've been feeling really down lately and struggling to find motivation to do anything. Even things I used to enjoy don't seem fun anymore. Is this something others have experienced? How did you get through it?",
+                "depression"
+            },
+            {
+                "Tips for better time management",
+                "I struggle with procrastination and managing my time effectively. I always end up cramming for exams and rushing assignments. Would love to hear how others organize their schedules. What works best for you?",
+                "academic"
+            },
+            {
+                "Sleep problems affecting my studies",
+                "My sleep schedule is all messed up and it's affecting my ability to focus in classes. I've tried everything but I'm still exhausted. Anyone else dealing with this? What helped you?",
+                "general"
+            },
+            {
+                "Dealing with social anxiety in class",
+                "I get really anxious when I have to speak up in class or present in front of people. My heart races and I feel like everyone's judging me. Is there anyone else who deals with this? How do you cope?",
+                "anxiety"
+            },
+            {
+                "Overwhelming amount of assignments",
+                "This semester feels impossible. I have so many projects and papers due that I don't know where to start. The stress is affecting my mental health. How do you all handle heavy workloads?",
+                "stress"
+            },
+            {
+                "Dealing with loneliness at university",
+                "Even though I'm surrounded by people, I feel really alone and disconnected. It's hard to make genuine connections and I feel isolated. Does anyone else feel this way?",
+                "depression"
+            },
+            {
+                "Study habits that actually work",
+                "I've been using the Pomodoro technique (25 mins study, 5 mins break) and it's been a game-changer for my focus and productivity. What study methods have worked best for you all? Share your secrets!",
+                "academic"
+            },
+            {
+                "Mental health resources on campus",
+                "I wanted to share that our campus counseling center has some amazing free resources and support groups. If anyone is struggling, please reach out. Mental health is just as important as physical health.",
+                "general"
+            }
+        };
+
+        String[][] commentTexts = {
+            {"Thanks for sharing! I've been feeling the same way.", "You're not alone in this. Have you tried talking to a counselor?", "I find deep breathing exercises help me a lot."},
+            {"I totally understand! Try breaking tasks into smaller chunks.", "Setting boundaries is important. Don't be afraid to say no sometimes.", "Maybe try scheduling specific time blocks for each activity?"},
+            {"Please reach out to someone if you need help. You matter!", "I went through something similar. It does get better with time.", "Have you considered joining some student groups or activities?"},
+            {"Pomodoro technique works wonders for me!", "I use a planner app to stay organized. Game changer!", "Try studying in short bursts rather than marathon sessions.", "Also, eliminate distractions like your phone during study time."},
+            {"Avoid screens before bed. It really helps!", "Try maintaining a consistent sleep schedule even on weekends.", "Melatonin supplements helped me, but talk to a doctor first."},
+            {"I get this too! Remember most people are focused on themselves, not judging you.", "Practice in front of a mirror or with friends first.", "The more you do it, the easier it gets. You've got this!"},
+            {"Make a priority list and tackle the most urgent first.", "Don't forget to take breaks! Burnout is real.", "Maybe talk to your professors about extensions if needed?"},
+            {"Try joining clubs related to your interests. That's how I made friends.", "Quality over quantity with friendships. It takes time.", "Campus events are great for meeting people!"},
+            {"I love Pomodoro! Also try active recall instead of just re-reading.", "Study groups help me stay accountable and understand better.", "Teaching someone else the material really solidifies it for me."},
+            {"This is so helpful! I didn't know about these resources.", "Thanks for spreading awareness about mental health support!", "Bookmarking this. Everyone should know about these services."}
+        };
+
+        Random random = new Random();
+        int totalComments = 0;
+        
+        for (int i = 0; i < posts.length; i++) {
+            ForumPost post = new ForumPost();
+            post.setTitle(posts[i][0]);
+            post.setContent(posts[i][1]);
+            post.setCategory(posts[i][2]);
+            post.setUser(students.get(i % students.size()));
+            post.setAnonymous(random.nextBoolean());
+            post.setStatus("APPROVED");
+            post.setLikeCount(random.nextInt(20) + 1);
+            post.setCreatedAt(LocalDateTime.now().minusDays(random.nextInt(7)));
+            post.setUpdatedAt(LocalDateTime.now());
+            
+            ForumPost savedPost = forumPostRepository.save(post);
+            
+            // Create 2-5 comments for each post
+            int numComments = random.nextInt(4) + 2; // 2 to 5 comments
+            for (int j = 0; j < numComments && j < commentTexts[i].length; j++) {
+                ForumComment comment = new ForumComment();
+                comment.setPost(savedPost);
+                comment.setContent(commentTexts[i][j]);
+                // Use different students for comments
+                comment.setUser(students.get((i + j + 1) % students.size()));
+                comment.setAnonymous(random.nextBoolean());
+                comment.setCreatedAt(savedPost.getCreatedAt().plusHours(random.nextInt(24) + 1));
+                
+                forumCommentRepository.save(comment);
+                totalComments++;
+            }
+        }
+
+        System.out.println(LOG_PREFIX + " ✓ Created 10 sample forum posts with various categories.");
+        System.out.println(LOG_PREFIX + " ✓ Created " + totalComments + " comments on forum posts.");
+    }
+
+    private void initializeForumLikes(List<User> students) {
+        System.out.println(LOG_PREFIX + " Initializing forum post likes...");
+
+        // Check if likes already exist to avoid duplicates
+        if (forumPostLikeRepository.count() > 0) {
+            System.out.println(LOG_PREFIX + " Forum likes already exist; skipping.");
+            return;
+        }
+
+        List<ForumPost> allPosts = forumPostRepository.findAll();
+        if (allPosts.isEmpty()) {
+            System.out.println(LOG_PREFIX + " No forum posts available for liking.");
+            return;
+        }
+
+        Random random = new Random();
+        int likeCount = 0;
+
+        // For each post, 2-5 random students like it
+        for (ForumPost post : allPosts) {
+            int numLikes = random.nextInt(4) + 2; // 2 to 5 likes per post
+            
+            // Shuffle students to get random ones
+            List<User> shuffledStudents = new ArrayList<>(students);
+            for (int i = 0; i < numLikes && i < shuffledStudents.size(); i++) {
+                User studentWhoLikes = shuffledStudents.get(i);
+                
+                // Only create like if it doesn't already exist
+                if (!forumPostLikeRepository.existsByPostAndUser(post, studentWhoLikes)) {
+                    ForumPostLike like = new ForumPostLike(post, studentWhoLikes);
+                    forumPostLikeRepository.save(like);
+                    likeCount++;
+                }
+            }
+        }
+
+        System.out.println(LOG_PREFIX + " ✓ Created " + likeCount + " sample likes on forum posts.");
+    }
+
+    private void initializeForumFlags(List<User> students, User counselor, User counselor2) {
+        System.out.println(LOG_PREFIX + " Initializing forum post flags...");
+
+        // Check if flags already exist to avoid duplicates
+        if (forumPostFlagRepository.count() > 0) {
+            System.out.println(LOG_PREFIX + " Forum flags already exist; skipping.");
+            return;
+        }
+
+        List<ForumPost> allPosts = forumPostRepository.findAll();
+        if (allPosts.isEmpty()) {
+            System.out.println(LOG_PREFIX + " No forum posts available for flagging.");
+            return;
+        }
+
+        Random random = new Random();
+        int flagCount = 0;
+
+        // Sample flag reasons
+        String[] flagReasons = {
+            "Contains inappropriate language",
+            "Potentially harmful content",
+            "Spam or promotional content",
+            "Off-topic discussion",
+            "Violates forum guidelines",
+            "Potentially distressing content",
+            "Requires counselor review",
+            "May need moderation"
+        };
+
+        // Flag approximately 3-4 posts with 1-3 flags each
+        List<ForumPost> postsToFlag = new ArrayList<>();
+        for (int i = 0; i < Math.min(4, allPosts.size()); i++) {
+            postsToFlag.add(allPosts.get(i));
+        }
+
+        // For each selected post, add 1-3 flags from counselors
+        for (ForumPost post : postsToFlag) {
+            int numFlags = random.nextInt(3) + 1; // 1 to 3 flags per post
+
+            for (int i = 0; i < numFlags; i++) {
+                User flagger = i == 0 && counselor != null ? counselor : (counselor2 != null ? counselor2 : counselor);
+                if (flagger != null && !forumPostFlagRepository.existsByPostAndUser(post, flagger)) {
+                    String reason = flagReasons[random.nextInt(flagReasons.length)];
+                    ForumPostFlag flag = new ForumPostFlag(post, flagger, reason);
+                    forumPostFlagRepository.save(flag);
+                    flagCount++;
+
+                    // Update post's flagCount
+                    long newFlagCount = forumPostFlagRepository.countByPost(post);
+                    post.setFlagCount((int) newFlagCount);
+                }
+            }
+
+            // Save the updated post with new flagCount
+            if (post.getFlagCount() > 0) {
+                forumPostRepository.save(post);
+            }
+        }
+
+        System.out.println(LOG_PREFIX + " ✓ Created " + flagCount + " sample flags on forum posts.");
     }
 }

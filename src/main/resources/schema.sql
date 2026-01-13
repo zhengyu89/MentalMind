@@ -132,4 +132,52 @@ CREATE TABLE IF NOT EXISTS student_material_progress (
     UNIQUE KEY uk_student_material (student_id, material_id)
 );
 
+-- Create Forum Posts Table
+CREATE TABLE IF NOT EXISTS forum_posts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content LONGTEXT NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    anonymous BOOLEAN DEFAULT true,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    moderation_note TEXT,
+    like_count INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_category (category),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+);
+
+-- Create Forum Comments Table
+CREATE TABLE IF NOT EXISTS forum_comments (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    content LONGTEXT NOT NULL,
+    anonymous BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_post_id (post_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
+);
+
+-- Create Forum Post Likes Table (per-user likes)
+CREATE TABLE IF NOT EXISTS forum_post_likes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_forum_post_user UNIQUE (post_id, user_id),
+    FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_like_post_id (post_id),
+    INDEX idx_like_user_id (user_id)
+);
+
 COMMIT;

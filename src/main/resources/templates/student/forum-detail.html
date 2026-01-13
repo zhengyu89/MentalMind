@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Post Detail - Peer Support Forum')}">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-700 dark:text-slate-300 antialiased">
+    <div class="flex h-screen">
+        <div th:replace="~{fragments/sidebar-student :: sidebar('forum')}"></div>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <header class="flex items-center gap-4 mb-8">
+                <a href="/student/forum" class="text-primary hover:text-indigo-700 transition-colors">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </a>
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Forum Discussion</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mt-1">View the full conversation</p>
+                </div>
+            </header>
+
+            <!-- Post Detail -->
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 mb-6">
+                <div class="flex items-start gap-4 mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        <span th:text="${post.authorDisplayName.charAt(0)}">A</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="font-semibold text-lg text-slate-900 dark:text-white" th:text="${post.authorDisplayName}">Anonymous</span>
+                            <span class="text-sm text-slate-400" th:text="'• ' + ${post.timeAgo}">• 2 hours ago</span>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full text-purple-600 bg-purple-100 dark:bg-purple-900/50"
+                                th:text="${post.category.substring(0, 1).toUpperCase() + post.category.substring(1)}">Anxiety</span>
+                            <!-- Owner-only delete button -->
+                            <button th:if="${isOwnPost}" class="flex items-center gap-1 text-slate-500 hover:text-red-600 transition-colors ml-auto"
+                                th:onclick="|openDeleteModal(${post.id})|">
+                                <span class="material-symbols-outlined text-lg">delete</span>
+                                <span class="text-sm">Delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-4" th:text="${post.title}">Post Title</h1>
+                <p class="text-slate-700 dark:text-slate-300 text-lg mb-6 whitespace-pre-wrap" th:text="${post.content}">Post content</p>
+
+                <div class="flex items-center gap-8 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <button th:class="'like-btn flex items-center gap-2 hover:text-red-500 transition-colors font-medium ' + (${likedByCurrentUser} ? 'text-red-500' : 'text-slate-500')"
+                        th:attr="onclick='likePost(' + ${post.id} + ')'">
+                        <span class="material-symbols-outlined text-xl">favorite</span>
+                        <span class="like-count" th:text="${post.likeCount}">0</span>
+                        <span>Likes</span>
+                    </button>
+                    <div class="flex items-center gap-2 text-slate-500 font-medium">
+                        <span class="material-symbols-outlined text-xl">chat_bubble</span>
+                        <span class="comment-count" th:text="${post.commentCount}">0</span>
+                        <span>Replies</span>
+                    </div>
+                    <!-- Report button - only show if not own post -->
+                    <button th:if="!${isOwnPost}"
+                        th:disabled="${alreadyFlagged}"
+                        th:classappend="${alreadyFlagged} ? 'opacity-50 cursor-not-allowed' : ''"
+                        class="flex items-center gap-1 text-slate-500 hover:text-red-500 transition-colors ml-auto h-fit disabled:hover:text-slate-500"
+                        th:attr="onclick=!${alreadyFlagged} ? 'reportPost(' + ${post.id} + ')' : ''">
+                        <span class="material-symbols-outlined text-xl">flag</span>
+                        <span class="text-sm" th:text="${alreadyFlagged} ? 'Already Reported' : 'Report'">Report</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Add Comment Section -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 mt-6 mb-6">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Write a Reply</h3>
+                <div class="space-y-3">
+                    <div class="flex gap-2">
+                        <textarea placeholder="Share your supportive message or advice..."
+                            class="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary resize-none"
+                            rows="4" id="commentInput"></textarea>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" id="anonymousCheckbox" class="rounded border-slate-300 text-primary focus:ring-primary" checked />
+                            <span class="text-slate-700 dark:text-slate-300">Post anonymously</span>
+                        </label>
+                        <button class="px-6 py-2 bg-primary text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                            th:attr="onclick='addCommentDetail(' + ${post.id} + ')'">
+                            Post Reply
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Replies (<span class="comment-count" th:text="${post.commentCount}">0</span>)</h3>
+
+                <!-- Existing Comments -->
+                <div th:if="${!post.comments.isEmpty()}" class="space-y-4">
+                    <div th:each="comment,iterStat : ${post.comments}" class="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                <span th:text="${comment.authorDisplayName.charAt(0)}">A</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-slate-900 dark:text-white" th:text="${comment.authorDisplayName}">Author</span>
+                                    <span class="text-xs text-slate-400" th:text="'• ' + ${comment.timeAgo}">• 1 hour ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-slate-700 dark:text-slate-300" th:text="${comment.content}">Comment content</p>
+                    </div>
+                </div>
+
+                <div th:if="${post.comments.isEmpty()}" class="text-center py-8 text-slate-500">
+                    <p>No replies yet. Be the first to respond!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">warning</span>
+                    Confirm Delete
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-slate-700 dark:text-slate-300 mb-6">
+                    Are you sure you want to permanently delete this post? This action cannot be undone.
+                </p>
+                <input type="hidden" id="deletePostId" />
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitDelete()">
+                        Delete Post
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeDeleteModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-800">
+            <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Report Post</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Help us keep the community safe</p>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="reportPostId" />
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Reason for reporting</label>
+                    <select id="reportReason"
+                        class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary">
+                        <option value="">-- Select a reason --</option>
+                        <option value="Inappropriate Content">Inappropriate Content</option>
+                        <option value="Spam or Advertising">Spam or Advertising</option>
+                        <option value="Harassment or Bullying">Harassment or Bullying</option>
+                        <option value="Misinformation">Misinformation</option>
+                        <option value="Off-Topic">Off-Topic</option>
+                        <option value="Violates Community Guidelines">Violates Community Guidelines</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button
+                        class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
+                        onclick="submitReport()">
+                        Report Post
+                    </button>
+                    <button
+                        class="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 font-medium rounded-lg transition-colors"
+                        onclick="closeReportModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast"
+        class="hidden fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span id="toastMessage">Action completed!</span>
+    </div>
+
+    <script>
+        function openDeleteModal(postId) {
+            document.getElementById('deletePostId').value = postId;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        function submitDelete() {
+            const postId = document.getElementById('deletePostId').value;
+            closeDeleteModal();
+
+            fetch(`/student/forum/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast(data.message || 'Post deleted successfully');
+                    setTimeout(() => {
+                        window.location.href = '/student/forum';
+                    }, 1500);
+                } else {
+                    alert(data.message || 'Error deleting post');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to delete post');
+            });
+        }
+
+        function likePost(postId) {
+            const likeBtn = document.querySelector('.like-btn');
+            
+            // Debounce: prevent rapid clicks
+            if (likeBtn?.hasAttribute('data-liking')) {
+                return;
+            }
+            likeBtn?.setAttribute('data-liking', 'true');
+            
+            fetch(`/student/forum/like/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const likeCount = likeBtn.querySelector('.like-count');
+                    const icon = likeBtn.querySelector('.material-symbols-outlined');
+                    likeCount.textContent = data.likeCount;
+                    if (data.liked) {
+                        likeBtn.classList.add('text-red-500');
+                        // Trigger small pop animation on like
+                        if (icon) {
+                            icon.classList.remove('like-pop');
+                            // force reflow to restart animation if already applied
+                            // eslint-disable-next-line no-unused-expressions
+                            icon.offsetWidth;
+                            icon.classList.add('like-pop');
+                        }
+                    } else {
+                        likeBtn.classList.remove('text-red-500');
+                        if (icon) {
+                            icon.classList.remove('like-pop');
+                        }
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+                // Re-enable button after request completes
+                likeBtn?.removeAttribute('data-liking');
+            });
+        }
+
+        function addCommentDetail(postId) {
+            const input = document.getElementById('commentInput');
+            const anonymousCheckbox = document.getElementById('anonymousCheckbox');
+            const content = input.value.trim();
+            const anonymous = anonymousCheckbox.checked;
+
+            if (!content) {
+                alert('Please write a reply');
+                return;
+            }
+
+            fetch(`/student/forum/comment/${postId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `content=${encodeURIComponent(content)}&anonymous=${anonymous}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update comment count
+                    const commentCount = document.querySelectorAll('.comment-count');
+                    commentCount.forEach(el => {
+                        const current = parseInt(el.textContent) || 0;
+                        el.textContent = current + 1;
+                    });
+
+                    // Add new comment to the list
+                    const newComment = document.createElement('div');
+                    newComment.className = 'bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800';
+                    newComment.innerHTML = `
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                <span>${data.comment.authorName.charAt(0)}</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-slate-900 dark:text-white">${data.comment.authorName}</span>
+                                    <span class="text-xs text-slate-400">• ${data.comment.timeAgo}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-slate-700 dark:text-slate-300">${data.comment.content}</p>
+                    `;
+
+                    // Insert before the input section
+                    const inputSection = document.querySelector('.bg-white.dark\\:bg-slate-900.p-6.rounded-xl.border.border-slate-200.dark\\:border-slate-800.mt-6');
+                    inputSection.parentNode.insertBefore(newComment, inputSection);
+
+                    input.value = '';
+                    showToast('Reply posted successfully!');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('successToast');
+            const msg = document.getElementById('toastMessage');
+            msg.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function reportPost(postId) {
+            document.getElementById('reportPostId').value = postId;
+            document.getElementById('reportReason').value = '';
+            document.getElementById('reportModal').classList.remove('hidden');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+        }
+
+        function submitReport() {
+            const postId = document.getElementById('reportPostId').value;
+            const reason = document.getElementById('reportReason').value;
+            
+            if (!reason) {
+                alert('Please select a reason for reporting this post');
+                return;
+            }
+
+            fetch(`/student/forum/moderate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `postId=${postId}&action=flag&moderationNote=${encodeURIComponent(reason)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    closeReportModal();
+                    showToast('Post reported successfully');
+                    // Refresh after 1.5s to show updated flag count
+                    setTimeout(() => location.reload(), 1500);
+                } else if (data.message && data.message.includes('already')) {
+                    // This shouldn't happen due to disabled button, but handle gracefully
+                    closeReportModal();
+                } else {
+                    alert(data.message || 'Error reporting post');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+
+</html>
