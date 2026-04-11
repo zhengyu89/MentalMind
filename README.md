@@ -1,4 +1,4 @@
-# MindWell - Digital Mental Health Literacy Hub 🧠💚
+# MentalMind - Digital Mental Health Literacy Hub 🧠💚
 
 A comprehensive web-based mental health support platform designed for Malaysian university students. Built with Spring Boot MVC and Thymeleaf, featuring interactive learning modules, mood tracking, peer support forums, and counselor management tools.
 
